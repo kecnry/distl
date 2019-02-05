@@ -199,12 +199,14 @@ class BaseDistribution(object):
 
         if plot_dist:
             x = _np.linspace(xmin, xmax, 1001)
-            ret_dist = self.plot_dist(x, show=False, **kwargs)
+            ret_dist = self.plot_dist(x, show=False, **{k:v for k,v in kwargs.items() if k not in ['bins']})
         else:
             ret_dist = None
 
 
         if show:
+            _plt.xlabel('value')
+            _plt.ylabel('density')
             _plt.show()
 
         return (ret_sample, ret_dist)
@@ -213,6 +215,8 @@ class BaseDistribution(object):
     def plot_sample(self, size=1000, show=False, **kwargs):
         ret = _plt.hist(self.sample(size), density=True, **kwargs)
         if show:
+            _plt.xlabel('value')
+            _plt.ylabel('density')
             _plt.show()
 
         return ret
@@ -224,6 +228,8 @@ class BaseDistribution(object):
             ret = None
 
         if show:
+            _plt.xlabel('value')
+            _plt.ylabel('density')
             _plt.show()
 
         return ret
