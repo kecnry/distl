@@ -34,7 +34,11 @@ def from_dict(d):
         raise ValueError("input dictionary missing 'nparray' entry")
 
     classname = d.pop('npdists').title()
-    return getattr(_npdists, classname)(**d)
+    unit = d.pop('unit', None)
+    dist = getattr(_npdists, classname)(**d)
+    if unit is not None and _has_astropy:
+        dist *= _unit.Unit(unit)
+    return dist
 
 def from_json(j):
     """

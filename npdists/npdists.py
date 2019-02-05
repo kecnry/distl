@@ -4,37 +4,44 @@ from collections import OrderedDict
 
 import matplotlib.pyplot as _plt
 
+try:
+    from astropy import units as _units
+except ImportError:
+    _has_astropy = False
+else:
+    _has_astropy = True
+
 
 ################## VALIDATORS ###################
 
 # these all must accept a single value and return a boolean if it matches the condition as well as any alterations to the value
 # NOTE: the docstring is used as the error message if the test fails
 
-# def is_unit(value):
-#     """must be an astropy unit"""
-#     if not _has_astropy:
-#         raise ImportError("astropy must be installed for unit support")
-#     if (isinstance(value, units.Unit) or isinstance(value, units.IrreducibleUnit) or isinstance(value, units.CompositeUnit)):
-#         return True, value
-#     else:
-#         return False, value
+def is_unit(value):
+    """must be an astropy unit"""
+    if not _has_astropy:
+        raise ImportError("astropy must be installed for unit support")
+    if (isinstance(value, _units.Unit) or isinstance(value, _units.IrreducibleUnit) or isinstance(value, _units.CompositeUnit)):
+        return True, value
+    else:
+        return False, value
 
-# def is_unit_or_unitstring(value):
-#     """must be an astropy.unit"""
-#     if is_unit(value)[0]:
-#         return True, value
-#     try:
-#         unit = units.Unit(value)
-#     except:
-#         return False, value
-#     else:
-#         return True, unit
-#
-# def is_unit_or_unitstring_or_none(value):
-#     """must be an astropy unit or None"""
-#     if value is None:
-#         return True, value
-#     return is_unit_or_unitstring(value)
+def is_unit_or_unitstring(value):
+    """must be an astropy.unit"""
+    if is_unit(value)[0]:
+        return True, value
+    try:
+        unit = _units.Unit(value)
+    except:
+        return False, value
+    else:
+        return True, unit
+
+def is_unit_or_unitstring_or_none(value):
+    """must be an astropy unit or None"""
+    if value is None:
+        return True, value
+    return is_unit_or_unitstring(value)
 
 def is_bool(value):
     """must be boolean"""
@@ -113,6 +120,8 @@ class BaseDistribution(object):
         self._sample_func = sample_func
         self._sample_args = sample_args
 
+        self.unit = None
+
         for item in args:
             valid, validated_value = item[2](item[1])
             if valid:
@@ -125,7 +134,7 @@ class BaseDistribution(object):
         """
         for anything that isn't overriden here, call the method on the array itself
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', 'unit']:
             # then we need to actually get the attribute
             return super(BaseDistribution, self).__getattr__(name)
         elif name in self._descriptors.keys():
@@ -137,7 +146,7 @@ class BaseDistribution(object):
     def __setattr__(self, name, value):
         """
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', 'unit']:
             return super(BaseDistribution, self).__setattr__(name, value)
         elif name in self._descriptors.keys():
             valid, validated_value = self._validators[name](value)
@@ -146,11 +155,45 @@ class BaseDistribution(object):
             else:
                 raise ValueError("{} {}".format(name, validator.__doc__))
         else:
-            return setattr(self.array, name, value)
+            raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
 
     def __repr__(self):
         descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
-        return "<{} {}>".format(self.__class__.__name__.lower(), descriptors)
+        return "<{} {} unit={}>".format(self.__class__.__name__.lower(), descriptors, self.unit)
+
+    def __copy__(self):
+        return self.__class__(**self._descriptors)
+
+    def __deepcopy__(self):
+        return self.__copy__(self)
+
+    def copy(self):
+        return self.__copy__()
+
+    def __mulunit__(self, other):
+        if _has_astropy and is_unit(other)[0]:
+            copy = self.copy()
+            copy.unit = other
+            return copy
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def to(self, unit):
+        """
+        """
+        if not _has_astropy:
+            raise ImportError("astropy required to handle units")
+
+        if self.unit is None:
+            raise ValueError("distribution object does not have a unit")
+
+        factor = self.unit.to(unit)
+
+        new_dist = self.copy()
+        new_dist.unit = None
+        new_dist *= factor
+        return new_dist
 
     @property
     def mean(self):
@@ -176,8 +219,43 @@ class BaseDistribution(object):
     def sample_args(self):
         return tuple(getattr(self, k) for k in self._sample_args)
 
-    def sample(self, size=None):
-        return self.sample_func(*self.sample_args, size=size)
+    def _return_with_units(self, value, unit=None, as_quantity=False):
+        if (as_quantity or unit) and not _has_astropy:
+            raise ImportError("astropy required to return quantity objects")
+
+        if unit is None and not as_quantity:
+            return value
+
+        if self.unit is not None:
+            value *= self.unit
+
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only return unit if unit is set for distribution")
+
+            if not _has_astropy:
+                raise ImportError("astropy must be installed for unit support")
+
+            value = value.to(unit)
+
+
+        if as_quantity:
+            return value
+        else:
+            return value.value
+
+    def sample(self, size=None, unit=None, as_quantity=False):
+        return self._return_with_units(self.sample_func(*self.sample_args, size=size), unit=unit, as_quantity=as_quantity)
+
+    def distribution(self, x, unit=None, as_quantity=False):
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+        return self._return_with_units(self.dist_func(x, *self.dist_args), unit=unit, as_quantity=as_quantity)
+
 
     # def plot_func(self, show=False, **kwargs):
     #     ret = _plt.hist(self.sample(size), **kwargs)
@@ -186,49 +264,57 @@ class BaseDistribution(object):
     #
     #     return ret
 
-    def plot(self, size=1000, plot_sample=True, plot_dist=True, show=False, **kwargs):
+    def _xlabel(self, unit=None):
+        l = 'value'
+        if _has_astropy and self.unit is not None:
+            l += ' ({})'.format(unit if unit is not None else self.unit)
+
+        return l
+
+
+    def plot(self, size=1000, unit=None, plot_sample=True, plot_dist=True, show=False, **kwargs):
         ret = []
         if plot_sample:
-            ret_sample = self.plot_sample(size=size, show=False, **kwargs)
+            ret_sample = self.plot_sample(size=size, unit=unit, show=False, **kwargs)
             xmin, xmax = _plt.gca().get_xlim()
         else:
             ret_sample = None
-            sample = self.sample(size=size)
+            sample = self.sample(size=size, unit=unit)
             xmin = _np.min(sample)
             xmax = _np.max(sample)
 
         if plot_dist:
             x = _np.linspace(xmin, xmax, 1001)
-            ret_dist = self.plot_dist(x, show=False, **{k:v for k,v in kwargs.items() if k not in ['bins']})
+            ret_dist = self.plot_dist(x, unit=unit, show=False, **{k:v for k,v in kwargs.items() if k not in ['bins']})
         else:
             ret_dist = None
 
-
         if show:
-            _plt.xlabel('value')
+            _plt.xlabel(self._xlabel(unit))
             _plt.ylabel('density')
             _plt.show()
 
         return (ret_sample, ret_dist)
 
 
-    def plot_sample(self, size=1000, show=False, **kwargs):
-        ret = _plt.hist(self.sample(size), density=True, **kwargs)
+    def plot_sample(self, size=1000, unit=None, show=False, **kwargs):
+        ret = _plt.hist(self.sample(size, unit=unit), density=True, **kwargs)
         if show:
-            _plt.xlabel('value')
+            _plt.xlabel(self._xlabel(unit))
             _plt.ylabel('density')
             _plt.show()
 
         return ret
 
-    def plot_dist(self, x, show=False, **kwargs):
+    def plot_dist(self, x, unit=None, show=False, **kwargs):
+        # x is assumed to be in new units
         if self.dist_func is not None:
-            ret = _plt.plot(x, self.dist_func(x, *self.dist_args), **kwargs)
+            ret = _plt.plot(x, self.distribution(x, unit=unit, as_quantity=False), **kwargs)
         else:
             ret = None
 
         if show:
-            _plt.xlabel('value')
+            _plt.xlabel(self._xlabel(unit))
             _plt.ylabel('density')
             _plt.show()
 
@@ -252,6 +338,8 @@ class BaseDistribution(object):
                 return v
         d = {k:_json_safe(v) for k,v in self._descriptors.items()}
         d['npdists'] = self.__class__.__name__.lower()
+        if self.unit is not None:
+            d['unit'] = self.unit.to_string()
         return d
 
     def to_json(self, **kwargs):
