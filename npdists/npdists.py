@@ -161,6 +161,14 @@ class BaseDistribution(object):
         descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
         return "<{} {} unit={}>".format(self.__class__.__name__.lower(), descriptors, self.unit)
 
+    def __float__(self):
+        """
+        by default, have the float representation come from sampling, but
+        subclasses can/should override this to be the central/median/mode if
+        possible
+        """
+        return self.sample()
+
     def __copy__(self):
         return self.__class__(**self._descriptors)
 
@@ -178,6 +186,9 @@ class BaseDistribution(object):
 
     def __rmul__(self, other):
         return self.__mul__(other)
+
+    def __radd__(self, other):
+        return self.__add__(other)
 
     def to(self, unit):
         """
@@ -428,6 +439,36 @@ class Gaussian(BaseDistribution):
                                        _np.random.normal, ('loc', 'scale'),
                                        ('loc', loc, is_float), ('scale', scale, is_float))
 
+    def __mul__(self, other):
+        mul = super(Gaussian, self).__mulunit__(other)
+        if mul is not None:
+            return mul
+
+        if not (isinstance(other, float) or isinstance(other, int)):
+            return TypeError("can only multiply/divide {} by float, int, or unit".format(self.__class__.__name__))
+
+        dist = self.copy()
+        dist.loc *= other
+        dist.scale *= other
+        return dist
+
+    def __div__(self, other):
+        return self.__mul__(1./other)
+
+    def __add__(self, other):
+        if not (isinstance(other, float) or isinstance(other, int)):
+            return TypeError("can only add/subtract {} with float or int".format(self.__class__.__name__))
+        dist = self.copy()
+        dist.loc += other
+        return dist
+
+    def __sub__(self, other):
+        return self.__add__(-1*other)
+
+    def __float__(self):
+        return self.loc
+        # return self.sample()
+
     @property
     def mean(self):
         return self.loc
@@ -449,6 +490,33 @@ class Uniform(BaseDistribution):
         super(Uniform, self).__init__(uniform, ('low', 'high'),
                                       _np.random.uniform, ('low', 'high'),
                                       ('low', low, is_float), ('high', high, is_float))
+
+    def __mul__(self, other):
+        mul = super(Uniform, self).__mulunit__(other)
+        if mul is not None:
+            return mul
+
+        if not (isinstance(other, float) or isinstance(other, int)):
+            return TypeError("can only multiply/divide {} by float, int, or unit".format(self.__class__.__name__))
+
+        dist = self.copy()
+        dist.low *= other
+        dist.high *= other
+        return dist
+
+    def __div__(self, other):
+        return self.__mul__(1./other)
+
+    def __add__(self, other):
+        if not (isinstance(other, float) or isinstance(other, int)):
+            return TypeError("can only add/subtract {} with float or int".format(self.__class__.__name__))
+        dist = self.copy()
+        dist.low += other
+        dist.high += other
+        return dist
+
+    def __sub__(self, other):
+        return self.__add__(-1*other)
 
     @property
     def mean(self):
