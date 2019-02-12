@@ -98,7 +98,7 @@ class BaseDistribution(object):
     __init__ (see docs below)
     mean, std properties
     """
-    def __init__(self,
+    def __init__(self, unit,
                  dist_func, dist_args,
                  sample_func, sample_args,
                  *args):
@@ -120,7 +120,7 @@ class BaseDistribution(object):
         self._sample_func = sample_func
         self._sample_args = sample_args
 
-        self.unit = None
+        self.unit = unit
 
         for item in args:
             valid, validated_value = item[2](item[1])
@@ -134,7 +134,7 @@ class BaseDistribution(object):
         """
         for anything that isn't overriden here, call the method on the array itself
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', 'unit']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '_unit', 'unit']:
             # then we need to actually get the attribute
             return super(BaseDistribution, self).__getattr__(name)
         elif name in self._descriptors.keys():
@@ -146,7 +146,7 @@ class BaseDistribution(object):
     def __setattr__(self, name, value):
         """
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', 'unit']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', '_unit', 'unit']:
             return super(BaseDistribution, self).__setattr__(name, value)
         elif name in self._descriptors.keys():
             valid, validated_value = self._validators[name](value)
@@ -170,10 +170,10 @@ class BaseDistribution(object):
         return self.sample()
 
     def __copy__(self):
-        return self.__class__(**self._descriptors)
+        return self.__class__(unit=self.unit, **self._descriptors)
 
-    def __deepcopy__(self):
-        return self.__copy__(self)
+    def __deepcopy__(self, memo):
+        return self.__copy__()
 
     def copy(self):
         return self.__copy__()
@@ -190,6 +190,17 @@ class BaseDistribution(object):
     def __radd__(self, other):
         return self.__add__(other)
 
+    @property
+    def unit(self):
+        return self._unit
+
+    @unit.setter
+    def unit(self, unit):
+        if not (unit is None or isinstance(unit, _units.Unit) or isinstance(unit, _units.CompositeUnit) or isinstance(unit, _units.IrreducibleUnit)):
+            raise TypeError("unit must be of type astropy.units.Unit")
+
+        self._unit = unit
+
     def to(self, unit):
         """
         """
@@ -202,7 +213,7 @@ class BaseDistribution(object):
         factor = self.unit.to(unit)
 
         new_dist = self.copy()
-        new_dist.unit = None
+        new_dist.unit = unit
         new_dist *= factor
         return new_dist
 
@@ -380,8 +391,8 @@ class BaseDistribution(object):
 ####################### DISTRIBUTION SUB-CLASSES ###############################
 
 class Histogram(BaseDistribution):
-    def __init__(self, bins, density):
-        super(Histogram, self).__init__(None, None,
+    def __init__(self, bins, density, unit=None):
+        super(Histogram, self).__init__(unit, None, None,
                                         self._sample_from_hist, ('bins', 'density'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
@@ -434,8 +445,8 @@ class Histogram(BaseDistribution):
 
 
 class Gaussian(BaseDistribution):
-    def __init__(self, loc=0.0, scale=0.0):
-        super(Gaussian, self).__init__(gaussian, ('loc', 'scale'),
+    def __init__(self, loc=0.0, scale=0.0, unit=None):
+        super(Gaussian, self).__init__(unit, gaussian, ('loc', 'scale'),
                                        _np.random.normal, ('loc', 'scale'),
                                        ('loc', loc, is_float), ('scale', scale, is_float))
 
@@ -486,8 +497,8 @@ class Gaussian(BaseDistribution):
         return Histogram.from_data(self.sample(size=N), bins=bins, range=range)
 
 class Uniform(BaseDistribution):
-    def __init__(self, low=0.0, high=1.0):
-        super(Uniform, self).__init__(uniform, ('low', 'high'),
+    def __init__(self, low=0.0, high=1.0, unit=None):
+        super(Uniform, self).__init__(unit, uniform, ('low', 'high'),
                                       _np.random.uniform, ('low', 'high'),
                                       ('low', low, is_float), ('high', high, is_float))
 
