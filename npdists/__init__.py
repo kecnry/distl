@@ -1,8 +1,19 @@
 from . import npdists as _npdists
 from .npdists import BaseDistribution # for isinstance checking
+import json as _json
+
+try:
+    import dill as _dill
+except ImportError:
+    _has_dill = False
+else:
+    _has_dill = True
 
 __version__ = '0.0.1'
 version = __version__
+
+def function(*args, **kwargs):
+    return _npdists.Function(*args, **kwargs)
 
 def gaussian(*args, **kwargs):
     return _npdists.Gaussian(*args, **kwargs)
@@ -51,7 +62,7 @@ def from_json(j):
     if not (isinstance(j, str) or isinstance(j, unicode)):
         raise TypeError("argument must be of type str")
 
-    return from_dict(json.loads(j))
+    return from_dict(_json.loads(j))
 
 def from_file(filename):
     """
@@ -59,7 +70,17 @@ def from_file(filename):
     @parameter str filename: path to the file
     """
     f = open(filename, 'r')
-    j = json.load(f)
-    f.close()
-
-    return from_dict(j)
+    try:
+        j = _json.load(f)
+    except:
+        f.close()
+        if _has_dill:
+            f = open(filename, 'rb')
+            d = _dill.load(f)
+            f.close()
+            return d
+        else:
+            raise ImportError("file requires 'dill' package to load")
+    else:
+        f.close()
+        return from_dict(j)

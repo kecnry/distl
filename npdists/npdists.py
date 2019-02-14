@@ -11,11 +11,50 @@ except ImportError:
 else:
     _has_astropy = True
 
+try:
+    import dill as _dill
+except ImportError:
+    _has_dill = False
+else:
+    _has_dill = True
+
+_math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/'}
 
 ################## VALIDATORS ###################
 
 # these all must accept a single value and return a boolean if it matches the condition as well as any alterations to the value
 # NOTE: the docstring is used as the error message if the test fails
+
+def is_distribution(value):
+    """must be an npdists Distribution object"""
+    if isinstance(value, dict) and 'npdists' in value.keys():
+        # TODO: from_dict probably not available since its in __init__.py
+        return True, from_dict(value)
+    return isinstance(value, BaseDistribution), value
+
+def is_distribution_or_none(value):
+    """must be an npdists Distribution object or None"""
+    if value is None:
+        return True, value
+    else:
+        return is_distribution(value)
+
+def is_math(value):
+    """must be a valid math operator"""
+    # TODO: make this more robust checking
+    valid_maths = ['__add__', '__radd__', '__sub__', '__rsub__', '__mul__', '__rmul__', '__div__', '__rdiv__']
+    valid_maths += ['sin', 'cos', 'tan']
+    return value in valid_maths, value
+
+def is_callable(value):
+    """must be a callable function"""
+    if isinstance(value, str):
+        # try to "undill"
+        if _has_dill:
+            value = _dill.loads(value)
+        else:
+            raise ImportError("'dill' package required to load functions")
+    return hasattr(value, 'func_name'), value
 
 def is_unit(value):
     """must be an astropy unit"""
@@ -159,7 +198,7 @@ class BaseDistribution(object):
 
     def __repr__(self):
         descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
-        return "<{} {} unit={}>".format(self.__class__.__name__.lower(), descriptors, self.unit)
+        return "<npdists.{} {} unit={}>".format(self.__class__.__name__.lower(), descriptors, self.unit)
 
     def __float__(self):
         """
@@ -178,17 +217,43 @@ class BaseDistribution(object):
     def copy(self):
         return self.__copy__()
 
-    def __mulunit__(self, other):
+    def __mul__(self, other):
         if _has_astropy and is_unit(other)[0]:
             copy = self.copy()
             copy.unit = other
             return copy
 
+        elif isinstance(other, BaseDistribution):
+            return Composite("__mul__", self, other)
+        else:
+            raise TypeError("cannot multiply {} by type {}".format(self.__class__.__name__, type(other)))
+
     def __rmul__(self, other):
         return self.__mul__(other)
 
-    def __radd__(self, other):
-        return self.__add__(other)
+    def __add__(self, other):
+        if isinstance(other, BaseDistribution):
+            return Composite("__add__", self, other)
+        else:
+            raise TypeError("cannot add {} by type {}".format(self.__class__.__name__, type(other)))
+
+    # def __radd__(self, other):
+    #     return self.__add__(other)
+
+    def __sub__(self, other):
+        if isinstance(other, BaseDistribution):
+            return Composite("__sub__", self, other)
+        else:
+            raise TypeError("cannot subtract {} by type {}".format(self.__class__.__name__), type(other))
+
+    def sin(self):
+        return Composite("sin", self)
+
+    def cos(self):
+        return Composite("cos", self)
+
+    def tan(self):
+        return Composite("tan", self)
 
     @property
     def unit(self):
@@ -294,9 +359,12 @@ class BaseDistribution(object):
         return l
 
 
-    def plot(self, size=1000, unit=None, plot_sample=True, plot_dist=True, show=False, **kwargs):
+    def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True, show=False, **kwargs):
         ret = []
+
         if plot_sample:
+            kwargs.setdefault('bins', 25)
+
             ret_sample = self.plot_sample(size=size, unit=unit, show=False, **kwargs)
             xmin, xmax = _plt.gca().get_xlim()
         else:
@@ -354,6 +422,15 @@ class BaseDistribution(object):
         def _json_safe(v):
             if isinstance(v, _np.ndarray):
                 return v.tolist()
+            elif isinstance(v, list) or isinstance(v, tuple):
+                return [_json_safe(li) for li in v]
+            elif isinstance(v, BaseDistribution):
+                return v.to_dict()
+            elif hasattr(v, 'func_name'):
+                if _has_dill:
+                    return _dill.dumps(v)
+                else:
+                    raise ImportError("'dill' package required to export functions to dictionary")
             # elif is_unit(v)[0]:
             #     return v.to_string()
             else:
@@ -370,7 +447,13 @@ class BaseDistribution(object):
         The nparray object should then be able to be fully restored via
         nparray.from_json
         """
-        return _json.dumps(self.to_dict(), **kwargs)
+        try:
+            return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
+        except:
+            if _has_dill:
+                return _dill.dumps(self)
+            else:
+                raise ImportError("dumping file requires 'dill' package")
 
     def to_file(self, filename, **kwargs):
         """
@@ -389,6 +472,97 @@ class BaseDistribution(object):
 
 
 ####################### DISTRIBUTION SUB-CLASSES ###############################
+
+class Composite(BaseDistribution):
+    def __init__(self, math, dist1, dist2=None, unit=None):
+        super(Composite, self).__init__(unit, None, None,
+                                                    self._sample_from_children, ('math', 'dist1', 'dist2'),
+                                                    ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
+
+        if _has_astropy:
+            if dist1.unit is not None:
+                if dist2 is None:
+                    # trig always gives unitless
+                    self.unit = _units.dimensionless_unscaled
+                elif dist2.unit is not None:
+                    if math in ['__add__', '__sub__']:
+                        if dist1.unit == dist2.unit:
+                            self.unit = dist1.unit
+                        else:
+                            # TODO: if they're convertible, we should handle the scaling automatically
+                            raise ValueError("units do not match")
+                    elif hasattr(dist1.unit, math):
+                        self.unit = getattr(dist1.unit, math)(dist2.unit)
+                    else:
+                        raise ValueError("cannot determine new unit from {}{}{}".format(dist1.unit, _math_symbols.get(math, math), dist2.unit))
+                else:
+                    self.unit = dist1.unit
+            elif dist2 is not None and dist2.unit is not None:
+                self.unit = dist2.unit
+            else:
+                self.unit = None
+
+
+    def __repr__(self):
+        if self.dist2 is not None:
+            return "<npdists.{} {}{}{} unit={}>".format(self.__class__.__name__.lower(), self.dist1, _math_symbols.get(self.math, self.math), self.dist2, self.unit)
+        else:
+            return "<npdists.{} {}({}) unit={}>".format(self.__class__.__name__.lower(), _math_symbols.get(self.math, self.math), self.dist1, self.unit)
+
+    def _sample_from_children(self, math, dist1, dist2, size=None):
+        if self.dist2 is not None:
+            return getattr(dist1.sample(size=size), math)(dist2.sample(size=size))
+        else:
+            # if math in ['sin', 'cos', 'tan'] and _has_astropy and dist1.unit is not None:
+            #     unit = _units.rad
+            # else:
+            #     unit = None
+            return getattr(_np, math)(dist1.sample(size=size, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
+
+    @property
+    def mean(self):
+        return self.to_histogram().mean
+
+    @property
+    def std(self):
+        return self.to_histogram().std
+
+    def to_histogram(self, N=1000, bins=10, range=None):
+        return Histogram.from_data(self.sample(size=N), bins=bins, range=range)
+
+    def to_gaussian(self, N=1000, bins=10, range=None):
+        return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
+
+    def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
+        return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
+
+class Function(BaseDistribution):
+    def __init__(self, func, unit, *args):
+        super(Function, self).__init__(unit, None, None,
+                                        self._sample_from_function, ('func', 'args'),
+                                        ('func', func, is_callable), ('args', args, is_iterable))
+
+    def _sample_from_function(self, func, args, size=None):
+        args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
+        return func(*args)
+
+    @property
+    def mean(self):
+        return self.to_histogram().mean
+
+    @property
+    def std(self):
+        return self.to_histogram().std
+
+    def to_histogram(self, N=1000, bins=10, range=None):
+        return Histogram.from_data(self.sample(size=N), bins=bins, range=range)
+
+    def to_gaussian(self, N=1000, bins=10, range=None):
+        return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
+
+    def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
+        return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
+
 
 class Histogram(BaseDistribution):
     def __init__(self, bins, density, unit=None):
@@ -451,27 +625,24 @@ class Gaussian(BaseDistribution):
                                        ('loc', loc, is_float), ('scale', scale, is_float))
 
     def __mul__(self, other):
-        mul = super(Gaussian, self).__mulunit__(other)
-        if mul is not None:
-            return mul
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.loc *= other
+            dist.scale *= other
+            return dist
 
-        if not (isinstance(other, float) or isinstance(other, int)):
-            return TypeError("can only multiply/divide {} by float, int, or unit".format(self.__class__.__name__))
-
-        dist = self.copy()
-        dist.loc *= other
-        dist.scale *= other
-        return dist
+        return super(Gaussian, self).__mul__(other)
 
     def __div__(self, other):
         return self.__mul__(1./other)
 
     def __add__(self, other):
-        if not (isinstance(other, float) or isinstance(other, int)):
-            return TypeError("can only add/subtract {} with float or int".format(self.__class__.__name__))
-        dist = self.copy()
-        dist.loc += other
-        return dist
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.loc += other
+            return dist
+
+        return super(Gaussian, self).__add__(other)
 
     def __sub__(self, other):
         return self.__add__(-1*other)
@@ -503,28 +674,33 @@ class Uniform(BaseDistribution):
                                       ('low', low, is_float), ('high', high, is_float))
 
     def __mul__(self, other):
-        mul = super(Uniform, self).__mulunit__(other)
-        if mul is not None:
-            return mul
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.low *= other
+            dist.high *= other
+            return dist
 
-        if not (isinstance(other, float) or isinstance(other, int)):
-            return TypeError("can only multiply/divide {} by float, int, or unit".format(self.__class__.__name__))
+        return super(Uniform, self).__mul__(other)
 
-        dist = self.copy()
-        dist.low *= other
-        dist.high *= other
-        return dist
 
     def __div__(self, other):
         return self.__mul__(1./other)
 
     def __add__(self, other):
-        if not (isinstance(other, float) or isinstance(other, int)):
-            return TypeError("can only add/subtract {} with float or int".format(self.__class__.__name__))
-        dist = self.copy()
-        dist.low += other
-        dist.high += other
-        return dist
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.low += other
+            dist.high += other
+            return dist
+        # elif isinstance(other, Uniform):
+            ## NOTE: this does not seem to be true as we should get a trapezoid if sampling separately
+            # dist = self.copy()
+            # dist.low += other.low
+            # dist.high += other.high
+            # return dist
+
+        return super(Uniform, self).__add__(other)
+
 
     def __sub__(self, other):
         return self.__add__(-1*other)
