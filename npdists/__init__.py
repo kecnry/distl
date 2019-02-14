@@ -12,14 +12,9 @@ else:
 __version__ = '0.0.1'
 version = __version__
 
-def function(*args, **kwargs):
-    return _npdists.Function(*args, **kwargs)
+def delta(*args, **kwargs):
+    return _npdists.Delta(*args, **kwargs)
 
-def gaussian(*args, **kwargs):
-    return _npdists.Gaussian(*args, **kwargs)
-
-def normal(*args, **kwargs):
-    return _npdists.Gaussian(*args, **kwargs)
 
 def uniform(*args, **kwargs):
     return _npdists.Uniform(*args, **kwargs)
@@ -27,8 +22,21 @@ def uniform(*args, **kwargs):
 def boxcar(*args, **kwargs):
     return _npdists.Uniform(*args, **kwargs)
 
+
+def gaussian(*args, **kwargs):
+    return _npdists.Gaussian(*args, **kwargs)
+
+def normal(*args, **kwargs):
+    return _npdists.Gaussian(*args, **kwargs)
+
+
 def histogram(*args, **kwargs):
     return _npdists.Histogram(*args, **kwargs)
+
+
+def function(*args, **kwargs):
+    return _npdists.Function(*args, **kwargs)
+
 
 
 def from_dict(d):

@@ -122,6 +122,9 @@ def is_iterable(value):
 
 ######################## DISTRIBUTION FUNCTIONS ###############################
 
+def delta(x, value):
+    return _np.asarray(x==value, dtype='int')
+
 def gaussian(x, loc, scale):
     return 1./_np.sqrt(2*_np.pi*scale**2) * _np.exp(-(x-loc)**2/(2.*scale**2))
 
@@ -137,7 +140,7 @@ class BaseDistribution(object):
     __init__ (see docs below)
     mean, std properties
     """
-    def __init__(self, unit,
+    def __init__(self, unit, label,
                  dist_func, dist_args,
                  sample_func, sample_args,
                  *args):
@@ -159,6 +162,7 @@ class BaseDistribution(object):
         self._sample_func = sample_func
         self._sample_args = sample_args
 
+        self.label = label
         self.unit = unit
 
         for item in args:
@@ -173,7 +177,7 @@ class BaseDistribution(object):
         """
         for anything that isn't overriden here, call the method on the array itself
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '_unit', 'unit']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '_unit', 'unit', '_label', 'label']:
             # then we need to actually get the attribute
             return super(BaseDistribution, self).__getattr__(name)
         elif name in self._descriptors.keys():
@@ -185,7 +189,7 @@ class BaseDistribution(object):
     def __setattr__(self, name, value):
         """
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', '_unit', 'unit']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', '_unit', 'unit', '_label', 'label']:
             return super(BaseDistribution, self).__setattr__(name, value)
         elif name in self._descriptors.keys():
             valid, validated_value = self._validators[name](value)
@@ -200,6 +204,12 @@ class BaseDistribution(object):
         descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
         return "<npdists.{} {} unit={}>".format(self.__class__.__name__.lower(), descriptors, self.unit)
 
+    def __str__(self):
+        if self.label is not None:
+            return "{"+self.label+"}"
+        else:
+            return self.__repr__()
+
     def __float__(self):
         """
         by default, have the float representation come from sampling, but
@@ -208,8 +218,28 @@ class BaseDistribution(object):
         """
         return self.sample()
 
+    def __lt__(self, other):
+        if isinstance(other, BaseDistribution):
+            return self.__float__() < other.__float__()
+        return self.__float__() < other
+
+    def __le__(self, other):
+        if isinstance(other, BaseDistribution):
+            return self.__float__() <= other.__float__()
+        return self.__float__() <= other
+
+    def __gt__(self, other):
+        if isinstance(other, BaseDistribution):
+            return self.__float__() > other.__float__()
+        return self.__float__() > other
+
+    def __ge__(self, other):
+        if isinstance(other, BaseDistribution):
+            return self.__float__() >= other.__float__()
+        return self.__float__() >= other
+
     def __copy__(self):
-        return self.__class__(unit=self.unit, **self._descriptors)
+        return self.__class__(unit=self.unit, label=self.label, **self._descriptors)
 
     def __deepcopy__(self, memo):
         return self.__copy__()
@@ -225,15 +255,35 @@ class BaseDistribution(object):
 
         elif isinstance(other, BaseDistribution):
             return Composite("__mul__", self, other)
+        elif isinstance(other, float) or isinstance(other, int):
+            return self.__mul__(Delta(other))
         else:
             raise TypeError("cannot multiply {} by type {}".format(self.__class__.__name__, type(other)))
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
+    def __div__(self, other):
+        if isinstance(other, BaseDistribution):
+            return Composite("__div__", self, other)
+        elif isinstance(other, float) or isinstance(other, int):
+            return self.__div__(Delta(other))
+        else:
+            raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
+
+    def __rdiv__(self, other):
+        if isinstance(other, BaseDistribution):
+            return Composite("__rdiv__", self, other)
+        elif isinstance(other, float) or isinstance(other, int):
+            return self.__rdiv__(Delta(other))
+        else:
+            raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
+
     def __add__(self, other):
         if isinstance(other, BaseDistribution):
             return Composite("__add__", self, other)
+        elif isinstance(other, float) or isinstance(other, int):
+            return self.__add__(Delta(other))
         else:
             raise TypeError("cannot add {} by type {}".format(self.__class__.__name__, type(other)))
 
@@ -243,6 +293,8 @@ class BaseDistribution(object):
     def __sub__(self, other):
         if isinstance(other, BaseDistribution):
             return Composite("__sub__", self, other)
+        elif isinstance(other, float) or isinstance(other, int):
+            return self.__sub__(Delta(other))
         else:
             raise TypeError("cannot subtract {} by type {}".format(self.__class__.__name__), type(other))
 
@@ -254,6 +306,17 @@ class BaseDistribution(object):
 
     def tan(self):
         return Composite("tan", self)
+
+    @property
+    def label(self):
+        return self._label
+
+    @label.setter
+    def label(self, label):
+        if not (label is None or isinstance(label, str)):
+            raise TypeError("label must be of type str")
+
+        self._label = label
 
     @property
     def unit(self):
@@ -410,9 +473,6 @@ class BaseDistribution(object):
 
         return ret
 
-
-
-
     def to_dict(self):
         """
         dump a representation of the nparray object to a dictionary.  The
@@ -439,6 +499,8 @@ class BaseDistribution(object):
         d['npdists'] = self.__class__.__name__.lower()
         if self.unit is not None:
             d['unit'] = self.unit.to_string()
+        if self.label is not None:
+            d['label'] = self.label
         return d
 
     def to_json(self, **kwargs):
@@ -474,10 +536,11 @@ class BaseDistribution(object):
 ####################### DISTRIBUTION SUB-CLASSES ###############################
 
 class Composite(BaseDistribution):
-    def __init__(self, math, dist1, dist2=None, unit=None):
-        super(Composite, self).__init__(unit, None, None,
-                                                    self._sample_from_children, ('math', 'dist1', 'dist2'),
-                                                    ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
+    def __init__(self, math, dist1, dist2=None, unit=None, label=None):
+        super(Composite, self).__init__(unit, label,
+                                        None, None,
+                                        self._sample_from_children, ('math', 'dist1', 'dist2'),
+                                        ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
 
         if _has_astropy:
             if dist1.unit is not None:
@@ -504,10 +567,14 @@ class Composite(BaseDistribution):
 
 
     def __repr__(self):
+        return "<npdists.{} {} unit={}>".format(self.__class__.__name__.lower(), self.__str__(), self.unit if self.unit is not None else "None")
+
+    def __str__(self):
         if self.dist2 is not None:
-            return "<npdists.{} {}{}{} unit={}>".format(self.__class__.__name__.lower(), self.dist1, _math_symbols.get(self.math, self.math), self.dist2, self.unit)
+            return "{}{}{}".format(self.dist1.__str__(), _math_symbols.get(self.math, self.math), self.dist2.__str__())
         else:
-            return "<npdists.{} {}({}) unit={}>".format(self.__class__.__name__.lower(), _math_symbols.get(self.math, self.math), self.dist1, self.unit)
+            return "{}({})".format(_math_symbols.get(self.math, self.math), self.dist1.__str__())
+
 
     def _sample_from_children(self, math, dist1, dist2, size=None):
         if self.dist2 is not None:
@@ -519,62 +586,72 @@ class Composite(BaseDistribution):
             #     unit = None
             return getattr(_np, math)(dist1.sample(size=size, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
 
+    def __float__(self):
+        return self.mean
+        # return self.sample()
+
     @property
     def mean(self):
-        return self.to_histogram().mean
+        return self.to_histogram(N=10000, bins=100).mean
 
     @property
     def std(self):
-        return self.to_histogram().std
+        return self.to_histogram(N=10000, bins=100).std
 
     def to_histogram(self, N=1000, bins=10, range=None):
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range)
+        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
     def to_gaussian(self, N=1000, bins=10, range=None):
-        return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
+        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_gaussian()
 
     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
-        return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
+        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_uniform(sigma=sigma)
 
 class Function(BaseDistribution):
-    def __init__(self, func, unit, *args):
-        super(Function, self).__init__(unit, None, None,
-                                        self._sample_from_function, ('func', 'args'),
-                                        ('func', func, is_callable), ('args', args, is_iterable))
+    def __init__(self, func, unit, label, *args):
+        super(Function, self).__init__(unit, label,
+                                       None, None,
+                                       self._sample_from_function, ('func', 'args'),
+                                       ('func', func, is_callable), ('args', args, is_iterable))
 
     def _sample_from_function(self, func, args, size=None):
         args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
         return func(*args)
 
+    def __float__(self):
+        return self.mean
+        # return self.sample()
+
     @property
     def mean(self):
-        return self.to_histogram().mean
+        return self.to_histogram(N=10000, bins=100).mean
 
     @property
     def std(self):
-        return self.to_histogram().std
+        return self.to_histogram(N=10000, bins=100).std
 
     def to_histogram(self, N=1000, bins=10, range=None):
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range)
+        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
     def to_gaussian(self, N=1000, bins=10, range=None):
-        return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
+        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_gaussian()
 
     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
-        return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
+        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_uniform(sigma=sigma)
 
 
 class Histogram(BaseDistribution):
-    def __init__(self, bins, density, unit=None):
-        super(Histogram, self).__init__(unit, None, None,
+    def __init__(self, bins, density, unit=None, label=None):
+        super(Histogram, self).__init__(unit, label,
+                                        None, None,
                                         self._sample_from_hist, ('bins', 'density'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
-    def from_data(cls, data, bins=10, range=None, weights=None):
+    def from_data(cls, data, bins=10, range=None, weights=None, label=None, unit=None):
         hist, bin_edges = _np.histogram(data, bins=bins, range=range, weights=weights, density=True)
 
-        return cls(bin_edges, hist)
+        return cls(bin_edges, hist, label=label, unit=unit)
 
     def _sample_from_hist(self, bins, counts, size=None):
         if size is None:
@@ -595,6 +672,10 @@ class Histogram(BaseDistribution):
 
         return random_from_cdf
 
+    def __float__(self):
+        return self.mean
+        # return self.sample()
+
     @property
     def mean(self):
         bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
@@ -611,16 +692,73 @@ class Histogram(BaseDistribution):
         return sigma
 
     def to_gaussian(self):
-        return Gaussian(self.mean, self.std)
+        return Gaussian(self.mean, self.std, label=self.label, unit=self.unit)
 
     def to_uniform(self, sigma=1.0):
-        return self.to_gaussian().to_uniform(sigma=sigma)
+        return self.to_gaussian(label=self.label, unit=self.unit).to_uniform(sigma=sigma)
 
+class Delta(BaseDistribution):
+    def __init__(self, value, unit=None, label=None):
+        super(Delta, self).__init__(unit, label,
+                                    delta, ('value',),
+                                    self._sample_from_delta, ('value',),
+                                    ('value', value, is_float))
+
+    def _sample_from_delta(self, value, size=None):
+        if size is None:
+            return value
+        else:
+            return _np.full(size, value)
+
+    def __mul__(self, other):
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.value *= other
+            return dist
+
+        return super(Delta, self).__mul__(other)
+
+    def __div__(self, other):
+        return self.__mul__(1./other)
+
+    def __add__(self, other):
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.value += other
+            return dist
+
+        return super(Delta, self).__add__(other)
+
+    def __sub__(self, other):
+        return self.__add__(-1*other)
+
+    def __float__(self):
+        return self.value
+
+    @property
+    def mean(self):
+        return self.value
+
+    @property
+    def std(self):
+        return 0.0
+
+    def to_uniform(self):
+        low = self.value
+        high = self.value
+        return Uniform(low, high, label=self.label, unit=self.unit)
+
+    def to_gaussian(self):
+        return Gaussian(self.value, 0.0, label=self.label, unit=self.unit)
+
+    def to_histogram(self, N=1000, bins=10, range=None):
+        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
 
 class Gaussian(BaseDistribution):
-    def __init__(self, loc=0.0, scale=0.0, unit=None):
-        super(Gaussian, self).__init__(unit, gaussian, ('loc', 'scale'),
+    def __init__(self, loc=0.0, scale=0.0, unit=None, label=None):
+        super(Gaussian, self).__init__(unit, label,
+                                       gaussian, ('loc', 'scale'),
                                        _np.random.normal, ('loc', 'scale'),
                                        ('loc', loc, is_float), ('scale', scale, is_float))
 
@@ -662,14 +800,15 @@ class Gaussian(BaseDistribution):
     def to_uniform(self, sigma=1.0):
         low = self.loc - self.scale * sigma
         high = self.loc + self.scale * sigma
-        return Uniform(low, high)
+        return Uniform(low, high, label=self.label, unit=self.unit)
 
     def to_histogram(self, N=1000, bins=10, range=None):
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range)
+        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
 class Uniform(BaseDistribution):
-    def __init__(self, low=0.0, high=1.0, unit=None):
-        super(Uniform, self).__init__(unit, uniform, ('low', 'high'),
+    def __init__(self, low=0.0, high=1.0, unit=None, label=None):
+        super(Uniform, self).__init__(unit, label,
+                                      uniform, ('low', 'high'),
                                       _np.random.uniform, ('low', 'high'),
                                       ('low', low, is_float), ('high', high, is_float))
 
@@ -705,6 +844,10 @@ class Uniform(BaseDistribution):
     def __sub__(self, other):
         return self.__add__(-1*other)
 
+    def __float__(self):
+        return self.mean
+        # return self.sample()
+
     @property
     def mean(self):
         return (self.low+self.high) / 2.0
@@ -712,7 +855,7 @@ class Uniform(BaseDistribution):
     def to_gaussian(self, sigma=1.0):
         loc = self.mean
         scale = (self.high - self.low) / (2.0 * sigma)
-        return Gaussian(loc, scale)
+        return Gaussian(loc, scale, unit=self.unit, label=self.label)
 
     def to_histogram(self, N=1000, bins=None, range=None):
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range)
+        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, unit=self.unit, label=self.label)
