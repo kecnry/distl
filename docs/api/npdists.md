@@ -1,0 +1,12 @@
+## npdists (module)
+
+* [boxcar](npdists.boxcar.md)
+* [delta](npdists.delta.md)
+* [from_dict](npdists.from_dict.md)
+* [from_file](npdists.from_file.md)
+* [from_json](npdists.from_json.md)
+* [function](npdists.function.md)
+* [gaussian](npdists.gaussian.md)
+* [histogram](npdists.histogram.md)
+* [normal](npdists.normal.md)
+* [uniform](npdists.uniform.md)

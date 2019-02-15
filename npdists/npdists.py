@@ -590,6 +590,13 @@ class Composite(BaseDistribution):
         return self.mean
         # return self.sample()
 
+        # if self.dist2 is not None:
+            # return getattr(dist1.mean, math)(dist2.mean)
+        # else:
+            # return getattr(_np, math)(dist1.mean)
+
+
+
     @property
     def mean(self):
         return self.to_histogram(N=10000, bins=100).mean

@@ -13,20 +13,39 @@ __version__ = '0.0.1'
 version = __version__
 
 def delta(*args, **kwargs):
+    """
+    Create a <Delta> distribution.
+    """
     return _npdists.Delta(*args, **kwargs)
 
 
 def uniform(*args, **kwargs):
+    """
+    Create a <Uniform> distribution.
+    """
     return _npdists.Uniform(*args, **kwargs)
 
 def boxcar(*args, **kwargs):
+    """
+    Same as <npdists.uniform>
+
+    Create a <Uniform> distribution.
+    """
     return _npdists.Uniform(*args, **kwargs)
 
 
 def gaussian(*args, **kwargs):
+    """
+    Create a <Gaussian> distribution.
+    """
     return _npdists.Gaussian(*args, **kwargs)
 
 def normal(*args, **kwargs):
+    """
+    Same as <npdists.gaussian>
+
+    Create a <Gaussian> distribution.
+    """
     return _npdists.Gaussian(*args, **kwargs)
 
 
