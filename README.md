@@ -4,7 +4,7 @@
 
 **IMPORTANT**: npdists is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
 
-Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./api/index.md).
+Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./docs/index.md).
 
 ## Getting Started
 
@@ -62,4 +62,4 @@ g.plot(show=True)
 
 ## Documentation and API Docs
 
-Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./api/index.md).
+Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./docs/index.md).
