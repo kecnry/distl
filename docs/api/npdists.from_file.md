@@ -9,6 +9,19 @@ def from_file(filename)
 
 
 
-load an npdists object from a json filename
-@parameter str filename: path to the file
+Load an npdists object from a json filename.
+
+See also:
+
+* [npdists.from_dict](npdists.from_dict.md)
+* [npdists.from_json](npdists.from_json.md)
+
+Arguments
+-------------
+* `s` (string): the filename pointing to a json formatted file representing
+    an npdists object.
+
+Returns
+----------
+* The appropriate distribution object.
 

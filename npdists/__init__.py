@@ -12,56 +12,170 @@ else:
 __version__ = '0.0.1'
 version = __version__
 
-def delta(*args, **kwargs):
+def delta(value, unit=None, label=None):
     """
     Create a <Delta> distribution.
+
+    Arguments
+    --------------
+    * `value` (float or int): the value at which the delta function is True.
+    * `unit` (astropy.units object, optional): the units of the provided values.
+    * `label` (string, optional): a label for the distribution.  This is used
+        for the x-label while plotting the distribution, as well as a shorthand
+        notation when creating a <Composite> distribution.
+
+    Returns
+    --------
+    * a <Delta> object
     """
-    return _npdists.Delta(*args, **kwargs)
+    return _npdists.Delta(value, unit=unit, label=label)
 
 
-def uniform(*args, **kwargs):
+def uniform(low, high, unit=None, label=None):
     """
     Create a <Uniform> distribution.
+
+    Arguments
+    --------------
+    * `low` (float or int): the lower limit of the uniform distribution.
+    * `high` (float or int): the upper limits of the uniform distribution.
+    * `unit` (astropy.units object, optional): the units of the provided values.
+    * `label` (string, optional): a label for the distribution.  This is used
+        for the x-label while plotting the distribution, as well as a shorthand
+        notation when creating a <Composite> distribution.
+
+    Returns
+    --------
+    * a <Uniform> object
     """
-    return _npdists.Uniform(*args, **kwargs)
+    return _npdists.Uniform(low, high, unit=unit, label=label)
 
-def boxcar(*args, **kwargs):
+def boxcar(low, high, unit=None, label=None):
     """
-    Same as <npdists.uniform>
-
-    Create a <Uniform> distribution.
+    Shortcut to <npdists.uniform>.
     """
-    return _npdists.Uniform(*args, **kwargs)
+    return _npdists.Uniform(low, high, unit=unit, label=label)
 
 
-def gaussian(*args, **kwargs):
+def gaussian(loc, scale, unit=None, label=None):
     """
     Create a <Gaussian> distribution.
+
+    Arguments
+    --------------
+    * `loc` (float or int): the central value of the gaussian distribution.
+    * `scale` (float or int): the scale (sigma) of the gaussian distribution.
+    * `unit` (astropy.units object, optional): the units of the provided values.
+    * `label` (string, optional): a label for the distribution.  This is used
+        for the x-label while plotting the distribution, as well as a shorthand
+        notation when creating a <Composite> distribution.
+
+    Returns
+    --------
+    * a <Gaussian> object
     """
-    return _npdists.Gaussian(*args, **kwargs)
+    return _npdists.Gaussian(loc, scale, unit=unit, label=label)
 
-def normal(*args, **kwargs):
+def normal(loc, scale, unit=None, label=None):
     """
-    Same as <npdists.gaussian>
-
-    Create a <Gaussian> distribution.
+    Shortcut to <npdists.gaussian>.
     """
-    return _npdists.Gaussian(*args, **kwargs)
+    return _npdists.Gaussian(loc, scale, unit=unit, label=label)
 
 
-def histogram(*args, **kwargs):
-    return _npdists.Histogram(*args, **kwargs)
+def histogram_from_bins(bins, density, unit=None, label=None):
+    """
+    Create a <Histogram> distribution from binned data.
+
+    See also:
+
+    * <npdists.histogram_from_data>
+
+    Arguments
+    --------------
+    * `bins` (np.array object): the value of the bin-edges.  Must have one more
+        entry than `density`.
+    * `density` (np.array object): the value of the bin-densities.  Must have one
+        less entry than `bins`.
+    * `unit` (astropy.units object, optional): the units of the provided values.
+    * `label` (string, optional): a label for the distribution.  This is used
+        for the x-label while plotting the distribution, as well as a shorthand
+        notation when creating a <Composite> distribution.
+
+    Returns
+    --------
+    * a <Histogram> object
+    """
+    return _npdists.Histogram(bins, density, unit=unit, label=label)
+
+def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None):
+    """
+    Create a <Histogram> distribution from data.
+
+    See also:
+
+    * <npdists.histogram_from_bins>
+
+    Arguments
+    --------------
+    * `data` (np.array object): 1D array of values.
+    * `unit` (astropy.units object, optional): the units of the provided values.
+    * `label` (string, optional): a label for the distribution.  This is used
+        for the x-label while plotting the distribution, as well as a shorthand
+        notation when creating a <Composite> distribution.
+
+    Returns
+    --------
+    * a <Histogram> object
+    """
+
+    return _npdists.Histogram.from_data(data, bins=bins, range=range,
+                                        weight=weights, unit=unit, label=label)
 
 
-def function(*args, **kwargs):
-    return _npdists.Function(*args, **kwargs)
+def function(func, unit, label, *args):
+    """
+    Create a <Function> distribution from some callable function and
+    any number of arguments, including distribution objects.
+
+
+    Arguments
+    ----------
+    * `func` (callable function): the callable function to be called to
+        sample the distribution.
+    * `unit` (astropy.units object or None): the units of the provided values.
+    * `label` (string or None): a label for the distribution.  This is used
+        for the x-label while plotting the distribution, as well as a shorthand
+        notation when creating a <Composite> distribution.
+    * `*args`: all additional positional arguments will be passed on to
+        `func` when sampling.  These can be, but are not limited to,
+        other distribution objects.
+
+    Returns
+    ---------
+    * a <Function> object.
+    """
+    return _npdists.Function(func, unit, label, *args)
 
 
 
 def from_dict(d):
     """
-    load an npdists object from a dictionary
-    @parameter str d: dictionary representing the nparray object
+    Load an npdists object from a dictionary.
+
+    See also:
+
+    * <npdists.from_json>
+    * <npdists.from_file>
+
+    Arguments
+    -------------
+    * `d` (string or dict): dictionary (or json string of a dictionary)
+        representing the npdists object.
+
+    Returns
+    ----------
+    * The appropriate distribution object.
     """
     if isinstance(d, str):
         return from_json(d)
@@ -80,8 +194,21 @@ def from_dict(d):
 
 def from_json(j):
     """
-    load an npdists object from a json-formatted string
-    @parameter str j: json-formatted string
+    Load an npdists object from a json-formatted string.
+
+    See also:
+
+    * <npdists.from_dict>
+    * <npdists.from_file>
+
+    Arguments
+    -------------
+    * `s` (string or dict): json formatted dictionary representing the npdists
+        object.
+
+    Returns
+    ----------
+    * The appropriate distribution object.
     """
     if isinstance(j, dict):
         return from_dict(j)
@@ -93,8 +220,21 @@ def from_json(j):
 
 def from_file(filename):
     """
-    load an npdists object from a json filename
-    @parameter str filename: path to the file
+    Load an npdists object from a json filename.
+
+    See also:
+
+    * <npdists.from_dict>
+    * <npdists.from_json>
+
+    Arguments
+    -------------
+    * `s` (string): the filename pointing to a json formatted file representing
+        an npdists object.
+
+    Returns
+    ----------
+    * The appropriate distribution object.
     """
     f = open(filename, 'r')
     try:

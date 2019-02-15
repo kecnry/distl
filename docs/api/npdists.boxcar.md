@@ -3,13 +3,11 @@
 
 ```py
 
-def boxcar(*args, **kwargs)
+def boxcar(low, high, unit=None, label=None)
 
 ```
 
 
 
-Same as [npdists.uniform](npdists.uniform.md)
-
-Create a [Uniform](Uniform.md) distribution.
+Shortcut to [npdists.uniform](npdists.uniform.md).
 

@@ -1,5 +1,5 @@
 import pydoc
-import os, sys
+import os, sys, shutil
 import re
 
 def md_internal_link(matchobj):
@@ -90,6 +90,10 @@ def api_docs(item, skip=[], prefix='', subclass_of=None, write=True, members=[py
         f_class.write("## {} ({})\n\n".format(path_md, get_kind(item)))
         if subclass_of is not None:
             f_class.write("{} is a subclass of {} and therefore also includes all [{} methods]({}.md)\n\n".format(item.__name__, subclass_of, subclass_of, subclass_of))
+        if hasattr(item, '__doc__') and item.__doc__ is not None:
+            for l in item.__doc__.split("\n"):
+                f_class.write(l.lstrip()+"\n")
+            f_class.write("\n\n")
         for fm in stored_fms:
             path_fm = ".".join([p for p in prefix.split(".") if len(p)]+[item.__name__.split(".")[-1], fm])
             f_class.write("* [{}]({}.md)\n".format(fm, path_fm))
@@ -104,12 +108,15 @@ if __name__ == '__main__':
     print("CREATING API DOCS FOR NPDISTS VERSION: {}".format(npdists.__version__))
 
     fms = api_docs(npdists, skip=[], members=[pydoc.inspect.isfunction])
+    shutil.copyfile('./api/npdists.md', './api/index.md')
 
     skip_methods = ['sin', 'cos', 'tan']
-    fms = api_docs(npdists._npdists.Composite, skip=skip_methods, members=[pydoc.inspect.ismethod])
-    fms = api_docs(npdists._npdists.Function, skip=skip_methods, members=[pydoc.inspect.ismethod])
-    fms = api_docs(npdists._npdists.Histogram, skip=skip_methods, members=[pydoc.inspect.ismethod])
+    fms = api_docs(npdists._npdists.BaseDistribution, skip=skip_methods)
 
-    fms = api_docs(npdists._npdists.Delta, skip=skip_methods, members=[pydoc.inspect.ismethod])
-    fms = api_docs(npdists._npdists.Gaussian, skip=skip_methods, members=[pydoc.inspect.ismethod])
-    fms = api_docs(npdists._npdists.Uniform, skip=skip_methods, members=[pydoc.inspect.ismethod])
+    fms = api_docs(npdists._npdists.Composite, skip=skip_methods)
+    fms = api_docs(npdists._npdists.Function, skip=skip_methods)
+    fms = api_docs(npdists._npdists.Histogram, skip=skip_methods)
+
+    fms = api_docs(npdists._npdists.Delta, skip=skip_methods)
+    fms = api_docs(npdists._npdists.Gaussian, skip=skip_methods)
+    fms = api_docs(npdists._npdists.Uniform, skip=skip_methods)

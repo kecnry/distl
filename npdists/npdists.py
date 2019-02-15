@@ -2,7 +2,12 @@ import numpy as _np
 import json as _json
 from collections import OrderedDict
 
-import matplotlib.pyplot as _plt
+try:
+    import matplotlib.pyplot as _plt
+except ImportError:
+    _has_mpl = False
+else:
+    _has_mpl = True
 
 try:
     from astropy import units as _units
@@ -135,21 +140,33 @@ def uniform(x, low, high):
 
 class BaseDistribution(object):
     """
-    BaseDistribution should be subclassed by any type of distribution creation classesAny subclass
-    MUST define the following:
-    __init__ (see docs below)
-    mean, std properties
+    BaseDistribution is the parent class for all distributions and should
+    not be used directly by the user.
+
+    Any subclass distribution should override the following:
+
+    * <BaseDistribution.__init__>
+    * <BaseDistribution.mean>
+    * <BaseDistribution.std>
     """
     def __init__(self, unit, label,
                  dist_func, dist_args,
                  sample_func, sample_args,
                  *args):
         """
-        all subclasses MUST parse args and send in as tuples via super so that
-        order is preserved.
+        BaseDistribution is the parent class for all distributions and should
+        not be used directly by the user.
+
+        Any subclass distribution should override the init but call this via
+        super.
+
         For example:
+
+        ```py
         def __init__(self, start, stop, step):
             super(MyClass, self).__init__(('start', start, is_float), ('stop', stop, is_float), ('step', step, is_float))
+        ```
+
         All of these "descriptors" will then be available to get and set via
         their attribute names
         """
@@ -245,6 +262,13 @@ class BaseDistribution(object):
         return self.__copy__()
 
     def copy(self):
+        """
+        Make a copy of the distribution object.
+
+        Returns
+        ---------
+        * a copy of the distribution object
+        """
         return self.__copy__()
 
     def __mul__(self, other):
@@ -309,6 +333,12 @@ class BaseDistribution(object):
 
     @property
     def label(self):
+        """
+        The label of the distribution object.  When not None, this is used for
+        the x-label when plotting (see <BaseDistribution.plot>) and for the
+        string representation for any math in a <Composite> or <Function>
+        distribution.
+        """
         return self._label
 
     @label.setter
@@ -320,6 +350,14 @@ class BaseDistribution(object):
 
     @property
     def unit(self):
+        """
+        The units of the distribution.  Astropy is required in order to set
+        and/or use distributions with units.
+
+        See also:
+
+        * <BaseDistribution.to>
+        """
         return self._unit
 
     @unit.setter
@@ -331,6 +369,27 @@ class BaseDistribution(object):
 
     def to(self, unit):
         """
+        Convert to different units.  This creates a copy and returns the
+        new distribution with the new units.  Astropy is required in order to
+        set and/or use units.
+
+        See also:
+
+        * <BaseDistribution.unit>
+
+        Arguments
+        ------------
+        * `unit` (astropy.unit object): unit to use in the new distribution.
+            The current units (see <BaseDistribution.unit>) must be able to
+            convert to the requested units.
+
+        Returns
+        ------------
+        * the new distribution object
+
+        Raises
+        -----------
+        * ImportError: if astropy dependency is not met.
         """
         if not _has_astropy:
             raise ImportError("astropy required to handle units")
@@ -347,26 +406,90 @@ class BaseDistribution(object):
 
     @property
     def mean(self):
+        """
+        msean is not implemented for this distribution type.
+
+        Raises
+        --------
+        * NotImplementedError
+        """
         raise NotImplementedError
 
     @property
     def std(self):
+        """
+        std is not implemented for this distribution type.
+
+        Raises
+        --------
+        * NotImplementedError
+        """
         raise NotImplementedError
 
     @property
     def dist_func(self):
+        """
+        Return the callable function to access the distribution function, if
+        available.
+
+        See also:
+
+        * <BaseDistribution.dist_args>
+        * <BaseDistribution.distribution>
+
+        Returns
+        -------
+        * callable function
+        """
         return self._dist_func
 
     @property
     def dist_args(self):
+        """
+        Return the arguments sent to the distribution function.
+
+        See also:
+
+        * <BaseDistribution.dist_func>
+        * <BaseDistribution.distribution>
+
+        Returns
+        --------
+        * tuple
+        """
+
         return tuple(getattr(self, k) for k in self._dist_args)
 
     @property
     def sample_func(self):
+        """
+        Return the callable function to sample the distribution, if available.
+
+        See also:
+
+        * <BaseDistribution.sample_args>
+        * <BaseDistribution.sample>
+
+        Returns
+        --------
+        * callable function
+        """
         return self._sample_func
 
     @property
     def sample_args(self):
+        """
+        Return the arguments sent to the sample function.
+
+        See also:
+
+        * <BaseDistribution.sample_func>
+        * <BaseDistribution.sample>
+
+        Returns
+        --------
+        * tuple
+        """
         return tuple(getattr(self, k) for k in self._sample_args)
 
     def _return_with_units(self, value, unit=None, as_quantity=False):
@@ -395,9 +518,45 @@ class BaseDistribution(object):
             return value.value
 
     def sample(self, size=None, unit=None, as_quantity=False):
+        """
+        Sample from the distribution.
+
+        Arguments
+        -----------
+        * `size` (int or tuple or None, optional, default=None): size/shape of the
+            resulting array.
+        * `unit` (astropy.unit, optional, default=None): unit to convert the
+            resulting sample(s).  Astropy must be installed in order to convert
+            units.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+
+        Returns
+        ---------
+        * float or array: float if `size=None`, otherwise a numpy array with
+            shape defined by `size`.
+        """
         return self._return_with_units(self.sample_func(*self.sample_args, size=size), unit=unit, as_quantity=as_quantity)
 
     def distribution(self, x, unit=None, as_quantity=False):
+        """
+        Give the density (y) values of the underlying distribution for a given
+        array of values (x).
+
+        Arguments
+        ----------
+        * `x` (array): x-values at which to compute the densities.
+        * `unit` (astropy.unit, optional, default=None): unit to convert the
+            resulting array.  Astropy must be installed in order to convert units.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just an array.  Astropy must
+            be installed.
+
+        Returns
+        ---------
+        * array: array of density/y values.
+        """
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -423,6 +582,44 @@ class BaseDistribution(object):
 
 
     def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True, show=False, **kwargs):
+        """
+        Plot both the analytic distribution function as well as a sampled
+        histogram from the distribution.  Requires matplotlib to be installed.
+
+        See also:
+
+        * <BaseDistribution.plot_sample>
+        * <BaseDistribution.plot_dist>
+
+        Arguments
+        -----------
+        * `size` (int, optional, default=100000): number of points to sample for
+            the histogram.  See also <BaseDistribution.sample>.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `plot_sample` (bool, optional, default=True): whether to plot the
+            histogram from sampling.  See also <BaseDistribution.plot_sample>.
+        * `plot_dist` (bool, optional, default=True): whether to plot the
+            analytic form of the underlying distribution, if applicable.
+            See also <BaseDistribution.plot_dist>.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments (except for `bins`) will be passed
+            on to <BaseDistribution.plot_dist> and all keyword arguments will
+            be passed on to <BaseDistribution.plot_sample>.
+
+        Returns
+        --------
+        * tuple: the return values from both <BaseDistribution.plot_sample> and
+            <BaseDistribution.plot_dist>.
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
         ret = []
 
         if plot_sample:
@@ -450,7 +647,37 @@ class BaseDistribution(object):
         return (ret_sample, ret_dist)
 
 
-    def plot_sample(self, size=1000, unit=None, show=False, **kwargs):
+    def plot_sample(self, size=100000, unit=None, show=False, **kwargs):
+        """
+        Plot both a sampled histogram from the distribution.  Requires
+        matplotlib to be installed.
+
+        See also:
+
+        * <BaseDistribution.plot>
+        * <BaseDistribution.plot_dist>
+
+        Arguments
+        -----------
+        * `size` (int, optional, default=100000): number of points to sample for
+            the histogram.  See also <BaseDistribution.sample>.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments will be passed on to plt.hist.
+
+        Returns
+        --------
+        * the return from plt.hist
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
         ret = _plt.hist(self.sample(size, unit=unit), density=True, **kwargs)
         if show:
             _plt.xlabel(self._xlabel(unit))
@@ -460,6 +687,35 @@ class BaseDistribution(object):
         return ret
 
     def plot_dist(self, x, unit=None, show=False, **kwargs):
+        """
+        Plot the analytic distribution function.  Requires matplotlib to be installed.
+
+        See also:
+
+        * <BaseDistribution.plot>
+        * <BaseDistribution.plot_sample>
+
+        Arguments
+        -----------
+        * `x` (np array): the numpy array at which to sample the value on the
+            x-axis.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments will be passed on to plt.plot
+
+        Returns
+        --------
+        * the return from plot.plot
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
         # x is assumed to be in new units
         if self.dist_func is not None:
             ret = _plt.plot(x, self.distribution(x, unit=unit, as_quantity=False), **kwargs)
@@ -475,9 +731,19 @@ class BaseDistribution(object):
 
     def to_dict(self):
         """
-        dump a representation of the nparray object to a dictionary.  The
-        nparray object should then be able to be fully restored via
-        nparray.from_dict
+        Return the dictionary representation of the distribution object.
+
+        The resulting dictionary can be restored to the original object
+        via <npdists.from_dict>.
+
+        See also:
+
+        * <BaseDistribution.to_json>
+        * <BaseDistribution.to_file>
+
+        Returns
+        --------
+        * dictionary
         """
         def _json_safe(v):
             if isinstance(v, _np.ndarray):
@@ -505,9 +771,23 @@ class BaseDistribution(object):
 
     def to_json(self, **kwargs):
         """
-        dump a representation of the nparray object to a json-formatted string.
-        The nparray object should then be able to be fully restored via
-        nparray.from_json
+        Return the json representation of the distribution object.
+
+        The resulting dictionary can be restored to the original object
+        via <npdists.from_json>.
+
+        See also:
+
+        * <BaseDistribution.to_dict>
+        * <BaseDistribution.to_file>
+
+        Arguments
+        ---------
+        * `**kwargs`: all keyword arguments will be sent to json.dumps
+
+        Returns
+        --------
+        * string
         """
         try:
             return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
@@ -519,13 +799,25 @@ class BaseDistribution(object):
 
     def to_file(self, filename, **kwargs):
         """
-        dump a representation of the nparray object to a json-formatted file.
-        The nparray object should then be able to be fully restored via
-        nparray.from_file
-        @parameter str filename: path to the file to be created (will overwrite
+        Save the json representation of the distribution object to a file.
+
+        The resulting file can be restored to the original object
+        via <npdists.from_file>.
+
+        See also:
+
+        * <BaseDistribution.to_dict>
+        * <BaseDistribution.to_json>
+
+        Arguments
+        ----------
+        * `filename` (string): path to the file to be created (will overwrite
             if already exists)
-        @rtype: str
-        @returns: the filename
+        * `**kwargs`: all keyword arguments will be sent to json.dumps
+
+        Returns
+        --------
+        * string: the filename
         """
         f = open(filename, 'w')
         f.write(self.to_json(**kwargs))
@@ -536,7 +828,66 @@ class BaseDistribution(object):
 ####################### DISTRIBUTION SUB-CLASSES ###############################
 
 class Composite(BaseDistribution):
+    """
+    A composite distribution consisting of some math operator between one or two
+    other Distribution objects.
+
+    For example:
+
+    ```py
+    g = phoebe.gaussian(10, 2)
+    u = phoebe.gaussian(1, 5)
+
+    c = g * u
+    print(c)
+    ```
+
+    or:
+
+    ```py
+    import numpy as np
+    g = phoebe.gaussian(0, 1)
+    sing = np.sin(g)
+    print(sing)
+    ```
+
+    Currently supported operators include:
+
+    * multiplication, division, addition, subtraction
+    * np.sin, np.cos, np.tan (but not math.sin, etc)
+
+    When doing math between a distribution and a float or integer, that float/int
+    will be treated as a <Delta> distribution.  In some simple cases, the
+    applicable distribution type will be returned, but in other cases,
+    a <Composite> distribution will be returned.  For example, multiplying
+    a <Uniform> or <Gaussian> distribution by a float will return another
+    <Uniform> or <Gaussian> distribution, respectively.
+
+    """
     def __init__(self, math, dist1, dist2=None, unit=None, label=None):
+        """
+        Create a <Composite> distribution from two other distributions.
+
+        Most likely, users will create Composite objects through math operators
+        directly.  See examples on the <Composite> overview page.
+
+        Arguments
+        ----------
+        * `math`: operator to be used between the two distributions.  Must
+            be a valid and implemented operator.
+        * `dist1` (<BaseDistribution>)
+        * `dist2` (<BaseDistribution>, optional, default=None): the second
+            distribution is required for most operators.  Some operators
+            (e.g. sin, cos, tan) only take one distribution as an argument.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+
+        Returns
+        ---------
+        * a <Composite> object.
+        """
         super(Composite, self).__init__(unit, label,
                                         None, None,
                                         self._sample_from_children, ('math', 'dist1', 'dist2'),
@@ -599,23 +950,137 @@ class Composite(BaseDistribution):
 
     @property
     def mean(self):
+        """
+        Determine the mean sampled value.
+
+        This is done under-the-hood by converting to a histogram via
+        <Composite.to_histogram>, sampling 10000 times with 100 bins and
+        calling <Histogram.mean>.
+        """
         return self.to_histogram(N=10000, bins=100).mean
 
     @property
     def std(self):
+        """
+        Determine the standard deviations of the sampled values.
+
+        This is done under-the-hood by converting to a histogram via
+        <Composite.to_histogram>, sampling 10000 times with 100 bins and
+        calling <Histogram.std>.
+        """
         return self.to_histogram(N=10000, bins=100).std
 
     def to_histogram(self, N=1000, bins=10, range=None):
+        """
+        Convert the <Composite> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <Composite.sample> with `size=N` and passes
+        the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
         return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
     def to_gaussian(self, N=1000, bins=10, range=None):
+        """
+        Convert the <Composite> distribution to a <Gaussian> distribution via
+        a <Histogram> distribution.
+
+        Under-the-hood, this calls <Composite.to_histogram> with the requested
+        values of `N`, `bins`, and `range` and then calls <Histogram.to_gaussian>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Gaussian> object
+        """
         return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_gaussian()
 
     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
+        """
+        Convert the <Composite> distribution to a <Uniform> distribution via
+        a <Histogram> distribution.
+
+        Under-the-hood, this calls <Composite.to_histogram> with the requested
+        values of `N`, `bins`, and `range` and then calls <Histogram.to_uniform>
+        with the requested value of `sigma`.
+
+        Arguments
+        -----------
+        * `sigma` (float, optional, default=1.0): the number of standard deviations
+            to adopt as the lower and upper bounds of the uniform distribution.
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Uniform> object
+        """
         return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_uniform(sigma=sigma)
 
 class Function(BaseDistribution):
+    """
+    A Function distribution allows for any python callable to be stored that
+    utilizes distributions under-the-hood.  When calling <Function.sample>,
+    any argument passed to the function that is a <BaseDistribution> object
+    will be sampled prior to being passed to the callable function.
+
+    In order to save or load these distributions, it is necessary to have
+    the `dill` package installed.  Note that you should not load from untrusted
+    sources, as any executable could be contained in the callable function.
+
+    See:
+
+    * <Function.to_dict>
+    * <Function.to_json>
+    * <Function.to_file>
+    """
     def __init__(self, func, unit, label, *args):
+        """
+        Create a <Function> distribution from some callable function and
+        any number of arguments, including distribution objects.
+
+        This can also be created from a function at the top-level as:
+
+        * <npdists.function>
+
+        Arguments
+        ----------
+        * `func` (callable function): the callable function to be called to
+            sample the distribution.
+        * `unit` (astropy.units object or None): the units of the provided values.
+        * `label` (string or None): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+        * `*args`: all additional positional arguments will be passed on to
+            `func` when sampling.  These can be, but are not limited to,
+            other distribution objects.
+
+        Returns
+        ---------
+        * a <Function> object.
+        """
         super(Function, self).__init__(unit, label,
                                        None, None,
                                        self._sample_from_function, ('func', 'args'),
@@ -631,24 +1096,135 @@ class Function(BaseDistribution):
 
     @property
     def mean(self):
+        """
+        Determine the mean sampled value.
+
+        This is done under-the-hood by converting to a histogram via
+        <Function.to_histogram>, sampling 10000 times with 100 bins and
+        calling <Histogram.mean>.
+        """
         return self.to_histogram(N=10000, bins=100).mean
 
     @property
     def std(self):
+        """
+        Determine the standard deviations of the sampled values.
+
+        This is done under-the-hood by converting to a histogram via
+        <Function.to_histogram>, sampling 10000 times with 100 bins and
+        calling <Histogram.std>.
+        """
         return self.to_histogram(N=10000, bins=100).std
 
     def to_histogram(self, N=1000, bins=10, range=None):
+        """
+        Convert the <Function> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <Function.sample> with `size=N` and passes
+        the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
         return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
     def to_gaussian(self, N=1000, bins=10, range=None):
+        """
+        Convert the <Function> distribution to a <Gaussian> distribution via
+        a <Histogram> distribution.
+
+        Under-the-hood, this calls <Function.to_histogram> with the requested
+        values of `N`, `bins`, and `range` and then calls <Histogram.to_gaussian>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Gaussian> object
+        """
         return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_gaussian()
 
     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
+        """
+        Convert the <Function> distribution to a <Uniform> distribution via
+        a <Histogram> distribution.
+
+        Under-the-hood, this calls <Function.to_histogram> with the requested
+        values of `N`, `bins`, and `range` and then calls <Histogram.to_uniform>
+        with the requested value of `sigma` (which in turn is calling
+        <Histogram.to_gaussian> first).
+
+        Arguments
+        -----------
+        * `sigma` (float, optional, default=1.0): the number of standard deviations
+            to adopt as the lower and upper bounds of the uniform distribution.
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Uniform> object
+        """
         return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_uniform(sigma=sigma)
 
 
 class Histogram(BaseDistribution):
+    """
+    A Histrogram distribution stores a discrete PDF and allows sampling from
+    that binned density distribution.
+
+    To create a Histrogram distribution from already binned data, see
+    <npdists.histogram_from_bins> or <Histogram.__init__>.  To create a
+    Histrogram distribtuion from the data array itself, see
+    <npdists.histrogram_from_data> or <Histogram.from_data>.
+    """
     def __init__(self, bins, density, unit=None, label=None):
+        """
+        Create a <Histogram> distribution from bins and density.
+
+        This can also be created from a function at the top-level as:
+
+        * <npdists.histogram_from_bins>
+
+        See also:
+
+        * <Histogram.from_data>
+        * <npdists.histogram_from_data>
+
+        Arguments
+        --------------
+        * `bins` (np.array object): the value of the bin-edges.  Must have one more
+            entry than `density`.
+        * `density` (np.array object): the value of the bin-densities.  Must have one
+            less entry than `bins`.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
         super(Histogram, self).__init__(unit, label,
                                         None, None,
                                         self._sample_from_hist, ('bins', 'density'),
@@ -656,6 +1232,30 @@ class Histogram(BaseDistribution):
 
     @classmethod
     def from_data(cls, data, bins=10, range=None, weights=None, label=None, unit=None):
+        """
+        Create a <Histogram> distribution from data.
+
+        This can also be created from a function at the top-level as:
+
+        * <npdists.histogram_from_data>
+
+        See also:
+
+        * <Histogram.__init__>
+        * <npdists.histogram_from_bins>
+
+        Arguments
+        --------------
+        * `data` (np.array object): 1D array of values.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
         hist, bin_edges = _np.histogram(data, bins=bins, range=range, weights=weights, density=True)
 
         return cls(bin_edges, hist, label=label, unit=unit)
@@ -685,12 +1285,34 @@ class Histogram(BaseDistribution):
 
     @property
     def mean(self):
+        """
+        Return the weighted mean value from the histogram.
+
+        See also:
+
+        * <Histogram.mean>
+
+        Returns
+        -------
+        * float: the mean value
+        """
         bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
         mean = _np.average(bin_midpoints, weights=self.density)
         return mean
 
     @property
     def std(self):
+        """
+        Return the standard deviation about the mean from the histogram.
+
+        See also:
+
+        * <Histogram.mean>
+
+        Returns
+        ---------
+        * float: the standard deviation
+        """
         bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
         mean = _np.average(bin_midpoints, weights=self.density)
 
@@ -699,13 +1321,62 @@ class Histogram(BaseDistribution):
         return sigma
 
     def to_gaussian(self):
+        """
+        Convert the <Histogram> distribution to a <Gaussian> distribution by
+        adopting the values of <Histogram.mean> and <Histogram.std>.
+
+        Returns
+        --------
+        * a <Gaussian> object
+        """
         return Gaussian(self.mean, self.std, label=self.label, unit=self.unit)
 
     def to_uniform(self, sigma=1.0):
+        """
+        Convert the <Histogram> distribution to a <Uniform> distribution via
+        a <Gaussian> distribution.
+
+        Under-the-hood, this calls <Histogram.to_gaussian> and then calls
+        <Gaussian.to_uniform> with the requested value of `sigma`.
+
+        Arguments
+        -----------
+        * `sigma` (float, optional, default=1.0): the number of standard deviations
+            to adopt as the lower and upper bounds of the uniform distribution.
+
+        Returns
+        --------
+        * a <Uniform> object
+        """
         return self.to_gaussian(label=self.label, unit=self.unit).to_uniform(sigma=sigma)
 
 class Delta(BaseDistribution):
+    """
+    A Delta distribution will _always_ return the central values.  In most cases,
+    there is no need to manually create a Delta distribution.  But when doing
+    math on other <BaseDistribution> objects, <Delta> distributions are often
+    created for clarity.
+    """
     def __init__(self, value, unit=None, label=None):
+        """
+        Create a <Delta> distribution.
+
+        This can also be created from a function at the top-level as:
+
+        * <npdists.delta>
+
+        Arguments
+        --------------
+        * `value` (float or int): the value at which the delta function is True.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+
+        Returns
+        --------
+        * a <Delta> object
+        """
         super(Delta, self).__init__(unit, label,
                                     delta, ('value',),
                                     self._sample_from_delta, ('value',),
@@ -744,26 +1415,104 @@ class Delta(BaseDistribution):
 
     @property
     def mean(self):
+        """
+        The mean value of a delta function is the value itself.
+
+        Returns
+        -------
+        * float: the value
+        """
         return self.value
 
     @property
     def std(self):
+        """
+        The standard deviation of a delta function is 0.0 by definition
+
+        Returns
+        --------
+        * float: 0.0
+        """
         return 0.0
 
     def to_uniform(self):
+        """
+        Convert the <Delta> distribution to a <Uniform> distribution in which
+        both the lower and upper bounds are the same as the value.
+
+        Returns
+        ----------
+        * a <Uniform> object
+        """
         low = self.value
         high = self.value
         return Uniform(low, high, label=self.label, unit=self.unit)
 
     def to_gaussian(self):
+        """
+        Convert the <Delta> distribution to a <Gaussian> distribution in which
+        the central value is adopted with a scale/sigma of 0.0.
+
+        See also:
+
+        * <Delta.mean>
+        * <Delta.std>
+
+        Returns
+        --------
+        * a <Gaussian> object
+        """
         return Gaussian(self.value, 0.0, label=self.label, unit=self.unit)
 
     def to_histogram(self, N=1000, bins=10, range=None):
+        """
+        Convert the <Delta> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <Delta.sample> with `size=N` and passes
+        the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
         return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
 
 class Gaussian(BaseDistribution):
+    """
+    A Gaussian (or Normal) distribution uses numpy.random.normal to sample values
+    from a gaussian function.
+    """
     def __init__(self, loc=0.0, scale=0.0, unit=None, label=None):
+        """
+        Create a <Gaussian> distribution.
+
+        This can also be created from a function at the top-level as:
+
+        * <npdists.gaussian>
+
+        Arguments
+        --------------
+        * `loc` (float or int, optional, default=0.0): the central value of the gaussian distribution.
+        * `scale` (float or int, optional, default=0.0): the scale (sigma) of the gaussian distribution.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+
+        Returns
+        --------
+        * a <Gaussian> object
+        """
         super(Gaussian, self).__init__(unit, label,
                                        gaussian, ('loc', 'scale'),
                                        _np.random.normal, ('loc', 'scale'),
@@ -798,22 +1547,103 @@ class Gaussian(BaseDistribution):
 
     @property
     def mean(self):
+        """
+        The mean of a <Gaussian> distribution is the value of `loc`, by definition.
+
+        See also:
+
+        * <Gaussian.std>
+
+        Returns
+        --------
+        * float
+        """
         return self.loc
 
     @property
     def std(self):
+        """
+        The standard deviation of a <Gaussian> distribution is the value of `scale`,
+        by definition.
+
+        See also:
+
+        * <Gaussian.mean>
+
+        Returns
+        --------
+        * float
+        """
         return self.scale
 
     def to_uniform(self, sigma=1.0):
+        """
+        Convert the <Gaussian> distribution to a <Uniform> distribution by
+        adopting the lower and upper bounds as a certain value of `sigma`
+        for the <Gaussian> distribution.
+
+        Arguments
+        ----------
+        * `sigma` (float, optional, default=1.0): number of standard deviations
+            which should be adopted as the lower and upper bounds of the
+            <Uniform> distribution.
+
+        Returns
+        ---------
+        * a <Uniform> distribution
+        """
         low = self.loc - self.scale * sigma
         high = self.loc + self.scale * sigma
         return Uniform(low, high, label=self.label, unit=self.unit)
 
     def to_histogram(self, N=1000, bins=10, range=None):
+        """
+        Convert the <Gaussian> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <Gaussian.sample> with `size=N` and passes
+        the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
         return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
 
 class Uniform(BaseDistribution):
+    """
+    A Uniform (or Boxcar) distribution gives equal weights to all values within
+    the defined range and uses numpy.random.uniform to sample values.
+    """
     def __init__(self, low=0.0, high=1.0, unit=None, label=None):
+        """
+        Create a <Uniform> distribution.
+
+        This can also be created from a function at the top-level as:
+
+        * <npdists.uniform>
+
+        Arguments
+        --------------
+        * `low` (float or int, optional, default=0.0): the lower limit of the uniform distribution.
+        * `high` (float or int, optional, default=1.0): the upper limits of the uniform distribution.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+
+        Returns
+        --------
+        * a <Uniform> object
+        """
         super(Uniform, self).__init__(unit, label,
                                       uniform, ('low', 'high'),
                                       _np.random.uniform, ('low', 'high'),
@@ -857,12 +1687,54 @@ class Uniform(BaseDistribution):
 
     @property
     def mean(self):
+        """
+        The mean value of a <Uniform> distribution is the average of the `low`
+        and `high` values.
+
+        Returns
+        -------
+        * float
+        """
         return (self.low+self.high) / 2.0
 
     def to_gaussian(self, sigma=1.0):
+        """
+        Convert the <Uniform> distribution to a <Gaussian> distribution by
+        adopting a certain `sigma`: number of standard deviations which should
+        be adopted as the lower and upper bounds of the <Uniform> distribution.
+
+        Arguments
+        ----------
+        * `sigma` (float, optional, default=1.0): number of standard deviations
+            which should be adopted as the lower and upper bounds of the
+            <Uniform> distribution.
+
+        Returns
+        ---------
+        * a <Gaussian> distribution
+        """
         loc = self.mean
         scale = (self.high - self.low) / (2.0 * sigma)
         return Gaussian(loc, scale, unit=self.unit, label=self.label)
 
     def to_histogram(self, N=1000, bins=None, range=None):
+        """
+        Convert the <Uniform> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <Uniform.sample> with `size=N` and passes
+        the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
         return Histogram.from_data(self.sample(size=N), bins=bins, range=range, unit=self.unit, label=self.label)

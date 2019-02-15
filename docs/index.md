@@ -12,12 +12,13 @@ npdists requires the following dependencies:
 
   - python 2.7+ or 3.6+
   - numpy 1.10+
-  - matplotlib 2.2+
 
 
 and the following optional dependencies:
 
+  - matplotlib 2.2+ (required for plotting distributions)
   - astropy 1.0+ (required for units support)
+  - dill (required for saving/loading [Function Distributions](./api/Function.md))
 
 
 You can see the [Travis testing matrix](https://travis-ci.org/kecnry/npdists) for
@@ -57,10 +58,96 @@ print(g.sample(10))
 g.plot(show=True)
 ```
 
+## Supported Distribution Types
+
+The following distribution types are currently implemented:
+
+* [delta](./api/npdists.delta.md)
+* [gaussian](./api/npdists.gaussian.md)
+* [normal](./api/npdists.normal.md) (shortcut to gaussian)
+* [uniform](./api/npdists.uniform.md)
+* [boxcar](./api/npdists.boxcar.md) (shortcut to uniform)
+* [histogram_from_data](./api/npdists.histogram_from_data) or [histogram_from_bins](./api/npdists.histogram_from_bins)
+
+## Sampling
+
+To sample from any distribution, call the [sample](./api/BaseDistribution.sample.md) method,
+optionally passing the number of desired samples.
+
+```py
+g = npdists.gaussian(10, 1)
+print(g.sample())
+print(g.sample(10))
+```
+
+## Plotting
+
+To plot the distribution, call one of the following:
+
+* [plot](./api/BaseDistribution.plot.md)
+* [plot_dist](./api/BaseDistribution.plot_dist.md)
+* [plot_sample](./api/BaseDistribution.plot_sample.md)
+
+```py
+g = npdists.gaussian(10, 1)
+g.plot(show=True)
+```
 
 ## Converting Between Distribution Types
 
-## Math with PDFs
+Distributions within npdists allow for converting to other distribution types.
+See the [API documention](./api/) for the appropriate distribution type
+and look for the `to_` methods to convert along with a description of the options
+and limitations.  Below is a summary of all implemented translation methods:
+
+* [Delta](./api/Delta.md)
+    * [to_gaussian](./api/Delta.to_gaussian.md)
+    * [to_histogram](./api/Delta.to_histogram.md)
+    * [to_uniform](./api/Delta.to_uniform.md)
+* [Gaussian](./api/Gaussian.md)
+    * [to_histogram](./api/Gaussian.to_histogram.md)
+    * [to_uniform](./api/Gaussian.to_uniform.md)
+* [Uniform](./api/Uniform.md)
+    * [to_gaussian](./api/Uniform.to_gaussian.md)
+    * [to_histogram](./api/Uniform.to_histogram.md)
+* [Composite](./api/Composite.md)
+    * [to_gaussian](./api/Composite.to_gaussian.md) (via histogram)
+    * [to_histogram](./api/Composite.to_histogram.md)
+    * [to_uniform](./api/Composite.to_uniform.md) (via histogram)
+* [Function](./api/Function.md)
+    * [to_gaussian](./api/Function.to_gaussian.md) (via histogram)
+    * [to_histogram](./api/Function.to_histogram.md)
+    * [to_uniform](./api/Function.to_uniform.md) (via histogram)
+* [Histogram](./api/Histogram.md)
+    * [to_gaussian](./api/Histogram.to_gaussian.md)
+    * [to_uniform](./api/Histogram.to_uniform.md)
+
+
+## Math with Distribution Objects
+
+Any (supported) math operator between two Distribution objects, or between a Distribution object and a float or integer, will return another Distribution object.  In most cases, this will return a [Composite Distribution](./api/Composite.md).  In some cases where it is possible to return the same type of Distribution, that will be done instead.  For example, a [Gaussian Distribution](./api/Gaussian.md) multiplied by a float can return another [Gaussian Distribution](./api/Gaussian.md) where that float is interpreted as a [Delta Distribution](./api/Delta.md) with that value.
+
+This means that in the following case `2 * g` is equivalent to `d * g`, but **not** `g + g`:
+
+```py
+g = phoebe.gaussian(10, 2)
+d = phoebe.delta(5)
+
+```
+
+Currently supported operators include:
+
+* multiplication, division, addition, subtraction
+* np.sin, np.cos, np.tan (but not math.sin, etc)
+
+
+## Support for Units
+
+**NOTE:** astropy is required for units support.
+
+Units can be set for a distribution by setting the [unit](./api/BaseDistribution.unit.md), by passing `unit` to the constructor, or by multiplying the distribution object by an astropy.unit object.
+
+To change units, you can then call [Distribution.to](./api/BaseDistribution.to.md) to return a new distribution in the requested units.
 
 ## API Documentation
 

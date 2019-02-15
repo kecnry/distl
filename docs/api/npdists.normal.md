@@ -3,13 +3,11 @@
 
 ```py
 
-def normal(*args, **kwargs)
+def normal(loc, scale, unit=None, label=None)
 
 ```
 
 
 
-Same as [npdists.gaussian](npdists.gaussian.md)
-
-Create a [Gaussian](Gaussian.md) distribution.
+Shortcut to [npdists.gaussian](npdists.gaussian.md).
 
