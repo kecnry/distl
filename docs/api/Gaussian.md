@@ -1,8 +1,11 @@
 ## Gaussian (class)
 
 
-A Gaussian (or Normal) distribution uses numpy.random.normal to sample values
-from a gaussian function.
+A Gaussian (or Normal) distribution uses [numpy.random.normal](https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html)
+to sample values from a gaussian function.
+
+Can be created from the top-level via the [npdists.gaussian](npdists.gaussian.md) or
+[npdists.normal](npdists.normal.md) convenience functions.
 
 
 

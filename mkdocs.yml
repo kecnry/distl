@@ -3,5 +3,17 @@ theme:
     name: readthedocs
     highlightjs: true
     hljs_languages:
-        - yaml
-        - rust
+        - python
+repo_name: GitHub
+repo_url: https://github.com/kecnry/npdists/
+edit_uri: blob/master/docs/
+nav:
+    - Installation & Setup: index.md
+    - API:
+        - npdists: api.md
+        - Delta: api/Delta.md
+        - Gaussian: api/Gaussian.md
+        - Uniform: api/Uniform.md
+        - Composite: api/Composite.md
+        - Function: api/Function.md
+        - Histogram: api/Histogram.md

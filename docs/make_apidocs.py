@@ -110,7 +110,6 @@ if __name__ == '__main__':
     print("CREATING API DOCS FOR NPDISTS VERSION: {}".format(npdists.__version__))
 
     fms = api_docs(npdists, skip=[], members=[pydoc.inspect.isfunction])
-    shutil.copyfile('./api/npdists.md', './api/index.md')
 
     skip_methods = ['sin', 'cos', 'tan']
     fms = api_docs(npdists._npdists.BaseDistribution, skip=skip_methods)

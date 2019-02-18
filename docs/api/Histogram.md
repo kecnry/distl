@@ -1,13 +1,13 @@
 ## Histogram (class)
 
 
-A Histrogram distribution stores a discrete PDF and allows sampling from
+A Histogram distribution stores a discrete PDF and allows sampling from
 that binned density distribution.
 
-To create a Histrogram distribution from already binned data, see
+To create a Histogram distribution from already binned data, see
 [npdists.histogram_from_bins](npdists.histogram_from_bins.md) or [Histogram.__init__](Histogram.__init__.md).  To create a
-Histrogram distribtuion from the data array itself, see
-[npdists.histrogram_from_data](npdists.histrogram_from_data.md) or [Histogram.from_data](Histogram.from_data.md).
+Histogram distribtuion from the data array itself, see
+[npdists.histogram_from_data](npdists.histogram_from_data.md) or [Histogram.from_data](Histogram.from_data.md).
 
 
 

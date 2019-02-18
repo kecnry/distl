@@ -16,6 +16,8 @@ See:
 * [Function.to_json](Function.to_json.md)
 * [Function.to_file](Function.to_file.md)
 
+for documentation on loading and saving Function distributions.
+
 
 
 * [__init__](Function.__init__.md)

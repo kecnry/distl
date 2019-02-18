@@ -7,8 +7,8 @@ other Distribution objects.
 For example:
 
 ```py
-g = phoebe.gaussian(10, 2)
-u = phoebe.gaussian(1, 5)
+g = npdists.gaussian(10, 2)
+u = npdists.gaussian(1, 5)
 
 c = g * u
 print(c)
@@ -18,7 +18,7 @@ or:
 
 ```py
 import numpy as np
-g = phoebe.gaussian(0, 1)
+g = npdists.gaussian(0, 1)
 sing = np.sin(g)
 print(sing)
 ```

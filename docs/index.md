@@ -2,13 +2,21 @@
 
 **High-level wrappers for Probability Density Functions and Distributions using Numpy**
 
-**IMPORTANT**: npdists is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
+[![GitHub](https://img.shields.io/badge/github-kecnry%2Fnpdists-blue.svg)](https://github.com/kecnry/npdists)
+[![License](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/npdists/blob/master/LICENSE)
+[![travis build status](https://travis-ci.org/kecnry/npdists.svg?branch=master)](https://travis-ci.org/kecnry/npdists)
+[![Documentation Status](https://readthedocs.org/projects/npdists/badge/?version=latest)](https://npdists.readthedocs.io/en/latest/?badge=latest)
+
+
+**IMPORTANT**: **npdists** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please check back until an official release is ready.
+
+
 
 ## Getting Started
 
 ### Dependencies
 
-npdists requires the following dependencies:
+**npdists** requires the following dependencies:
 
   - python 2.7+ or 3.6+
   - numpy 1.10+
@@ -67,7 +75,7 @@ The following distribution types are currently implemented:
 * [normal](./api/npdists.normal.md) (shortcut to gaussian)
 * [uniform](./api/npdists.uniform.md)
 * [boxcar](./api/npdists.boxcar.md) (shortcut to uniform)
-* [histogram_from_data](./api/npdists.histogram_from_data) or [histogram_from_bins](./api/npdists.histogram_from_bins)
+* [histogram_from_data](./api/npdists.histogram_from_data.md) or [histogram_from_bins](./api/npdists.histogram_from_bins.md)
 
 ## Sampling
 
@@ -81,6 +89,8 @@ print(g.sample(10))
 ```
 
 ## Plotting
+
+**NOTE:** matplotlib is required for plotting support.
 
 To plot the distribution, call one of the following:
 
@@ -132,7 +142,6 @@ This means that in the following case `2 * g` is equivalent to `d * g`, but **no
 ```py
 g = phoebe.gaussian(10, 2)
 d = phoebe.delta(2)
-
 ```
 
 Currently supported operators include:
@@ -152,3 +161,9 @@ To change units, you can then call [Distribution.to](./api/BaseDistribution.to.m
 ## API Documentation
 
 See the [API documentation](./api/npdists.md) for full details on each type of available distribution.
+
+## Contributors
+
+[Kyle Conroy](https://github.com/kecnry)
+
+Contributions are welcome!  Feel free to file an issue or fork and create a pull-request.

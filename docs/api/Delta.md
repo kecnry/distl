@@ -6,6 +6,8 @@ there is no need to manually create a Delta distribution.  But when doing
 math on other [BaseDistribution](BaseDistribution.md) objects, [Delta](Delta.md) distributions are often
 created for clarity.
 
+Can be created from the top-level via the [npdists.delta](npdists.delta.md) convenience function.
+
 
 
 * [__init__](Delta.__init__.md)

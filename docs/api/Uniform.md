@@ -2,7 +2,11 @@
 
 
 A Uniform (or Boxcar) distribution gives equal weights to all values within
-the defined range and uses numpy.random.uniform to sample values.
+the defined range and uses [numpy.random.uniform](https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.uniform.html)
+to sample values.
+
+Can be created from the top-level via the [npdists.uniform](npdists.uniform.md) or
+[npdists.boxcar](npdists.boxcar.md) convenience functions.
 
 
 

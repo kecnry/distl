@@ -2,7 +2,12 @@
 
 **High-level wrappers for Probability Density Functions and Distributions using Numpy**
 
-**IMPORTANT**: npdists is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
+[![GitHub](https://img.shields.io/badge/github-kecnry%2Fnpdists-blue.svg)](https://github.com/kecnry/npdists)
+[![License](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/npdists/blob/master/LICENSE)
+[![travis build status](https://travis-ci.org/kecnry/npdists.svg?branch=master)](https://travis-ci.org/kecnry/npdists)
+[![Documentation Status](https://readthedocs.org/projects/npdists/badge/?version=latest)](https://npdists.readthedocs.io/en/latest/?badge=latest)
+
+**IMPORTANT**: **npdists** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
 
 Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./docs/index.md).
 
@@ -10,7 +15,7 @@ Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) o
 
 ### Dependencies
 
-npdists requires the following dependencies:
+**npdists** requires the following dependencies:
 
   - python 2.7+ or 3.6+
   - numpy 1.10+
@@ -63,3 +68,9 @@ g.plot(show=True)
 ## Documentation and API Docs
 
 Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./docs/index.md).
+
+## Contributors
+
+[Kyle Conroy](https://github.com/kecnry)
+
+Contributions are welcome!  Feel free to file an issue or fork and create a pull-request.

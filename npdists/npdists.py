@@ -835,8 +835,8 @@ class Composite(BaseDistribution):
     For example:
 
     ```py
-    g = phoebe.gaussian(10, 2)
-    u = phoebe.gaussian(1, 5)
+    g = npdists.gaussian(10, 2)
+    u = npdists.gaussian(1, 5)
 
     c = g * u
     print(c)
@@ -846,7 +846,7 @@ class Composite(BaseDistribution):
 
     ```py
     import numpy as np
-    g = phoebe.gaussian(0, 1)
+    g = npdists.gaussian(0, 1)
     sing = np.sin(g)
     print(sing)
     ```
@@ -1055,6 +1055,8 @@ class Function(BaseDistribution):
     * <Function.to_dict>
     * <Function.to_json>
     * <Function.to_file>
+
+    for documentation on loading and saving Function distributions.
     """
     def __init__(self, func, unit, label, *args):
         """
@@ -1189,13 +1191,13 @@ class Function(BaseDistribution):
 
 class Histogram(BaseDistribution):
     """
-    A Histrogram distribution stores a discrete PDF and allows sampling from
+    A Histogram distribution stores a discrete PDF and allows sampling from
     that binned density distribution.
 
-    To create a Histrogram distribution from already binned data, see
+    To create a Histogram distribution from already binned data, see
     <npdists.histogram_from_bins> or <Histogram.__init__>.  To create a
-    Histrogram distribtuion from the data array itself, see
-    <npdists.histrogram_from_data> or <Histogram.from_data>.
+    Histogram distribtuion from the data array itself, see
+    <npdists.histogram_from_data> or <Histogram.from_data>.
     """
     def __init__(self, bins, density, unit=None, label=None):
         """
@@ -1356,6 +1358,8 @@ class Delta(BaseDistribution):
     there is no need to manually create a Delta distribution.  But when doing
     math on other <BaseDistribution> objects, <Delta> distributions are often
     created for clarity.
+
+    Can be created from the top-level via the <npdists.delta> convenience function.
     """
     def __init__(self, value=0.0, unit=None, label=None):
         """
@@ -1489,8 +1493,11 @@ class Delta(BaseDistribution):
 
 class Gaussian(BaseDistribution):
     """
-    A Gaussian (or Normal) distribution uses numpy.random.normal to sample values
-    from a gaussian function.
+    A Gaussian (or Normal) distribution uses [numpy.random.normal](https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html)
+    to sample values from a gaussian function.
+
+    Can be created from the top-level via the <npdists.gaussian> or
+    <npdists.normal> convenience functions.
     """
     def __init__(self, loc=0.0, scale=1.0, unit=None, label=None):
         """
@@ -1621,7 +1628,11 @@ class Gaussian(BaseDistribution):
 class Uniform(BaseDistribution):
     """
     A Uniform (or Boxcar) distribution gives equal weights to all values within
-    the defined range and uses numpy.random.uniform to sample values.
+    the defined range and uses [numpy.random.uniform](https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.uniform.html)
+    to sample values.
+
+    Can be created from the top-level via the <npdists.uniform> or
+    <npdists.boxcar> convenience functions.
     """
     def __init__(self, low=0.0, high=1.0, unit=None, label=None):
         """
