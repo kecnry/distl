@@ -12,13 +12,13 @@ else:
 __version__ = '0.0.1'
 version = __version__
 
-def delta(value, unit=None, label=None):
+def delta(value=0.0, unit=None, label=None):
     """
     Create a <Delta> distribution.
 
     Arguments
     --------------
-    * `value` (float or int): the value at which the delta function is True.
+    * `value` (float or int, default=0.0): the value at which the delta function is True.
     * `unit` (astropy.units object, optional): the units of the provided values.
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
@@ -31,14 +31,14 @@ def delta(value, unit=None, label=None):
     return _npdists.Delta(value, unit=unit, label=label)
 
 
-def uniform(low, high, unit=None, label=None):
+def uniform(low=0.0, high=1.0, unit=None, label=None):
     """
     Create a <Uniform> distribution.
 
     Arguments
     --------------
-    * `low` (float or int): the lower limit of the uniform distribution.
-    * `high` (float or int): the upper limits of the uniform distribution.
+    * `low` (float or int, default=0.0): the lower limit of the uniform distribution.
+    * `high` (float or int, default=1.0): the upper limits of the uniform distribution.
     * `unit` (astropy.units object, optional): the units of the provided values.
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
@@ -50,21 +50,21 @@ def uniform(low, high, unit=None, label=None):
     """
     return _npdists.Uniform(low, high, unit=unit, label=label)
 
-def boxcar(low, high, unit=None, label=None):
+def boxcar(low=0.0, high=1.0, unit=None, label=None):
     """
     Shortcut to <npdists.uniform>.
     """
     return _npdists.Uniform(low, high, unit=unit, label=label)
 
 
-def gaussian(loc, scale, unit=None, label=None):
+def gaussian(loc=0.0, scale=1.0, unit=None, label=None):
     """
     Create a <Gaussian> distribution.
 
     Arguments
     --------------
-    * `loc` (float or int): the central value of the gaussian distribution.
-    * `scale` (float or int): the scale (sigma) of the gaussian distribution.
+    * `loc` (float or int, default=0.0): the central value of the gaussian distribution.
+    * `scale` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
     * `unit` (astropy.units object, optional): the units of the provided values.
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
@@ -76,7 +76,7 @@ def gaussian(loc, scale, unit=None, label=None):
     """
     return _npdists.Gaussian(loc, scale, unit=unit, label=label)
 
-def normal(loc, scale, unit=None, label=None):
+def normal(loc=0.0, scale=1.0, unit=None, label=None):
     """
     Shortcut to <npdists.gaussian>.
     """

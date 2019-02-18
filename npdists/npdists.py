@@ -1357,7 +1357,7 @@ class Delta(BaseDistribution):
     math on other <BaseDistribution> objects, <Delta> distributions are often
     created for clarity.
     """
-    def __init__(self, value, unit=None, label=None):
+    def __init__(self, value=0.0, unit=None, label=None):
         """
         Create a <Delta> distribution.
 
@@ -1367,7 +1367,7 @@ class Delta(BaseDistribution):
 
         Arguments
         --------------
-        * `value` (float or int): the value at which the delta function is True.
+        * `value` (float or int, default=0.0): the value at which the delta function is True.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
@@ -1492,7 +1492,7 @@ class Gaussian(BaseDistribution):
     A Gaussian (or Normal) distribution uses numpy.random.normal to sample values
     from a gaussian function.
     """
-    def __init__(self, loc=0.0, scale=0.0, unit=None, label=None):
+    def __init__(self, loc=0.0, scale=1.0, unit=None, label=None):
         """
         Create a <Gaussian> distribution.
 
@@ -1502,8 +1502,8 @@ class Gaussian(BaseDistribution):
 
         Arguments
         --------------
-        * `loc` (float or int, optional, default=0.0): the central value of the gaussian distribution.
-        * `scale` (float or int, optional, default=0.0): the scale (sigma) of the gaussian distribution.
+        * `loc` (float or int, default=0.0): the central value of the gaussian distribution.
+        * `scale` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
@@ -1633,8 +1633,8 @@ class Uniform(BaseDistribution):
 
         Arguments
         --------------
-        * `low` (float or int, optional, default=0.0): the lower limit of the uniform distribution.
-        * `high` (float or int, optional, default=1.0): the upper limits of the uniform distribution.
+        * `low` (float or int, default=0.0): the lower limit of the uniform distribution.
+        * `high` (float or int, default=1.0): the upper limits of the uniform distribution.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
