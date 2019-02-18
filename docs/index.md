@@ -131,7 +131,7 @@ This means that in the following case `2 * g` is equivalent to `d * g`, but **no
 
 ```py
 g = phoebe.gaussian(10, 2)
-d = phoebe.delta(5)
+d = phoebe.delta(2)
 
 ```
 

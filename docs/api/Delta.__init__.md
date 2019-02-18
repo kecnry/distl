@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, value, unit=None, label=None)
+def __init__(self, value=0.0, unit=None, label=None)
 
 ```
 
@@ -17,7 +17,7 @@ This can also be created from a function at the top-level as:
 
 Arguments
 --------------
-* `value` (float or int): the value at which the delta function is True.
+* `value` (float or int, default=0.0): the value at which the delta function is True.
 * `unit` (astropy.units object, optional): the units of the provided values.
 * `label` (string, optional): a label for the distribution.  This is used
     for the x-label while plotting the distribution, as well as a shorthand

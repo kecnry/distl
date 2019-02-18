@@ -29,11 +29,11 @@ Currently supported operators include:
 * np.sin, np.cos, np.tan (but not math.sin, etc)
 
 When doing math between a distribution and a float or integer, that float/int
-will be treated as a <Delta> distribution.  In some simple cases, the
+will be treated as a [Delta](Delta.md) distribution.  In some simple cases, the
 applicable distribution type will be returned, but in other cases,
-a <Composite> distribution will be returned.  For example, multiplying
-a <Uniform> or <Gaussian> distribution by a float will return another
-<Uniform> or <Gaussian> distribution, respectively.
+a [Composite](Composite.md) distribution will be returned.  For example, multiplying
+a [Uniform](Uniform.md) or [Gaussian](Gaussian.md) distribution by a float will return another
+[Uniform](Uniform.md) or [Gaussian](Gaussian.md) distribution, respectively.
 
 
 

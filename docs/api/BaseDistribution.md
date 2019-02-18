@@ -6,9 +6,9 @@ not be used directly by the user.
 
 Any subclass distribution should override the following:
 
-* <BaseDistribution.__init__>
-* <BaseDistribution.mean>
-* <BaseDistribution.std>
+* [BaseDistribution.__init__](BaseDistribution.__init__.md)
+* [BaseDistribution.mean](BaseDistribution.mean.md)
+* [BaseDistribution.std](BaseDistribution.std.md)
 
 
 

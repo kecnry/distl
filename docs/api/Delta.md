@@ -3,7 +3,7 @@
 
 A Delta distribution will _always_ return the central values.  In most cases,
 there is no need to manually create a Delta distribution.  But when doing
-math on other <BaseDistribution> objects, <Delta> distributions are often
+math on other [BaseDistribution](BaseDistribution.md) objects, [Delta](Delta.md) distributions are often
 created for clarity.
 
 

@@ -2,8 +2,8 @@
 
 
 A Function distribution allows for any python callable to be stored that
-utilizes distributions under-the-hood.  When calling <Function.sample>,
-any argument passed to the function that is a <BaseDistribution> object
+utilizes distributions under-the-hood.  When calling [Function.sample](Function.sample.md),
+any argument passed to the function that is a [BaseDistribution](BaseDistribution.md) object
 will be sampled prior to being passed to the callable function.
 
 In order to save or load these distributions, it is necessary to have
@@ -12,9 +12,9 @@ sources, as any executable could be contained in the callable function.
 
 See:
 
-* <Function.to_dict>
-* <Function.to_json>
-* <Function.to_file>
+* [Function.to_dict](Function.to_dict.md)
+* [Function.to_json](Function.to_json.md)
+* [Function.to_file](Function.to_file.md)
 
 
 

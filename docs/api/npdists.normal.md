@@ -3,7 +3,7 @@
 
 ```py
 
-def normal(loc, scale, unit=None, label=None)
+def normal(loc=0.0, scale=1.0, unit=None, label=None)
 
 ```
 
