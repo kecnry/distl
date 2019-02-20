@@ -2,12 +2,28 @@
 
 from distutils.core import setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(name='npdists',
       version='0.0.1',
-      description='Numpy Distribution Helpers',
+      description='High-Level Wrappers for Probability Density Functions and Distributions using Numpy',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       author='Kyle Conroy',
       author_email='kyleconroy@gmail.com',
       url='https://www.github.com/kecnry/npdists',
       # download_url = 'https://github.com/kecnry/npdists/tarball/1.0.0',
       packages=['npdists'],
+      classifiers=[
+        "Development Status :: 1 - Planning",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.6",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+       ],
      )

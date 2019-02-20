@@ -1,11 +1,12 @@
 # npdists
 
-**High-level wrappers for Probability Density Functions and Distributions using Numpy**
+**High-Level Wrappers for Probability Density Functions and Distributions using Numpy**
 
-[![GitHub](https://img.shields.io/badge/github-kecnry%2Fnpdists-blue.svg)](https://github.com/kecnry/npdists)
-[![License](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/npdists/blob/master/LICENSE)
-[![travis build status](https://travis-ci.org/kecnry/npdists.svg?branch=master)](https://travis-ci.org/kecnry/npdists)
-[![Documentation Status](https://readthedocs.org/projects/npdists/badge/?version=latest)](https://npdists.readthedocs.io/en/latest/?badge=latest)
+[![badge](https://img.shields.io/badge/github-kecnry%2Fnpdists-blue.svg)](https://github.com/kecnry/npdists)
+[![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/npdists/)
+[![badge](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/npdists/blob/master/LICENSE)
+[![badge](https://travis-ci.org/kecnry/npdists.svg?branch=master)](https://travis-ci.org/kecnry/npdists)
+[![badge](https://readthedocs.org/projects/npdists/badge/?version=latest)](https://npdists.readthedocs.io/en/latest/?badge=latest)
 
 **IMPORTANT**: **npdists** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
 
