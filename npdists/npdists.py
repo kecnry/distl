@@ -323,13 +323,29 @@ class BaseDistribution(object):
             raise TypeError("cannot subtract {} by type {}".format(self.__class__.__name__), type(other))
 
     def sin(self):
-        return Composite("sin", self)
+        if self.unit is not None:
+            dist = self.to(_units.rad)
+        else:
+            dist = self
+
+        return Composite("sin", self.to(_units.rad), label="sin({})".format(self.label) if self.label is not None else None)
 
     def cos(self):
-        return Composite("cos", self)
+        if self.unit is not None:
+            dist = self.to(_units.rad)
+        else:
+            dist = self
+
+        return Composite("cos", self.to(_units.rad), label="cos({})".format(self.label) if self.label is not None else None)
 
     def tan(self):
-        return Composite("tan", self)
+        if self.unit is not None:
+            dist = self.to(_units.rad)
+        else:
+            dist = self
+
+        return Composite("tan", self.to(_units.rad), label="tan({})".format(self.label) if self.label is not None else None)
+
 
     @property
     def label(self):
