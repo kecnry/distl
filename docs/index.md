@@ -160,7 +160,7 @@ To change units, you can then call [Distribution.to](./api/BaseDistribution.to.m
 
 ## API Documentation
 
-See the [API documentation](./api/npdists.md) for full details on each type of available distribution.
+See the [API documentation](./api.md) for full details on each type of available distribution.
 
 ## Contributors
 

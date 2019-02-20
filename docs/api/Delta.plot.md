@@ -3,7 +3,7 @@
 
 ```py
 
-def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True, show=False, **kwargs)
+def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True, label=None, show=False, **kwargs)
 
 ```
 
@@ -28,6 +28,8 @@ Arguments
 * `plot_dist` (bool, optional, default=True): whether to plot the
     analytic form of the underlying distribution, if applicable.
     See also [BaseDistribution.plot_dist](BaseDistribution.plot_dist.md).
+* `label` (string, optional, default=None): override the label on the
+    x-axis.  If not provided or None, will use [BaseDistribution.label](BaseDistribution.label.md).
 * `show` (bool, optional, default=True): whether to show the resulting
     matplotlib figure.
 * `**kwargs`: all keyword arguments (except for `bins`) will be passed

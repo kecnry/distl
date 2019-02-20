@@ -589,15 +589,16 @@ class BaseDistribution(object):
     #
     #     return ret
 
-    def _xlabel(self, unit=None):
-        l = 'value'
-        if _has_astropy and self.unit is not None:
+    def _xlabel(self, unit=None, label=None):
+        label = label if label is not None else self.label
+        l = 'value' if label is None else label
+        if _has_astropy and self.unit is not None and self.unit not in [_units.dimensionless_unscaled]:
             l += ' ({})'.format(unit if unit is not None else self.unit)
 
         return l
 
 
-    def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True, show=False, **kwargs):
+    def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True, label=None, show=False, **kwargs):
         """
         Plot both the analytic distribution function as well as a sampled
         histogram from the distribution.  Requires matplotlib to be installed.
@@ -618,6 +619,8 @@ class BaseDistribution(object):
         * `plot_dist` (bool, optional, default=True): whether to plot the
             analytic form of the underlying distribution, if applicable.
             See also <BaseDistribution.plot_dist>.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <BaseDistribution.label>.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
         * `**kwargs`: all keyword arguments (except for `bins`) will be passed
@@ -656,14 +659,14 @@ class BaseDistribution(object):
             ret_dist = None
 
         if show:
-            _plt.xlabel(self._xlabel(unit))
+            _plt.xlabel(self._xlabel(unit, label=label))
             _plt.ylabel('density')
             _plt.show()
 
         return (ret_sample, ret_dist)
 
 
-    def plot_sample(self, size=100000, unit=None, show=False, **kwargs):
+    def plot_sample(self, size=100000, unit=None, label=None, show=False, **kwargs):
         """
         Plot both a sampled histogram from the distribution.  Requires
         matplotlib to be installed.
@@ -679,6 +682,8 @@ class BaseDistribution(object):
             the histogram.  See also <BaseDistribution.sample>.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <BaseDistribution.label>.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
         * `**kwargs`: all keyword arguments will be passed on to plt.hist.
@@ -696,13 +701,13 @@ class BaseDistribution(object):
 
         ret = _plt.hist(self.sample(size, unit=unit), density=True, **kwargs)
         if show:
-            _plt.xlabel(self._xlabel(unit))
+            _plt.xlabel(self._xlabel(unit, label=label))
             _plt.ylabel('density')
             _plt.show()
 
         return ret
 
-    def plot_dist(self, x, unit=None, show=False, **kwargs):
+    def plot_dist(self, x, unit=None, label=None, show=False, **kwargs):
         """
         Plot the analytic distribution function.  Requires matplotlib to be installed.
 
@@ -717,6 +722,8 @@ class BaseDistribution(object):
             x-axis.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <BaseDistribution.label>.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
         * `**kwargs`: all keyword arguments will be passed on to plt.plot
@@ -739,7 +746,7 @@ class BaseDistribution(object):
             ret = None
 
         if show:
-            _plt.xlabel(self._xlabel(unit))
+            _plt.xlabel(self._xlabel(unit, label=label))
             _plt.ylabel('density')
             _plt.show()
 
@@ -1028,7 +1035,7 @@ class Composite(BaseDistribution):
         --------
         * a <Gaussian> object
         """
-        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_gaussian()
+        return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
 
     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
         """
@@ -1053,7 +1060,7 @@ class Composite(BaseDistribution):
         --------
         * a <Uniform> object
         """
-        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_uniform(sigma=sigma)
+        return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
 class Function(BaseDistribution):
     """
@@ -1176,7 +1183,7 @@ class Function(BaseDistribution):
         --------
         * a <Gaussian> object
         """
-        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_gaussian()
+        return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
 
     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
         """
@@ -1202,7 +1209,7 @@ class Function(BaseDistribution):
         --------
         * a <Uniform> object
         """
-        return self.to_histogram(N=N, bins=bins, range=range, label=self.label, unit=self.unit).to_uniform(sigma=sigma)
+        return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
 
 class Histogram(BaseDistribution):
