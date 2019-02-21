@@ -149,7 +149,7 @@ class BaseDistribution(object):
     * <BaseDistribution.mean>
     * <BaseDistribution.std>
     """
-    def __init__(self, unit, label,
+    def __init__(self, unit, label, wrap_at,
                  dist_func, dist_args,
                  sample_func, sample_args,
                  *args):
@@ -181,6 +181,7 @@ class BaseDistribution(object):
 
         self.label = label
         self.unit = unit
+        self.wrap_at = wrap_at
 
         for item in args:
             valid, validated_value = item[2](item[1])
@@ -194,7 +195,7 @@ class BaseDistribution(object):
         """
         for anything that isn't overriden here, call the method on the array itself
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '_unit', 'unit', '_label', 'label']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '_unit', 'unit', '_label', 'label', '_wrap_at', 'wrap_at']:
             # then we need to actually get the attribute
             return super(BaseDistribution, self).__getattr__(name)
         elif name in self._descriptors.keys():
@@ -206,7 +207,7 @@ class BaseDistribution(object):
     def __setattr__(self, name, value):
         """
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', '_unit', 'unit', '_label', 'label']:
+        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', '_unit', 'unit', '_label', 'label', '_wrap_at', 'wrap_at']:
             return super(BaseDistribution, self).__setattr__(name, value)
         elif name in self._descriptors.keys():
             valid, validated_value = self._validators[name](value)
@@ -219,7 +220,11 @@ class BaseDistribution(object):
 
     def __repr__(self):
         descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
-        return "<npdists.{} {} unit={}>".format(self.__class__.__name__.lower(), descriptors, self.unit)
+        if self.unit is not None:
+            descriptors += " unit={}".format(self.unit)
+        if self.wrap_at is not None:
+            descriptors += " wrap_at={}".format(self.wrap_at)
+        return "<npdists.{} {}>".format(self.__class__.__name__.lower(), descriptors)
 
     def __str__(self):
         if self.label is not None:
@@ -417,6 +422,8 @@ class BaseDistribution(object):
 
         new_dist = self.copy()
         new_dist.unit = unit
+        if new_dist.wrap_at is not None and new_dist.wrap_at is not False:
+            new_dist.wrap_at *= factor
         new_dist *= factor
         return new_dist
 
@@ -508,6 +515,111 @@ class BaseDistribution(object):
         """
         return tuple(getattr(self, k) for k in self._sample_args)
 
+    @property
+    def wrap_at(self):
+        """
+        Value at which to wrap all sampled values.  If <<class>.unit> is not None,
+        then the value of `wrap_at` is the same as the set units.
+
+        If `False`: will not wrap
+        If `None`: will wrap on range 0-2pi (0-360 deg) if <<class>.unit> are angular
+            or 0-1 if <<class>.unit> are cycles.
+        If float: will wrap on range 0-`wrap_at`.
+
+        See also:
+
+        * <<class>.get_wrap_at>
+        * <<class>.wrap>
+
+        Returns
+        ---------
+        * (float or None)
+        """
+        return self._wrap_at
+
+    @wrap_at.setter
+    def wrap_at(self, wrap_at):
+        if wrap_at is None or wrap_at is False:
+            self._wrap_at = wrap_at
+
+        elif not (isinstance(wrap_at, float) or isinstance(wrap_at, int)):
+            raise TypeError("wrap_at={} must be of type float, int, False, or None".format(wrap_at))
+
+        else:
+            self._wrap_at = wrap_at
+
+    def get_wrap_at(self, wrap_at=None):
+        """
+        Get the computed value used for wrapping, given `wrap_at` as an optional
+        override to the attribute <<class>.wrap_at>.
+
+        See also:
+
+        * <<class>.wrap_at>
+        * <<class>.wrap>
+
+        Arguments
+        ------------
+        * `wrap_at` (float or False or None, optional, default=None): override
+            the value of <<class>.wrap_at>.
+
+        Returns
+        ----------
+        * The computed wrapping value, accounting for <<class>.unit> if `wrap_at`
+            is None.
+        """
+
+        if wrap_at is None:
+            wrap_at = self.wrap_at
+
+        if wrap_at is None:
+            if _has_astropy and self.unit is not None:
+                if self.unit.physical_type == 'angle':
+                    if self.unit.to_string() == 'deg':
+                        wrap_at = 360
+                    elif self.unit.to_string() == 'cycle':
+                        wrap_at = 1
+                    elif self.unit.to_string() == 'rad':
+                        wrap_at = 2 * np.pi
+                    else:
+                        raise NotImplementedError("wrapping for angle unit {} not implemented.".format(self.unit.to_string()))
+            else:
+                wrap_at = False
+
+        return wrap_at
+
+    def wrap(self, value, wrap_at=None):
+        """
+        Wrap values via modulo:
+
+        ```py
+        value % wrap_at
+        ```
+
+        See also:
+
+        * <<class>.wrap_at>
+        * <<class>.get_wrap_at>
+
+        Arguments
+        ------------
+        * `value` (float or array): values to wrap
+        * `wrap_at` (float, optional, default=None): value to use for the upper-limit.
+            If not provided or None, will use <<class>.wrap_at>.  If False,
+            will return `value` unwrapped.
+
+        Returns
+        ----------
+        * (float or array): same shape/type as input `value`.
+        """
+        wrap_at = self.get_wrap_at(wrap_at)
+
+        if wrap_at is False:
+            return value
+
+        return value % wrap_at
+
+
     def _return_with_units(self, value, unit=None, as_quantity=False):
         if (as_quantity or unit) and not _has_astropy:
             raise ImportError("astropy required to return quantity objects")
@@ -533,7 +645,7 @@ class BaseDistribution(object):
         else:
             return value.value
 
-    def sample(self, size=None, unit=None, as_quantity=False):
+    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None):
         """
         Sample from the distribution.
 
@@ -547,13 +659,18 @@ class BaseDistribution(object):
         * `as_quantity` (bool, optional, default=False): whether to return an
             astropy quantity object instead of just the value.  Astropy must
             be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
 
         Returns
         ---------
         * float or array: float if `size=None`, otherwise a numpy array with
             shape defined by `size`.
         """
-        return self._return_with_units(self.sample_func(*self.sample_args, size=size), unit=unit, as_quantity=as_quantity)
+        return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
     def distribution(self, x, unit=None, as_quantity=False):
         """
@@ -562,7 +679,9 @@ class BaseDistribution(object):
 
         Arguments
         ----------
-        * `x` (array): x-values at which to compute the densities.
+        * `x` (array): x-values at which to compute the densities.  If `unit` is
+            not None, the value of `x` are assumed to be in the original units
+            <<class>.unit>, not `unit`.
         * `unit` (astropy.unit, optional, default=None): unit to convert the
             resulting array.  Astropy must be installed in order to convert units.
         * `as_quantity` (bool, optional, default=False): whether to return an
@@ -598,8 +717,11 @@ class BaseDistribution(object):
         return l
 
 
-    def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True,
-             plot_gaussian=False, plot_gaussian_kwargs={},
+    def plot(self, size=100000, unit=None,
+             wrap_at=None,
+             plot_sample=True, plot_sample_kwargs={'color': 'gray'},
+             plot_dist=True, plot_dist_kwargs={'color': 'red'},
+             plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
              label=None, show=False, **kwargs):
         """
         Plot both the analytic distribution function as well as a sampled
@@ -617,24 +739,36 @@ class BaseDistribution(object):
             the histogram.  See also <<class>.sample>.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
         * `plot_sample` (bool, optional, default=True): whether to plot the
             histogram from sampling.  See also <<class>.plot_sample>.
+        * `plot_sample_kwargs` (dict, optional, default={'color': 'gray'}):
+            keyword arguments to send to <<class>.plot_sample>.
         * `plot_dist` (bool, optional, default=True): whether to plot the
             analytic form of the underlying distribution, if applicable.
             See also <<class>.plot_dist>.
+        * `plot_dist_kwargs` (dict, optional, default={'color': 'red'}):
+            keyword arguments to send to <<class>.plot_dist>.
         * `plot_gaussian` (bool, optional, default=False): whether to plot
             a guassian distribution fit to the sample.  Only supported for
             distributions that have <<class>.to_gaussian> methods.
-        * `plot_gaussian_kwargs` (dict, optional, default={}): keyword arguments
-            to send to <<class>.plot_gaussian>.
+        * `plot_gaussian_kwargs` (dict, optional, default={'color': 'blue'}):
+            keyword arguments to send to <<class>.plot_gaussian>.
         * `label` (string, optional, default=None): override the label on the
             x-axis.  If not provided or None, will use <<class>.label>.  Will
             only be used if `show=True`.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
         * `**kwargs`: all keyword arguments (except for `bins`) will be passed
-            on to <<class>.plot_dist> and all keyword arguments will
-            be passed on to <<class>.plot_sample>.
+            on to <<class>.plot_dist> and <<class>.plot_gaussian> and all
+            keyword arguments will be passed on to <<class>.plot_sample>.
+            Keyword arguments defined in `plot_sample_kwargs`,
+            `plot_dist_kwargs`, and `plot_gaussian_kwargs`
+            will override the values sent in `kwargs`.
 
         Returns
         --------
@@ -652,26 +786,47 @@ class BaseDistribution(object):
         ret = []
 
         if plot_sample:
-            ret_sample = self.plot_sample(size=size, unit=unit, show=False, **kwargs)
-            xmin, xmax = _plt.gca().get_xlim()
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_sample_kwargs = plot_sample_kwargs.copy()
+            for k,v in kwargs.items():
+                plot_sample_kwargs.setdefault(k,v)
+            ret_sample = self.plot_sample(size=size, unit=unit, wrap_at=wrap_at, show=False, **plot_sample_kwargs)
         else:
             ret_sample = None
-            sample = self.sample(size=size, unit=unit)
+
+        if plot_gaussian or plot_dist:
+            # we need to know the original x-range, before wrapping
+            sample = self.sample(size=size, unit=unit, wrap_at=False)
             xmin = _np.min(sample)
             xmax = _np.max(sample)
+
+            x = _np.linspace(xmin, xmax, 1001)
 
         if plot_gaussian:
             if not hasattr(self, 'to_gaussian'):
                 raise NotImplementedError("{} cannot plot with `plot_gaussian=True`".format(self.__class__.__name__))
-            x = _np.linspace(xmin, xmax, 1001)
-            ret_gauss = self.plot_gaussian(x, **plot_gaussian_kwargs)
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_gaussian_kwargs = plot_gaussian_kwargs.copy()
+            for k,v in kwargs.items():
+                if k in ['bins']:
+                    continue
+                plot_gaussian_kwargs.setdefault(k,v)
+            ret_gauss = self.plot_gaussian(x, wrap_at=wrap_at, show=False, **plot_gaussian_kwargs)
 
         else:
             ret_gauss = None
 
         if plot_dist:
-            x = _np.linspace(xmin, xmax, 1001)
-            ret_dist = self.plot_dist(x, unit=unit, show=False, **{k:v for k,v in kwargs.items() if k not in ['bins']})
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_dist_kwargs = plot_dist_kwargs.copy()
+            for k,v in kwargs.items():
+                if k in ['bins']:
+                    continue
+                plot_dist_kwargs.setdefault(k,v)
+            ret_dist = self.plot_dist(x, unit=unit, wrap_at=wrap_at, show=False, **plot_dist_kwargs)
         else:
             ret_dist = None
 
@@ -683,7 +838,8 @@ class BaseDistribution(object):
         return (ret_sample, ret_dist, ret_gauss)
 
 
-    def plot_sample(self, size=100000, unit=None, label=None, show=False, **kwargs):
+    def plot_sample(self, size=100000, unit=None, wrap_at=None,
+                    label=None, show=False, **kwargs):
         """
         Plot both a sampled histogram from the distribution.  Requires
         matplotlib to be installed.
@@ -700,6 +856,11 @@ class BaseDistribution(object):
             the histogram.  See also <<class>.sample>.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
         * `label` (string, optional, default=None): override the label on the
             x-axis.  If not provided or None, will use <<class>.label>.  Will
             only be used if `show=True`.
@@ -721,12 +882,20 @@ class BaseDistribution(object):
             raise ImportError("matplotlib required for plotting")
 
         if hasattr(self, 'bins'):
-            # probably only for histograms, let's default to the stored bins
-            kwargs.setdefault('bins', self.bins)
+            # let's default to the stored bins (probably only the case for
+            # histogram distributions)
+            if wrap_at or self.wrap_at:
+                kwargs.setdefault('bins', len(self.bins))
+            else:
+                kwargs.setdefault('bins', self.bins)
         else:
             kwargs.setdefault('bins', 25)
 
-        ret = _plt.hist(self.sample(size, unit=unit), density=True, **kwargs)
+        # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
+        # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
+        # appropriate bins
+        ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at), density=True, **kwargs)
+
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))
             _plt.ylabel('density')
@@ -734,7 +903,8 @@ class BaseDistribution(object):
 
         return ret
 
-    def plot_dist(self, x, unit=None, label=None, show=False, **kwargs):
+    def plot_dist(self, x, unit=None, wrap_at=None,
+                  label=None, show=False, **kwargs):
         """
         Plot the analytic distribution function.  Requires matplotlib to be installed.
 
@@ -747,15 +917,27 @@ class BaseDistribution(object):
         Arguments
         -----------
         * `x` (np array): the numpy array at which to sample the value on the
-            x-axis.
+            x-axis.  If `unit` is not None, the value of `x` are assumed to be
+            in the original units <<class>.unit>, not `unit`.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
         * `label` (string, optional, default=None): override the label on the
             x-axis.  If not provided or None, will use <<class>.label>.  Will
             only be used if `show=True`.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
-        * `**kwargs`: all keyword arguments will be passed on to plt.plot
+        * `**kwargs`: all keyword arguments will be passed on to plt.plot.  Note:
+            if wrapping is enabled, either via `wrap_at` or <<class>.wrap_at>,
+            the resulting line will break when wrapping, resulting in using multiple
+            colors.  Sending `color` as a keyword argument will prevent this
+            matplotlib behavior.  Calling this through <<class>.plot> with
+            `plot_gaussian=True` defaults to sending `color='blue'` through
+            the `plot_gaussian_kwargs` argument.
 
         Returns
         --------
@@ -770,7 +952,16 @@ class BaseDistribution(object):
 
         # x is assumed to be in new units
         if self.dist_func is not None:
-            ret = _plt.plot(x, self.distribution(x, unit=unit, as_quantity=False), **kwargs)
+            y = self.distribution(x, unit=unit, as_quantity=False)
+            x = self.wrap(x, wrap_at=wrap_at)
+
+            # handle wrapping by making multiple calls to plot whenever the sign
+            # changes direction
+            split_inds = _np.where(x[1:]-x[:-1] < 0)[0]
+            xs, ys = _np.split(x, split_inds+1), _np.split(y, split_inds+1)
+            for x,y in zip(xs, ys):
+                ret = _plt.plot(x, y, **kwargs)
+
         else:
             ret = None
 
@@ -781,7 +972,8 @@ class BaseDistribution(object):
 
         return ret
 
-    def plot_gaussian(self, x, unit=None, label=None, show=False, **kwargs):
+    def plot_gaussian(self, x, unit=None, wrap_at=None,
+                      label=None, show=False, **kwargs):
         """
         Plot the gaussian distribution that would result from calling
         <<class>.to_gaussian> with the same arguments.
@@ -799,9 +991,15 @@ class BaseDistribution(object):
         Arguments
         -----------
         * `x` (np array): the numpy array at which to sample the value on the
-            x-axis.
+            x-axis. If `unit` is not None, the value of `x` are assumed to be
+            in the original units <<class>.unit>, not `unit`.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
         * `label` (string, optional, default=None): override the label on the
             x-axis.  If not provided or None, will use <<class>.label>.  Will
             only be used if `show=True`.
@@ -828,8 +1026,11 @@ class BaseDistribution(object):
 
         if unit is not None:
             g = g.to(unit)
+            if wrap_at is not None and wrap_at is not False:
+                wrap_at = (wrap_at * self.unit).to(unit).value
 
-        ret = g.plot_dist(x, **{k:v for k,v in kwargs.items() if k not in to_gauss_keys})
+        # TODO: this time wrap_at is assumed to be in the plotted units, not the original... do we need to convert?
+        ret = g.plot_dist(x, wrap_at=wrap_at, **{k:v for k,v in kwargs.items() if k not in to_gauss_keys})
 
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))
@@ -875,6 +1076,8 @@ class BaseDistribution(object):
             d['unit'] = self.unit.to_string()
         if self.label is not None:
             d['label'] = self.label
+        if self.wrap_at is not None:
+            d['wrap_at'] = self.wrap_at
         return d
 
     def to_json(self, **kwargs):
@@ -972,7 +1175,7 @@ class Composite(BaseDistribution):
     <Uniform> or <Gaussian> distribution, respectively.
 
     """
-    def __init__(self, math, dist1, dist2=None, unit=None, label=None):
+    def __init__(self, math, dist1, dist2=None, unit=None, label=None, wrap_at=None):
         """
         Create a <Composite> distribution from two other distributions.
 
@@ -991,12 +1194,16 @@ class Composite(BaseDistribution):
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
 
         Returns
         ---------
         * a <Composite> object.
         """
-        super(Composite, self).__init__(unit, label,
+        super(Composite, self).__init__(unit, label, wrap_at,
                                         None, None,
                                         self._sample_from_children, ('math', 'dist1', 'dist2'),
                                         ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
@@ -1082,8 +1289,8 @@ class Composite(BaseDistribution):
         """
         Convert the <Composite> distribution to a <Histogram> distribution.
 
-        Under-the-hood, this calls <Composite.sample> with `size=N` and passes
-        the resulting array as well as the requested `bins` and `range`
+        Under-the-hood, this calls <Composite.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
         to <Histogram.from_data>.
 
         Arguments
@@ -1098,7 +1305,9 @@ class Composite(BaseDistribution):
         --------
         * a <Histogram> object
         """
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
+        return Histogram.from_data(self.sample(size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_gaussian(self, N=1000, bins=10, range=None):
         """
@@ -1166,7 +1375,7 @@ class Function(BaseDistribution):
 
     for documentation on loading and saving Function distributions.
     """
-    def __init__(self, func, unit, label, *args):
+    def __init__(self, func, unit, label, wrap_at, *args):
         """
         Create a <Function> distribution from some callable function and
         any number of arguments, including distribution objects.
@@ -1183,6 +1392,10 @@ class Function(BaseDistribution):
         * `label` (string or None): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
         * `*args`: all additional positional arguments will be passed on to
             `func` when sampling.  These can be, but are not limited to,
             other distribution objects.
@@ -1191,7 +1404,7 @@ class Function(BaseDistribution):
         ---------
         * a <Function> object.
         """
-        super(Function, self).__init__(unit, label,
+        super(Function, self).__init__(unit, label, wrap_at,
                                        None, None,
                                        self._sample_from_function, ('func', 'args'),
                                        ('func', func, is_callable), ('args', args, is_iterable))
@@ -1230,8 +1443,8 @@ class Function(BaseDistribution):
         """
         Convert the <Function> distribution to a <Histogram> distribution.
 
-        Under-the-hood, this calls <Function.sample> with `size=N` and passes
-        the resulting array as well as the requested `bins` and `range`
+        Under-the-hood, this calls <Function.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
         to <Histogram.from_data>.
 
         Arguments
@@ -1246,7 +1459,9 @@ class Function(BaseDistribution):
         --------
         * a <Histogram> object
         """
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
+        return Histogram.from_data(self.sample(size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_gaussian(self, N=1000, bins=10, range=None):
         """
@@ -1307,7 +1522,7 @@ class Histogram(BaseDistribution):
     Histogram distribtuion from the data array itself, see
     <npdists.histogram_from_data> or <Histogram.from_data>.
     """
-    def __init__(self, bins, density, unit=None, label=None):
+    def __init__(self, bins, density, unit=None, label=None, wrap_at=None):
         """
         Create a <Histogram> distribution from bins and density.
 
@@ -1330,18 +1545,23 @@ class Histogram(BaseDistribution):
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
 
         Returns
         --------
         * a <Histogram> object
         """
-        super(Histogram, self).__init__(unit, label,
+        super(Histogram, self).__init__(unit, label, wrap_at,
                                         None, None,
                                         self._sample_from_hist, ('bins', 'density'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
-    def from_data(cls, data, bins=10, range=None, weights=None, label=None, unit=None):
+    def from_data(cls, data, bins=10, range=None, weights=None,
+                  label=None, unit=None, wrap_at=None):
         """
         Create a <Histogram> distribution from data.
 
@@ -1357,10 +1577,18 @@ class Histogram(BaseDistribution):
         Arguments
         --------------
         * `data` (np.array object): 1D array of values.
+        * `bins` (int or array, optional, default=10): number of bins or value
+            of bin edges.  Passed to np.histogram.
+        * `range` (tuple, optional, default=None): passed to np.histogram.
+        * `weights` (array, optional, default=None): passed to np.histogram.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
 
         Returns
         --------
@@ -1368,7 +1596,7 @@ class Histogram(BaseDistribution):
         """
         hist, bin_edges = _np.histogram(data, bins=bins, range=range, weights=weights, density=True)
 
-        return cls(bin_edges, hist, label=label, unit=unit)
+        return cls(bin_edges, hist, label=label, unit=unit, wrap_at=wrap_at)
 
     def _sample_from_hist(self, bins, counts, size=None):
         if size is None:
@@ -1439,7 +1667,7 @@ class Histogram(BaseDistribution):
         --------
         * a <Gaussian> object
         """
-        return Gaussian(self.mean, self.std, label=self.label, unit=self.unit)
+        return Gaussian(self.mean, self.std, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_uniform(self, sigma=1.0):
         """
@@ -1469,7 +1697,7 @@ class Delta(BaseDistribution):
 
     Can be created from the top-level via the <npdists.delta> convenience function.
     """
-    def __init__(self, value=0.0, unit=None, label=None):
+    def __init__(self, value=0.0, unit=None, label=None, wrap_at=None):
         """
         Create a <Delta> distribution.
 
@@ -1484,12 +1712,16 @@ class Delta(BaseDistribution):
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
 
         Returns
         --------
         * a <Delta> object
         """
-        super(Delta, self).__init__(unit, label,
+        super(Delta, self).__init__(unit, label, wrap_at,
                                     delta, ('value',),
                                     self._sample_from_delta, ('value',),
                                     ('value', value, is_float))
@@ -1558,7 +1790,7 @@ class Delta(BaseDistribution):
         """
         low = self.value
         high = self.value
-        return Uniform(low, high, label=self.label, unit=self.unit)
+        return Uniform(low, high, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_gaussian(self):
         """
@@ -1574,14 +1806,14 @@ class Delta(BaseDistribution):
         --------
         * a <Gaussian> object
         """
-        return Gaussian(self.value, 0.0, label=self.label, unit=self.unit)
+        return Gaussian(self.value, 0.0, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_histogram(self, N=1000, bins=10, range=None):
         """
         Convert the <Delta> distribution to a <Histogram> distribution.
 
-        Under-the-hood, this calls <Delta.sample> with `size=N` and passes
-        the resulting array as well as the requested `bins` and `range`
+        Under-the-hood, this calls <Delta.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
         to <Histogram.from_data>.
 
         Arguments
@@ -1596,7 +1828,9 @@ class Delta(BaseDistribution):
         --------
         * a <Histogram> object
         """
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
+        return Histogram.from_data(self.sample(size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
 
 class Gaussian(BaseDistribution):
@@ -1607,7 +1841,7 @@ class Gaussian(BaseDistribution):
     Can be created from the top-level via the <npdists.gaussian> or
     <npdists.normal> convenience functions.
     """
-    def __init__(self, loc=0.0, scale=1.0, unit=None, label=None):
+    def __init__(self, loc=0.0, scale=1.0, unit=None, label=None, wrap_at=None):
         """
         Create a <Gaussian> distribution.
 
@@ -1623,12 +1857,16 @@ class Gaussian(BaseDistribution):
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
 
         Returns
         --------
         * a <Gaussian> object
         """
-        super(Gaussian, self).__init__(unit, label,
+        super(Gaussian, self).__init__(unit, label, wrap_at,
                                        gaussian, ('loc', 'scale'),
                                        _np.random.normal, ('loc', 'scale'),
                                        ('loc', loc, is_float), ('scale', scale, is_float))
@@ -1709,14 +1947,14 @@ class Gaussian(BaseDistribution):
         """
         low = self.loc - self.scale * sigma
         high = self.loc + self.scale * sigma
-        return Uniform(low, high, label=self.label, unit=self.unit)
+        return Uniform(low, high, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_histogram(self, N=1000, bins=10, range=None):
         """
         Convert the <Gaussian> distribution to a <Histogram> distribution.
 
-        Under-the-hood, this calls <Gaussian.sample> with `size=N` and passes
-        the resulting array as well as the requested `bins` and `range`
+        Under-the-hood, this calls <Gaussian.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
         to <Histogram.from_data>.
 
         Arguments
@@ -1731,7 +1969,9 @@ class Gaussian(BaseDistribution):
         --------
         * a <Histogram> object
         """
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, label=self.label, unit=self.unit)
+        return Histogram.from_data(self.sample(size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
 class Uniform(BaseDistribution):
     """
@@ -1742,7 +1982,7 @@ class Uniform(BaseDistribution):
     Can be created from the top-level via the <npdists.uniform> or
     <npdists.boxcar> convenience functions.
     """
-    def __init__(self, low=0.0, high=1.0, unit=None, label=None):
+    def __init__(self, low=0.0, high=1.0, unit=None, label=None, wrap_at=None):
         """
         Create a <Uniform> distribution.
 
@@ -1754,19 +1994,26 @@ class Uniform(BaseDistribution):
         --------------
         * `low` (float or int, default=0.0): the lower limit of the uniform distribution.
         * `high` (float or int, default=1.0): the upper limits of the uniform distribution.
+            Must be higher than `low` unless `wrap_at` is provided or `unit`
+            is provided as angular (rad, deg, cycles).
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
 
         Returns
         --------
         * a <Uniform> object
         """
-        super(Uniform, self).__init__(unit, label,
+        super(Uniform, self).__init__(unit, label, wrap_at,
                                       uniform, ('low', 'high'),
-                                      _np.random.uniform, ('low', 'high'),
+                                      self._sample_uniform, ('low', 'high'),
                                       ('low', low, is_float), ('high', high, is_float))
+
 
     def __mul__(self, other):
         if (isinstance(other, float) or isinstance(other, int)):
@@ -1803,6 +2050,19 @@ class Uniform(BaseDistribution):
     def __float__(self):
         return self.mean
         # return self.sample()
+
+    def _sample_uniform(self, low, high, size=None):
+        if low > high:
+            # NOTE: we cannot send the wrap_at argument from sample or plot
+            wrap_at = self.get_wrap_at()
+            if not wrap_at:
+                raise ValueError("low must be >= high unless wrap_at is set or units are angular.")
+
+            # unwrap low
+            high = high + wrap_at
+
+        return _np.random.uniform(low, high, size=size)
+
 
     @property
     def mean(self):
@@ -1847,14 +2107,14 @@ class Uniform(BaseDistribution):
         """
         loc = self.mean
         scale = (self.high - self.low) / (2.0 * sigma)
-        return Gaussian(loc, scale, unit=self.unit, label=self.label)
+        return Gaussian(loc, scale, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
     def to_histogram(self, N=1000, bins=None, range=None):
         """
         Convert the <Uniform> distribution to a <Histogram> distribution.
 
-        Under-the-hood, this calls <Uniform.sample> with `size=N` and passes
-        the resulting array as well as the requested `bins` and `range`
+        Under-the-hood, this calls <Uniform.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
         to <Histogram.from_data>.
 
         Arguments
@@ -1869,4 +2129,6 @@ class Uniform(BaseDistribution):
         --------
         * a <Histogram> object
         """
-        return Histogram.from_data(self.sample(size=N), bins=bins, range=range, unit=self.unit, label=self.label)
+        return Histogram.from_data(self.sample(size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   unit=self.unit, label=self.label, wrap_at=self.wrap_at)

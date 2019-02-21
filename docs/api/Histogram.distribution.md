@@ -14,7 +14,9 @@ array of values (x).
 
 Arguments
 ----------
-* `x` (array): x-values at which to compute the densities.
+* `x` (array): x-values at which to compute the densities.  If `unit` is
+    not None, the value of `x` are assumed to be in the original units
+    [Histogram.unit](Histogram.unit.md), not `unit`.
 * `unit` (astropy.unit, optional, default=None): unit to convert the
     resulting array.  Astropy must be installed in order to convert units.
 * `as_quantity` (bool, optional, default=False): whether to return an

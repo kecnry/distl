@@ -13,7 +13,7 @@ name = 'npdists'
 __version__ = '0.1.0-dev'
 version = __version__
 
-def delta(value=0.0, unit=None, label=None):
+def delta(value=0.0, unit=None, label=None, wrap_at=None):
     """
     Create a <Delta> distribution.
 
@@ -24,15 +24,19 @@ def delta(value=0.0, unit=None, label=None):
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
         notation when creating a <Composite> distribution.
+    * `wrap_at` (float or False or None, optional, default=None): value to wrap all
+        sampled values.  If None, will default to 0-2pi if `unit` is angular
+        (0-360 for degrees), or 0-1 if `unit` is cycles.  If False, will not wrap.
+        See <Delta.wrap_at> and <Delta.wrap> for more details.
 
     Returns
     --------
     * a <Delta> object
     """
-    return _npdists.Delta(value, unit=unit, label=label)
+    return _npdists.Delta(value, unit=unit, label=label, wrap_at=wrap_at)
 
 
-def uniform(low=0.0, high=1.0, unit=None, label=None):
+def uniform(low=0.0, high=1.0, unit=None, label=None, wrap_at=None):
     """
     Create a <Uniform> distribution.
 
@@ -40,25 +44,31 @@ def uniform(low=0.0, high=1.0, unit=None, label=None):
     --------------
     * `low` (float or int, default=0.0): the lower limit of the uniform distribution.
     * `high` (float or int, default=1.0): the upper limits of the uniform distribution.
+        Must be higher than `low` unless `wrap_at` is provided or `unit`
+        is provided as angular (rad, deg, cycles).
     * `unit` (astropy.units object, optional): the units of the provided values.
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
         notation when creating a <Composite> distribution.
+    * `wrap_at` (float or False or None, optional, default=None): value to wrap all
+        sampled values.  If None, will default to 0-2pi if `unit` is angular
+        (0-360 for degrees), or 0-1 if `unit` is cycles.  If False, will not wrap.
+        See <Uniform.wrap_at> and <Uniform.wrap> for more details.
 
     Returns
     --------
     * a <Uniform> object
     """
-    return _npdists.Uniform(low, high, unit=unit, label=label)
+    return _npdists.Uniform(low, high, unit=unit, label=label, wrap_at=wrap_at)
 
-def boxcar(low=0.0, high=1.0, unit=None, label=None):
+def boxcar(low=0.0, high=1.0, unit=None, label=None, wrap_at=None):
     """
     Shortcut to <npdists.uniform>.
     """
-    return _npdists.Uniform(low, high, unit=unit, label=label)
+    return _npdists.Uniform(low, high, unit=unit, label=label, wrap_at=wrap_at)
 
 
-def gaussian(loc=0.0, scale=1.0, unit=None, label=None):
+def gaussian(loc=0.0, scale=1.0, unit=None, label=None, wrap_at=None):
     """
     Create a <Gaussian> distribution.
 
@@ -70,21 +80,25 @@ def gaussian(loc=0.0, scale=1.0, unit=None, label=None):
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
         notation when creating a <Composite> distribution.
+    * `wrap_at` (float or False or None, optional, default=None): value to wrap all
+        sampled values.  If None, will default to 0-2pi if `unit` is angular
+        (0-360 for degrees), or 0-1 if `unit` is cycles.  If False, will not wrap.
+        See <Gaussian.wrap_at> and <Gaussian.wrap> for more details.
 
     Returns
     --------
     * a <Gaussian> object
     """
-    return _npdists.Gaussian(loc, scale, unit=unit, label=label)
+    return _npdists.Gaussian(loc, scale, unit=unit, label=label, wrap_at=wrap_at)
 
-def normal(loc=0.0, scale=1.0, unit=None, label=None):
+def normal(loc=0.0, scale=1.0, unit=None, label=None, wrap_at=None):
     """
     Shortcut to <npdists.gaussian>.
     """
-    return _npdists.Gaussian(loc, scale, unit=unit, label=label)
+    return _npdists.Gaussian(loc, scale, unit=unit, label=label, wrap_at=wrap_at)
 
 
-def histogram_from_bins(bins, density, unit=None, label=None):
+def histogram_from_bins(bins, density, unit=None, label=None, wrap_at=None):
     """
     Create a <Histogram> distribution from binned data.
 
@@ -102,14 +116,18 @@ def histogram_from_bins(bins, density, unit=None, label=None):
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
         notation when creating a <Composite> distribution.
+    * `wrap_at` (float or False or None, optional, default=None): value to wrap all
+        sampled values.  If None, will default to 0-2pi if `unit` is angular
+        (0-360 for degrees), or 0-1 if `unit` is cycles.  If False, will not wrap.
+        See <Histogram.wrap_at> and <Histogram.wrap> for more details.
 
     Returns
     --------
     * a <Histogram> object
     """
-    return _npdists.Histogram(bins, density, unit=unit, label=label)
+    return _npdists.Histogram(bins, density, unit=unit, label=label, wrap_at=wrap_at)
 
-def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None):
+def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None, wrap_at=None):
     """
     Create a <Histogram> distribution from data.
 
@@ -124,6 +142,10 @@ def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, labe
     * `label` (string, optional): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
         notation when creating a <Composite> distribution.
+    * `wrap_at` (float or False or None, optional, default=None): value to wrap all
+        sampled values.  If None, will default to 0-2pi if `unit` is angular
+        (0-360 for degrees), or 0-1 if `unit` is cycles.  If False, will not wrap.
+        See <Histogram.wrap_at> and <Histogram.wrap> for more details.
 
     Returns
     --------
@@ -131,10 +153,11 @@ def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, labe
     """
 
     return _npdists.Histogram.from_data(data, bins=bins, range=range,
-                                        weight=weights, unit=unit, label=label)
+                                        weight=weights, unit=unit, label=label,
+                                        wrap_at=wrap_at)
 
 
-def function(func, unit, label, *args):
+def function(func, unit, label, wrap_at, *args):
     """
     Create a <Function> distribution from some callable function and
     any number of arguments, including distribution objects.
@@ -148,6 +171,10 @@ def function(func, unit, label, *args):
     * `label` (string or None): a label for the distribution.  This is used
         for the x-label while plotting the distribution, as well as a shorthand
         notation when creating a <Composite> distribution.
+    * `wrap_at` (float or False or None): value to wrap all
+        sampled values.  If None, will default to 0-2pi if `unit` is angular
+        (0-360 for degrees), or 0-1 if `unit` is cycles.  If False, will not wrap.
+        See <Function.wrap_at> and <Function.wrap> for more details.
     * `*args`: all additional positional arguments will be passed on to
         `func` when sampling.  These can be, but are not limited to,
         other distribution objects.
@@ -156,7 +183,7 @@ def function(func, unit, label, *args):
     ---------
     * a <Function> object.
     """
-    return _npdists.Function(func, unit, label, *args)
+    return _npdists.Function(func, unit, label, wrap_at, *args)
 
 
 

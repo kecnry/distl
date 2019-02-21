@@ -3,7 +3,7 @@
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None)
 
 ```
 
@@ -21,6 +21,11 @@ Arguments
 * `as_quantity` (bool, optional, default=False): whether to return an
     astropy quantity object instead of just the value.  Astropy must
     be installed.
+* `wrap_at` (float, None, or False, optional, default=None): value to
+    use for wrapping.  See [BaseDistribution.wrap](BaseDistribution.wrap.md).  If not provided or None,
+    will use the value from [BaseDistribution.wrap_at](BaseDistribution.wrap_at.md).  Note: wrapping is
+    computed before changing units, so `wrap_at` must be provided
+    according to [BaseDistribution.unit](BaseDistribution.unit.md) not `unit`.
 
 Returns
 ---------

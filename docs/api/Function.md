@@ -25,6 +25,7 @@ for documentation on loading and saving Function distributions.
 * [dist_args](Function.dist_args.md)
 * [dist_func](Function.dist_func.md)
 * [distribution](Function.distribution.md)
+* [get_wrap_at](Function.get_wrap_at.md)
 * [label](Function.label.md)
 * [mean](Function.mean.md)
 * [plot](Function.plot.md)
@@ -43,3 +44,5 @@ for documentation on loading and saving Function distributions.
 * [to_json](Function.to_json.md)
 * [to_uniform](Function.to_uniform.md)
 * [unit](Function.unit.md)
+* [wrap](Function.wrap.md)
+* [wrap_at](Function.wrap_at.md)

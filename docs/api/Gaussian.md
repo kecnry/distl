@@ -14,6 +14,7 @@ Can be created from the top-level via the [npdists.gaussian](npdists.gaussian.md
 * [dist_args](Gaussian.dist_args.md)
 * [dist_func](Gaussian.dist_func.md)
 * [distribution](Gaussian.distribution.md)
+* [get_wrap_at](Gaussian.get_wrap_at.md)
 * [label](Gaussian.label.md)
 * [mean](Gaussian.mean.md)
 * [plot](Gaussian.plot.md)
@@ -31,3 +32,5 @@ Can be created from the top-level via the [npdists.gaussian](npdists.gaussian.md
 * [to_json](Gaussian.to_json.md)
 * [to_uniform](Gaussian.to_uniform.md)
 * [unit](Gaussian.unit.md)
+* [wrap](Gaussian.wrap.md)
+* [wrap_at](Gaussian.wrap_at.md)

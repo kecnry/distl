@@ -17,6 +17,7 @@ Histogram distribtuion from the data array itself, see
 * [dist_func](Histogram.dist_func.md)
 * [distribution](Histogram.distribution.md)
 * [from_data](Histogram.from_data.md)
+* [get_wrap_at](Histogram.get_wrap_at.md)
 * [label](Histogram.label.md)
 * [mean](Histogram.mean.md)
 * [plot](Histogram.plot.md)
@@ -34,3 +35,5 @@ Histogram distribtuion from the data array itself, see
 * [to_json](Histogram.to_json.md)
 * [to_uniform](Histogram.to_uniform.md)
 * [unit](Histogram.unit.md)
+* [wrap](Histogram.wrap.md)
+* [wrap_at](Histogram.wrap_at.md)

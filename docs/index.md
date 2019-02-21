@@ -159,6 +159,14 @@ Units can be set for a distribution by setting the [unit](./api/BaseDistribution
 
 To change units, you can then call [Distribution.to](./api/BaseDistribution.to.md) to return a new distribution in the requested units.
 
+## Wrapping
+
+**COMING SOON**
+
+## Hard Limits
+
+**COMING SOON**
+
 ## API Documentation
 
 See the [API documentation](./api.md) for full details on each type of available distribution.

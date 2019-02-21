@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, unit, label, dist_func, dist_args, sample_func, sample_args, *args)
+def __init__(self, unit, label, wrap_at, dist_func, dist_args, sample_func, sample_args, *args)
 
 ```
 

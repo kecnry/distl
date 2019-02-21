@@ -43,6 +43,7 @@ a [Uniform](Uniform.md) or [Gaussian](Gaussian.md) distribution by a float will 
 * [dist_args](Composite.dist_args.md)
 * [dist_func](Composite.dist_func.md)
 * [distribution](Composite.distribution.md)
+* [get_wrap_at](Composite.get_wrap_at.md)
 * [label](Composite.label.md)
 * [mean](Composite.mean.md)
 * [plot](Composite.plot.md)
@@ -61,3 +62,5 @@ a [Uniform](Uniform.md) or [Gaussian](Gaussian.md) distribution by a float will 
 * [to_json](Composite.to_json.md)
 * [to_uniform](Composite.to_uniform.md)
 * [unit](Composite.unit.md)
+* [wrap](Composite.wrap.md)
+* [wrap_at](Composite.wrap_at.md)

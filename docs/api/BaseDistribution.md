@@ -17,6 +17,7 @@ Any subclass distribution should override the following:
 * [dist_args](BaseDistribution.dist_args.md)
 * [dist_func](BaseDistribution.dist_func.md)
 * [distribution](BaseDistribution.distribution.md)
+* [get_wrap_at](BaseDistribution.get_wrap_at.md)
 * [label](BaseDistribution.label.md)
 * [mean](BaseDistribution.mean.md)
 * [plot](BaseDistribution.plot.md)
@@ -32,3 +33,5 @@ Any subclass distribution should override the following:
 * [to_file](BaseDistribution.to_file.md)
 * [to_json](BaseDistribution.to_json.md)
 * [unit](BaseDistribution.unit.md)
+* [wrap](BaseDistribution.wrap.md)
+* [wrap_at](BaseDistribution.wrap_at.md)

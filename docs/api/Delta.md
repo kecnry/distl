@@ -15,6 +15,7 @@ Can be created from the top-level via the [npdists.delta](npdists.delta.md) conv
 * [dist_args](Delta.dist_args.md)
 * [dist_func](Delta.dist_func.md)
 * [distribution](Delta.distribution.md)
+* [get_wrap_at](Delta.get_wrap_at.md)
 * [label](Delta.label.md)
 * [mean](Delta.mean.md)
 * [plot](Delta.plot.md)
@@ -33,3 +34,5 @@ Can be created from the top-level via the [npdists.delta](npdists.delta.md) conv
 * [to_json](Delta.to_json.md)
 * [to_uniform](Delta.to_uniform.md)
 * [unit](Delta.unit.md)
+* [wrap](Delta.wrap.md)
+* [wrap_at](Delta.wrap_at.md)

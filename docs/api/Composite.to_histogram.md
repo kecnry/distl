@@ -11,8 +11,8 @@ def to_histogram(self, N=1000, bins=10, range=None)
 
 Convert the [Composite](Composite.md) distribution to a [Histogram](Histogram.md) distribution.
 
-Under-the-hood, this calls [Composite.sample](Composite.sample.md) with `size=N` and passes
-the resulting array as well as the requested `bins` and `range`
+Under-the-hood, this calls [Composite.sample](Composite.sample.md) with `size=N` and `wrap_at=False`
+and passes the resulting array as well as the requested `bins` and `range`
 to [Histogram.from_data](Histogram.from_data.md).
 
 Arguments
