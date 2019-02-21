@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='npdists',
-      version='0.0.1',
+      version='0.1.0-dev',
       description='High-Level Wrappers for Probability Density Functions and Distributions using Numpy',
       long_description=long_description,
       long_description_content_type="text/markdown",

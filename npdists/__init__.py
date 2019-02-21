@@ -9,7 +9,8 @@ except ImportError:
 else:
     _has_dill = True
 
-__version__ = '0.0.1'
+name = 'npdists'
+__version__ = '0.1.0-dev'
 version = __version__
 
 def delta(value=0.0, unit=None, label=None):
