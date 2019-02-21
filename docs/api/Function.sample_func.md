@@ -7,8 +7,8 @@ Return the callable function to sample the distribution, if available.
 
 See also:
 
-* [BaseDistribution.sample_args](BaseDistribution.sample_args.md)
-* [BaseDistribution.sample](BaseDistribution.sample.md)
+* [Function.sample_args](Function.sample_args.md)
+* [Function.sample](Function.sample.md)
 
 Returns
 --------

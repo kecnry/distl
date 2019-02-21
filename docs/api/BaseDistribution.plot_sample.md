@@ -16,6 +16,7 @@ See also:
 
 * [BaseDistribution.plot](BaseDistribution.plot.md)
 * [BaseDistribution.plot_dist](BaseDistribution.plot_dist.md)
+* [BaseDistribution.plot_gaussian](BaseDistribution.plot_gaussian.md)
 
 Arguments
 -----------
@@ -24,10 +25,13 @@ Arguments
 * `unit` (astropy.unit, optional, default=None): units to use along
     the x-axis.  Astropy must be installed.
 * `label` (string, optional, default=None): override the label on the
-    x-axis.  If not provided or None, will use [BaseDistribution.label](BaseDistribution.label.md).
+    x-axis.  If not provided or None, will use [BaseDistribution.label](BaseDistribution.label.md).  Will
+    only be used if `show=True`.
 * `show` (bool, optional, default=True): whether to show the resulting
     matplotlib figure.
-* `**kwargs`: all keyword arguments will be passed on to plt.hist.
+* `**kwargs`: all keyword arguments will be passed on to plt.hist.  If
+    not provided, `bins` will default to the stored bins for [Histogram](Histogram.md)
+    distributions, otherwise will default to 25.
 
 Returns
 --------

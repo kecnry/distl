@@ -7,8 +7,8 @@ Return the arguments sent to the sample function.
 
 See also:
 
-* [BaseDistribution.sample_func](BaseDistribution.sample_func.md)
-* [BaseDistribution.sample](BaseDistribution.sample.md)
+* [Gaussian.sample_func](Gaussian.sample_func.md)
+* [Gaussian.sample](Gaussian.sample.md)
 
 Returns
 --------

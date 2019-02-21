@@ -16,8 +16,8 @@ via [npdists.from_json](npdists.from_json.md).
 
 See also:
 
-* [BaseDistribution.to_dict](BaseDistribution.to_dict.md)
-* [BaseDistribution.to_file](BaseDistribution.to_file.md)
+* [Gaussian.to_dict](Gaussian.to_dict.md)
+* [Gaussian.to_file](Gaussian.to_file.md)
 
 Arguments
 ---------

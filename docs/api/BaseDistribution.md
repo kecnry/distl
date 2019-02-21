@@ -21,6 +21,7 @@ Any subclass distribution should override the following:
 * [mean](BaseDistribution.mean.md)
 * [plot](BaseDistribution.plot.md)
 * [plot_dist](BaseDistribution.plot_dist.md)
+* [plot_gaussian](BaseDistribution.plot_gaussian.md)
 * [plot_sample](BaseDistribution.plot_sample.md)
 * [sample](BaseDistribution.sample.md)
 * [sample_args](BaseDistribution.sample_args.md)

@@ -7,8 +7,8 @@ Return the arguments sent to the distribution function.
 
 See also:
 
-* [BaseDistribution.dist_func](BaseDistribution.dist_func.md)
-* [BaseDistribution.distribution](BaseDistribution.distribution.md)
+* [Histogram.dist_func](Histogram.dist_func.md)
+* [Histogram.distribution](Histogram.distribution.md)
 
 Returns
 --------

@@ -47,6 +47,7 @@ a [Uniform](Uniform.md) or [Gaussian](Gaussian.md) distribution by a float will 
 * [mean](Composite.mean.md)
 * [plot](Composite.plot.md)
 * [plot_dist](Composite.plot_dist.md)
+* [plot_gaussian](Composite.plot_gaussian.md)
 * [plot_sample](Composite.plot_sample.md)
 * [sample](Composite.sample.md)
 * [sample_args](Composite.sample_args.md)

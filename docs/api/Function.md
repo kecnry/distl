@@ -29,6 +29,7 @@ for documentation on loading and saving Function distributions.
 * [mean](Function.mean.md)
 * [plot](Function.plot.md)
 * [plot_dist](Function.plot_dist.md)
+* [plot_gaussian](Function.plot_gaussian.md)
 * [plot_sample](Function.plot_sample.md)
 * [sample](Function.sample.md)
 * [sample_args](Function.sample_args.md)

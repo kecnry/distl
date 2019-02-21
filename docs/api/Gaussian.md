@@ -18,6 +18,7 @@ Can be created from the top-level via the [npdists.gaussian](npdists.gaussian.md
 * [mean](Gaussian.mean.md)
 * [plot](Gaussian.plot.md)
 * [plot_dist](Gaussian.plot_dist.md)
+* [plot_gaussian](Gaussian.plot_gaussian.md)
 * [plot_sample](Gaussian.plot_sample.md)
 * [sample](Gaussian.sample.md)
 * [sample_args](Gaussian.sample_args.md)

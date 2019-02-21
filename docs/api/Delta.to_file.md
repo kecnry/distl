@@ -16,8 +16,8 @@ via [npdists.from_file](npdists.from_file.md).
 
 See also:
 
-* [BaseDistribution.to_dict](BaseDistribution.to_dict.md)
-* [BaseDistribution.to_json](BaseDistribution.to_json.md)
+* [Delta.to_dict](Delta.to_dict.md)
+* [Delta.to_json](Delta.to_json.md)
 
 Arguments
 ----------

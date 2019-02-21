@@ -351,7 +351,7 @@ class BaseDistribution(object):
     def label(self):
         """
         The label of the distribution object.  When not None, this is used for
-        the x-label when plotting (see <BaseDistribution.plot>) and for the
+        the x-label when plotting (see <<class>.plot>) and for the
         string representation for any math in a <Composite> or <Function>
         distribution.
         """
@@ -372,7 +372,7 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.to>
+        * <<class>.to>
         """
         return self._unit
 
@@ -391,12 +391,12 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.unit>
+        * <<class>.unit>
 
         Arguments
         ------------
         * `unit` (astropy.unit object): unit to use in the new distribution.
-            The current units (see <BaseDistribution.unit>) must be able to
+            The current units (see <<class>.unit>) must be able to
             convert to the requested units.
 
         Returns
@@ -450,8 +450,8 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.dist_args>
-        * <BaseDistribution.distribution>
+        * <<class>.dist_args>
+        * <<class>.distribution>
 
         Returns
         -------
@@ -466,8 +466,8 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.dist_func>
-        * <BaseDistribution.distribution>
+        * <<class>.dist_func>
+        * <<class>.distribution>
 
         Returns
         --------
@@ -483,8 +483,8 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.sample_args>
-        * <BaseDistribution.sample>
+        * <<class>.sample_args>
+        * <<class>.sample>
 
         Returns
         --------
@@ -499,8 +499,8 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.sample_func>
-        * <BaseDistribution.sample>
+        * <<class>.sample_func>
+        * <<class>.sample>
 
         Returns
         --------
@@ -598,39 +598,49 @@ class BaseDistribution(object):
         return l
 
 
-    def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True, label=None, show=False, **kwargs):
+    def plot(self, size=100000, unit=None, plot_sample=True, plot_dist=True,
+             plot_gaussian=False, plot_gaussian_kwargs={},
+             label=None, show=False, **kwargs):
         """
         Plot both the analytic distribution function as well as a sampled
         histogram from the distribution.  Requires matplotlib to be installed.
 
         See also:
 
-        * <BaseDistribution.plot_sample>
-        * <BaseDistribution.plot_dist>
+        * <<class>.plot_sample>
+        * <<class>.plot_dist>
+        * <<class>.plot_gaussian>
 
         Arguments
         -----------
         * `size` (int, optional, default=100000): number of points to sample for
-            the histogram.  See also <BaseDistribution.sample>.
+            the histogram.  See also <<class>.sample>.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
         * `plot_sample` (bool, optional, default=True): whether to plot the
-            histogram from sampling.  See also <BaseDistribution.plot_sample>.
+            histogram from sampling.  See also <<class>.plot_sample>.
         * `plot_dist` (bool, optional, default=True): whether to plot the
             analytic form of the underlying distribution, if applicable.
-            See also <BaseDistribution.plot_dist>.
+            See also <<class>.plot_dist>.
+        * `plot_gaussian` (bool, optional, default=False): whether to plot
+            a guassian distribution fit to the sample.  Only supported for
+            distributions that have <<class>.to_gaussian> methods.
+        * `plot_gaussian_kwargs` (dict, optional, default={}): keyword arguments
+            to send to <<class>.plot_gaussian>.
         * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <BaseDistribution.label>.
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
         * `**kwargs`: all keyword arguments (except for `bins`) will be passed
-            on to <BaseDistribution.plot_dist> and all keyword arguments will
-            be passed on to <BaseDistribution.plot_sample>.
+            on to <<class>.plot_dist> and all keyword arguments will
+            be passed on to <<class>.plot_sample>.
 
         Returns
         --------
-        * tuple: the return values from both <BaseDistribution.plot_sample> and
-            <BaseDistribution.plot_dist>.
+        * tuple: the return values from <<class>.plot_sample> (or None if
+            `plot_sample=False`), <<class>.plot_dist> (or None if `plot_dist=False`),
+            and <Gaussian.plot_dist> (or None if `plot_gaussian=False`).
 
         Raises
         --------
@@ -642,8 +652,6 @@ class BaseDistribution(object):
         ret = []
 
         if plot_sample:
-            kwargs.setdefault('bins', 25)
-
             ret_sample = self.plot_sample(size=size, unit=unit, show=False, **kwargs)
             xmin, xmax = _plt.gca().get_xlim()
         else:
@@ -651,6 +659,15 @@ class BaseDistribution(object):
             sample = self.sample(size=size, unit=unit)
             xmin = _np.min(sample)
             xmax = _np.max(sample)
+
+        if plot_gaussian:
+            if not hasattr(self, 'to_gaussian'):
+                raise NotImplementedError("{} cannot plot with `plot_gaussian=True`".format(self.__class__.__name__))
+            x = _np.linspace(xmin, xmax, 1001)
+            ret_gauss = self.plot_gaussian(x, **plot_gaussian_kwargs)
+
+        else:
+            ret_gauss = None
 
         if plot_dist:
             x = _np.linspace(xmin, xmax, 1001)
@@ -663,7 +680,7 @@ class BaseDistribution(object):
             _plt.ylabel('density')
             _plt.show()
 
-        return (ret_sample, ret_dist)
+        return (ret_sample, ret_dist, ret_gauss)
 
 
     def plot_sample(self, size=100000, unit=None, label=None, show=False, **kwargs):
@@ -673,20 +690,24 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.plot>
-        * <BaseDistribution.plot_dist>
+        * <<class>.plot>
+        * <<class>.plot_dist>
+        * <<class>.plot_gaussian>
 
         Arguments
         -----------
         * `size` (int, optional, default=100000): number of points to sample for
-            the histogram.  See also <BaseDistribution.sample>.
+            the histogram.  See also <<class>.sample>.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
         * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <BaseDistribution.label>.
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
-        * `**kwargs`: all keyword arguments will be passed on to plt.hist.
+        * `**kwargs`: all keyword arguments will be passed on to plt.hist.  If
+            not provided, `bins` will default to the stored bins for <Histogram>
+            distributions, otherwise will default to 25.
 
         Returns
         --------
@@ -698,6 +719,12 @@ class BaseDistribution(object):
         """
         if not _has_mpl:
             raise ImportError("matplotlib required for plotting")
+
+        if hasattr(self, 'bins'):
+            # probably only for histograms, let's default to the stored bins
+            kwargs.setdefault('bins', self.bins)
+        else:
+            kwargs.setdefault('bins', 25)
 
         ret = _plt.hist(self.sample(size, unit=unit), density=True, **kwargs)
         if show:
@@ -713,8 +740,9 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.plot>
-        * <BaseDistribution.plot_sample>
+        * <<class>.plot>
+        * <<class>.plot_sample>
+        * <<class>.plot_gaussian>
 
         Arguments
         -----------
@@ -723,14 +751,15 @@ class BaseDistribution(object):
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
         * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <BaseDistribution.label>.
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
         * `**kwargs`: all keyword arguments will be passed on to plt.plot
 
         Returns
         --------
-        * the return from plot.plot
+        * the return from plt.plot
 
         Raises
         --------
@@ -752,6 +781,62 @@ class BaseDistribution(object):
 
         return ret
 
+    def plot_gaussian(self, x, unit=None, label=None, show=False, **kwargs):
+        """
+        Plot the gaussian distribution that would result from calling
+        <<class>.to_gaussian> with the same arguments.
+
+        Note that for distributions in which <<class>.to_gaussian> calls
+        <<class>.to_histogram> under-the-hood, this could result in slightly
+        different distributions for each call.
+
+        See also:
+
+        * <<class>.plot>
+        * <<class>.plot_sample>
+        * <<class>.plot_dist>
+
+        Arguments
+        -----------
+        * `x` (np array): the numpy array at which to sample the value on the
+            x-axis.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: keyword arguments for `sigma`, `N`, `bins`, `range` will
+            be passed on to <<class>.to_gaussian> (must be accepted by the
+            given distribution type).  All other keyword arguments will be passed
+            on to <Gaussian.plot_dist> on the resulting distribution.
+
+        Returns
+        --------
+        * the return from plt.plot
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        to_gauss_keys = ['sigma', 'N', 'bins', 'range']
+        g = self.to_gaussian(**{k:v for k,v in kwargs.items() if k in to_gauss_keys})
+
+        if unit is not None:
+            g = g.to(unit)
+
+        ret = g.plot_dist(x, **{k:v for k,v in kwargs.items() if k not in to_gauss_keys})
+
+        if show:
+            _plt.xlabel(self._xlabel(unit, label=label))
+            _plt.ylabel('density')
+            _plt.show()
+        return ret
+
     def to_dict(self):
         """
         Return the dictionary representation of the distribution object.
@@ -761,8 +846,8 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.to_json>
-        * <BaseDistribution.to_file>
+        * <<class>.to_json>
+        * <<class>.to_file>
 
         Returns
         --------
@@ -801,8 +886,8 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.to_dict>
-        * <BaseDistribution.to_file>
+        * <<class>.to_dict>
+        * <<class>.to_file>
 
         Arguments
         ---------
@@ -829,8 +914,8 @@ class BaseDistribution(object):
 
         See also:
 
-        * <BaseDistribution.to_dict>
-        * <BaseDistribution.to_json>
+        * <<class>.to_dict>
+        * <<class>.to_json>
 
         Arguments
         ----------
@@ -1730,6 +1815,19 @@ class Uniform(BaseDistribution):
         * float
         """
         return (self.low+self.high) / 2.0
+
+    @property
+    def std(self):
+        """
+        Determine the standard deviations of the sampled values, adopting
+        `sigma=1.0`.
+
+        See also:
+
+        * <Uniform.to_gaussian>
+        """
+        sigma = 1.0
+        return (self.high - self.low) / (2.0 * sigma)
 
     def to_gaussian(self, sigma=1.0):
         """

@@ -8,8 +8,8 @@ available.
 
 See also:
 
-* [BaseDistribution.dist_args](BaseDistribution.dist_args.md)
-* [BaseDistribution.distribution](BaseDistribution.distribution.md)
+* [Histogram.dist_args](Histogram.dist_args.md)
+* [Histogram.distribution](Histogram.distribution.md)
 
 Returns
 -------

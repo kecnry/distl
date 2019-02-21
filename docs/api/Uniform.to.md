@@ -15,12 +15,12 @@ set and/or use units.
 
 See also:
 
-* [BaseDistribution.unit](BaseDistribution.unit.md)
+* [Uniform.unit](Uniform.unit.md)
 
 Arguments
 ------------
 * `unit` (astropy.unit object): unit to use in the new distribution.
-    The current units (see [BaseDistribution.unit](BaseDistribution.unit.md)) must be able to
+    The current units (see [Uniform.unit](Uniform.unit.md)) must be able to
     convert to the requested units.
 
 Returns

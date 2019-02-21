@@ -7,8 +7,8 @@ Return the arguments sent to the distribution function.
 
 See also:
 
-* [BaseDistribution.dist_func](BaseDistribution.dist_func.md)
-* [BaseDistribution.distribution](BaseDistribution.distribution.md)
+* [Uniform.dist_func](Uniform.dist_func.md)
+* [Uniform.distribution](Uniform.distribution.md)
 
 Returns
 --------

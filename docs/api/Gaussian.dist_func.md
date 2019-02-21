@@ -8,8 +8,8 @@ available.
 
 See also:
 
-* [BaseDistribution.dist_args](BaseDistribution.dist_args.md)
-* [BaseDistribution.distribution](BaseDistribution.distribution.md)
+* [Gaussian.dist_args](Gaussian.dist_args.md)
+* [Gaussian.distribution](Gaussian.distribution.md)
 
 Returns
 -------

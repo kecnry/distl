@@ -3,9 +3,10 @@
 
 
 
-std is not implemented for this distribution type.
+Determine the standard deviations of the sampled values, adopting
+`sigma=1.0`.
 
-Raises
---------
-* NotImplementedError
+See also:
+
+* [Uniform.to_gaussian](Uniform.to_gaussian.md)
 

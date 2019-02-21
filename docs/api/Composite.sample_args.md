@@ -7,8 +7,8 @@ Return the arguments sent to the sample function.
 
 See also:
 
-* [BaseDistribution.sample_func](BaseDistribution.sample_func.md)
-* [BaseDistribution.sample](BaseDistribution.sample.md)
+* [Composite.sample_func](Composite.sample_func.md)
+* [Composite.sample](Composite.sample.md)
 
 Returns
 --------

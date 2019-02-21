@@ -8,5 +8,5 @@ and/or use distributions with units.
 
 See also:
 
-* [BaseDistribution.to](BaseDistribution.to.md)
+* [Delta.to](Delta.to.md)
 

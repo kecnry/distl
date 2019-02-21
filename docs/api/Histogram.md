@@ -21,6 +21,7 @@ Histogram distribtuion from the data array itself, see
 * [mean](Histogram.mean.md)
 * [plot](Histogram.plot.md)
 * [plot_dist](Histogram.plot_dist.md)
+* [plot_gaussian](Histogram.plot_gaussian.md)
 * [plot_sample](Histogram.plot_sample.md)
 * [sample](Histogram.sample.md)
 * [sample_args](Histogram.sample_args.md)

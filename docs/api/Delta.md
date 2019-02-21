@@ -19,6 +19,7 @@ Can be created from the top-level via the [npdists.delta](npdists.delta.md) conv
 * [mean](Delta.mean.md)
 * [plot](Delta.plot.md)
 * [plot_dist](Delta.plot_dist.md)
+* [plot_gaussian](Delta.plot_gaussian.md)
 * [plot_sample](Delta.plot_sample.md)
 * [sample](Delta.sample.md)
 * [sample_args](Delta.sample_args.md)

@@ -8,8 +8,8 @@ available.
 
 See also:
 
-* [BaseDistribution.dist_args](BaseDistribution.dist_args.md)
-* [BaseDistribution.distribution](BaseDistribution.distribution.md)
+* [Composite.dist_args](Composite.dist_args.md)
+* [Composite.distribution](Composite.distribution.md)
 
 Returns
 -------

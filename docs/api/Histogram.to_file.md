@@ -16,8 +16,8 @@ via [npdists.from_file](npdists.from_file.md).
 
 See also:
 
-* [BaseDistribution.to_dict](BaseDistribution.to_dict.md)
-* [BaseDistribution.to_json](BaseDistribution.to_json.md)
+* [Histogram.to_dict](Histogram.to_dict.md)
+* [Histogram.to_json](Histogram.to_json.md)
 
 Arguments
 ----------

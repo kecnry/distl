@@ -14,20 +14,24 @@ matplotlib to be installed.
 
 See also:
 
-* [BaseDistribution.plot](BaseDistribution.plot.md)
-* [BaseDistribution.plot_dist](BaseDistribution.plot_dist.md)
+* [Delta.plot](Delta.plot.md)
+* [Delta.plot_dist](Delta.plot_dist.md)
+* [Delta.plot_gaussian](Delta.plot_gaussian.md)
 
 Arguments
 -----------
 * `size` (int, optional, default=100000): number of points to sample for
-    the histogram.  See also [BaseDistribution.sample](BaseDistribution.sample.md).
+    the histogram.  See also [Delta.sample](Delta.sample.md).
 * `unit` (astropy.unit, optional, default=None): units to use along
     the x-axis.  Astropy must be installed.
 * `label` (string, optional, default=None): override the label on the
-    x-axis.  If not provided or None, will use [BaseDistribution.label](BaseDistribution.label.md).
+    x-axis.  If not provided or None, will use [Delta.label](Delta.label.md).  Will
+    only be used if `show=True`.
 * `show` (bool, optional, default=True): whether to show the resulting
     matplotlib figure.
-* `**kwargs`: all keyword arguments will be passed on to plt.hist.
+* `**kwargs`: all keyword arguments will be passed on to plt.hist.  If
+    not provided, `bins` will default to the stored bins for [Histogram](Histogram.md)
+    distributions, otherwise will default to 25.
 
 Returns
 --------
