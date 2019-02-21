@@ -58,6 +58,7 @@ def api_docs(item, skip=[], prefix='', subclass_of=None, write=True, members=[py
         if pydoc.inspect.getdoc(fm[1]):
             output.append('\n')
             docstring = pydoc.HTMLDoc().markup(pydoc.inspect.getdoc(fm[1]))
+            docstring = docstring.replace("&lt;class&gt;", item.__name__)
             docstring = re.sub(r"(?P<name>&lt;[0a-zA-Z_\.]*&gt;)", md_internal_link, docstring)
             output.append(docstring)
 
@@ -93,6 +94,7 @@ def api_docs(item, skip=[], prefix='', subclass_of=None, write=True, members=[py
         if hasattr(item, '__doc__') and item.__doc__ is not None:
             for l in item.__doc__.split("\n"):
                 docstringline = pydoc.HTMLDoc().markup(l.lstrip()+"\n")
+                docstring = docstringline.replace("&lt;class&gt;", item.__name__)
                 docstringline = re.sub(r"(?P<name>&lt;[0a-zA-Z_\.]*&gt;)", md_internal_link, docstringline)
                 f_class.write(docstringline)
             f_class.write("\n\n")
