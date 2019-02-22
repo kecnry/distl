@@ -136,6 +136,12 @@ def gaussian(x, loc, scale):
 def uniform(x, low, high):
     return _np.asarray((x >= low) * (x <= high), dtype='int') / float(high - low)
 
+def histogram(x, bins, density):
+    out = _np.zeros_like(x)
+    filter_in_range = (x >= bins.min()) & (x < bins.max())
+    out[filter_in_range] = density[_np.digitize(x[filter_in_range], bins)-1]
+    return out
+
 ######################## DISTRIBUTION ABSTRACT CLASS ###########################
 
 class BaseDistribution(object):
@@ -801,7 +807,7 @@ class BaseDistribution(object):
             xmin = _np.min(sample)
             xmax = _np.max(sample)
 
-            x = _np.linspace(xmin, xmax, 1001)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1001)
 
         if plot_gaussian:
             if not hasattr(self, 'to_gaussian'):
@@ -1555,7 +1561,7 @@ class Histogram(BaseDistribution):
         * a <Histogram> object
         """
         super(Histogram, self).__init__(unit, label, wrap_at,
-                                        None, None,
+                                        histogram, ('bins', 'density'),
                                         self._sample_from_hist, ('bins', 'density'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
