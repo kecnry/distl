@@ -125,6 +125,19 @@ g.sample(10)
 
 See [these sampling examples](./examples/sampling.md) for more details.
 
+To ensure consistent results (when needed), set the random seed in numpy
+prior to sampling.
+
+```python
+g = npdists.gaussian(10, 2)
+np.random.seed(1234)
+g.sample()
+np.random.seed(1234)
+g.sample()
+```
+
+See [this seeding example](./examples/random_seed.md) for more details.
+
 ## Plotting
 
 **NOTE:** matplotlib is required for plotting support.
