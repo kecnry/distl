@@ -153,7 +153,7 @@ def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, labe
     """
 
     return _npdists.Histogram.from_data(data, bins=bins, range=range,
-                                        weight=weights, unit=unit, label=label,
+                                        weights=weights, unit=unit, label=label,
                                         wrap_at=wrap_at)
 
 

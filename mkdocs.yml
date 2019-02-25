@@ -10,6 +10,13 @@ edit_uri: blob/master/docs/
 extra_css: [extra.css]
 nav:
     - Installation & Setup: index.md
+    - Examples:
+        - sampling: examples/sampling.md
+        - plotting: examples/plotting.md
+        - math: examples/math.md
+        - units: examples/units.md
+        - wrapping: examples/wrapping.md
+        - fitting with EMCEE: examples/fitting_emcee.md
     - API:
         - npdists: api.md
         - Delta: api/Delta.md

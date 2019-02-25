@@ -339,7 +339,7 @@ class BaseDistribution(object):
         else:
             dist = self
 
-        return Composite("sin", self.to(_units.rad), label="sin({})".format(self.label) if self.label is not None else None)
+        return Composite("sin", dist, label="sin({})".format(self.label) if self.label is not None else None)
 
     def cos(self):
         if self.unit is not None:
@@ -347,7 +347,7 @@ class BaseDistribution(object):
         else:
             dist = self
 
-        return Composite("cos", self.to(_units.rad), label="cos({})".format(self.label) if self.label is not None else None)
+        return Composite("cos", dist, label="cos({})".format(self.label) if self.label is not None else None)
 
     def tan(self):
         if self.unit is not None:
@@ -355,7 +355,7 @@ class BaseDistribution(object):
         else:
             dist = self
 
-        return Composite("tan", self.to(_units.rad), label="tan({})".format(self.label) if self.label is not None else None)
+        return Composite("tan", dist, label="tan({})".format(self.label) if self.label is not None else None)
 
 
     @property
@@ -620,7 +620,7 @@ class BaseDistribution(object):
         """
         wrap_at = self.get_wrap_at(wrap_at)
 
-        if wrap_at is False:
+        if wrap_at is False or wrap_at is None:
             return value
 
         return value % wrap_at
@@ -678,7 +678,7 @@ class BaseDistribution(object):
         """
         return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-    def distribution(self, x, unit=None, as_quantity=False):
+    def distribution(self, x, unit=None):
         """
         Give the density (y) values of the underlying distribution for a given
         array of values (x).
@@ -688,11 +688,9 @@ class BaseDistribution(object):
         * `x` (array): x-values at which to compute the densities.  If `unit` is
             not None, the value of `x` are assumed to be in the original units
             <<class>.unit>, not `unit`.
-        * `unit` (astropy.unit, optional, default=None): unit to convert the
-            resulting array.  Astropy must be installed in order to convert units.
-        * `as_quantity` (bool, optional, default=False): whether to return an
-            astropy quantity object instead of just an array.  Astropy must
-            be installed.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
 
         Returns
         ---------
@@ -704,8 +702,31 @@ class BaseDistribution(object):
                 raise ValueError("can only convert units on Distributions with units set")
             # convert to original units
             x = (x * unit).to(self.unit).value
-        return self._return_with_units(self.dist_func(x, *self.dist_args), unit=unit, as_quantity=as_quantity)
 
+        # print "*** x passed to dist_func", x.min(), x.max()
+        return self.dist_func(x, *self.dist_args)
+
+    def logp(self, x, unit=None):
+        """
+        Give the log probability of the underlying distribution for a given value
+        x.
+
+        Arguments
+        ----------
+        * `x` (float or array array): x-values at which to compute the logps.
+            If `unit` is not None, the value of `x` are assumed to be in the
+            original units
+            <<class>.unit>, not `unit`.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * array: array of density/y values.
+        """
+        densities = self.distribution(x=x, unit=unit)
+        return _np.log(densities)
 
     # def plot_func(self, show=False, **kwargs):
     #     ret = _plt.hist(self.sample(size), **kwargs)
@@ -819,7 +840,7 @@ class BaseDistribution(object):
                 if k in ['bins']:
                     continue
                 plot_gaussian_kwargs.setdefault(k,v)
-            ret_gauss = self.plot_gaussian(x, wrap_at=wrap_at, show=False, **plot_gaussian_kwargs)
+            ret_gauss = self.plot_gaussian(x, unit=unit, wrap_at=wrap_at, show=False, **plot_gaussian_kwargs)
 
         else:
             ret_gauss = None
@@ -958,8 +979,14 @@ class BaseDistribution(object):
 
         # x is assumed to be in new units
         if self.dist_func is not None:
-            y = self.distribution(x, unit=unit, as_quantity=False)
+            y = self.distribution(x, unit=unit)
             x = self.wrap(x, wrap_at=wrap_at)
+
+            # if unit is not None:
+                # print "*** converting from {} to {}".format(self.unit, unit)
+                # print "*** before convert", x.min(), x.max()
+                # x = (x*self.unit).to(unit).value
+                # print "*** after convert", x.min(), x.max()
 
             # handle wrapping by making multiple calls to plot whenever the sign
             # changes direction
@@ -1043,6 +1070,30 @@ class BaseDistribution(object):
             _plt.ylabel('density')
             _plt.show()
         return ret
+
+    def to_histogram(self, N=1000, bins=10, range=None):
+        """
+        Convert the <<class>> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
+        return Histogram.from_data(self.sample(size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
     def to_dict(self):
         """
@@ -1291,30 +1342,6 @@ class Composite(BaseDistribution):
         """
         return self.to_histogram(N=10000, bins=100).std
 
-    def to_histogram(self, N=1000, bins=10, range=None):
-        """
-        Convert the <Composite> distribution to a <Histogram> distribution.
-
-        Under-the-hood, this calls <Composite.sample> with `size=N` and `wrap_at=False`
-        and passes the resulting array as well as the requested `bins` and `range`
-        to <Histogram.from_data>.
-
-        Arguments
-        -----------
-        * `N` (int, optional, default=1000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-
-        Returns
-        --------
-        * a <Histogram> object
-        """
-        return Histogram.from_data(self.sample(size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
-
     def to_gaussian(self, N=1000, bins=10, range=None):
         """
         Convert the <Composite> distribution to a <Gaussian> distribution via
@@ -1444,30 +1471,6 @@ class Function(BaseDistribution):
         calling <Histogram.std>.
         """
         return self.to_histogram(N=10000, bins=100).std
-
-    def to_histogram(self, N=1000, bins=10, range=None):
-        """
-        Convert the <Function> distribution to a <Histogram> distribution.
-
-        Under-the-hood, this calls <Function.sample> with `size=N` and `wrap_at=False`
-        and passes the resulting array as well as the requested `bins` and `range`
-        to <Histogram.from_data>.
-
-        Arguments
-        -----------
-        * `N` (int, optional, default=1000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-
-        Returns
-        --------
-        * a <Histogram> object
-        """
-        return Histogram.from_data(self.sample(size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_gaussian(self, N=1000, bins=10, range=None):
         """
@@ -1605,23 +1608,23 @@ class Histogram(BaseDistribution):
         return cls(bin_edges, hist, label=label, unit=unit, wrap_at=wrap_at)
 
     def _sample_from_hist(self, bins, counts, size=None):
-        if size is None:
-            size = 1
-            # if not isinstance(size, int):
-                # raise TypeError("size must be of type int or None")
-
-            # return np.array([self._sample_from_hist(bins=bins, counts=counts, size=None) for size in range(size)])
-
         # adopted from: https://stackoverflow.com/a/17822210
-        bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
+
+        # bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
         cdf = _np.cumsum(self.density)
         cdf = cdf / float(cdf[-1])
 
-        values = _np.random.rand(size)
+        values = _np.random.rand(size if size is not None else 1)
         value_bins = _np.searchsorted(cdf, values)
-        random_from_cdf = bin_midpoints[value_bins]
+        # random_from_cdf = bin_midpoints[value_bins]
+        bin_widths = _np.diff(self.bins)
+        values_from_bins = self.bins[value_bins] + bin_widths[value_bins] * _np.random.rand(size if size is not None else 1)
 
-        return random_from_cdf
+        if size is None:
+            return values_from_bins[0]
+        else:
+            return values_from_bins
+
 
     def __float__(self):
         return self.mean
@@ -1739,6 +1742,9 @@ class Delta(BaseDistribution):
             return _np.full(size, value)
 
     def __mul__(self, other):
+        if isinstance(other, Delta):
+            other = other.value
+
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
             dist.value *= other
@@ -1750,6 +1756,9 @@ class Delta(BaseDistribution):
         return self.__mul__(1./other)
 
     def __add__(self, other):
+        if isinstance(other, Delta):
+            other = other.value
+
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
             dist.value += other
@@ -1814,30 +1823,6 @@ class Delta(BaseDistribution):
         """
         return Gaussian(self.value, 0.0, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
-    def to_histogram(self, N=1000, bins=10, range=None):
-        """
-        Convert the <Delta> distribution to a <Histogram> distribution.
-
-        Under-the-hood, this calls <Delta.sample> with `size=N` and `wrap_at=False`
-        and passes the resulting array as well as the requested `bins` and `range`
-        to <Histogram.from_data>.
-
-        Arguments
-        -----------
-        * `N` (int, optional, default=1000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-
-        Returns
-        --------
-        * a <Histogram> object
-        """
-        return Histogram.from_data(self.sample(size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
-
 
 class Gaussian(BaseDistribution):
     """
@@ -1878,6 +1863,9 @@ class Gaussian(BaseDistribution):
                                        ('loc', loc, is_float), ('scale', scale, is_float))
 
     def __mul__(self, other):
+        if isinstance(other, Delta):
+            other = other.value
+
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
             dist.loc *= other
@@ -1890,6 +1878,9 @@ class Gaussian(BaseDistribution):
         return self.__mul__(1./other)
 
     def __add__(self, other):
+        if isinstance(other, Delta):
+            other = other.value
+
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
             dist.loc += other
@@ -1955,29 +1946,6 @@ class Gaussian(BaseDistribution):
         high = self.loc + self.scale * sigma
         return Uniform(low, high, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
-    def to_histogram(self, N=1000, bins=10, range=None):
-        """
-        Convert the <Gaussian> distribution to a <Histogram> distribution.
-
-        Under-the-hood, this calls <Gaussian.sample> with `size=N` and `wrap_at=False`
-        and passes the resulting array as well as the requested `bins` and `range`
-        to <Histogram.from_data>.
-
-        Arguments
-        -----------
-        * `N` (int, optional, default=1000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-
-        Returns
-        --------
-        * a <Histogram> object
-        """
-        return Histogram.from_data(self.sample(size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
 class Uniform(BaseDistribution):
     """
@@ -2022,6 +1990,9 @@ class Uniform(BaseDistribution):
 
 
     def __mul__(self, other):
+        if isinstance(other, Delta):
+            other = other.value
+
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
             dist.low *= other
@@ -2035,6 +2006,9 @@ class Uniform(BaseDistribution):
         return self.__mul__(1./other)
 
     def __add__(self, other):
+        if isinstance(other, Delta):
+            other = other.value
+
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
             dist.low += other
@@ -2114,27 +2088,3 @@ class Uniform(BaseDistribution):
         loc = self.mean
         scale = (self.high - self.low) / (2.0 * sigma)
         return Gaussian(loc, scale, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
-
-    def to_histogram(self, N=1000, bins=None, range=None):
-        """
-        Convert the <Uniform> distribution to a <Histogram> distribution.
-
-        Under-the-hood, this calls <Uniform.sample> with `size=N` and `wrap_at=False`
-        and passes the resulting array as well as the requested `bins` and `range`
-        to <Histogram.from_data>.
-
-        Arguments
-        -----------
-        * `N` (int, optional, default=1000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-
-        Returns
-        --------
-        * a <Histogram> object
-        """
-        return Histogram.from_data(self.sample(size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   unit=self.unit, label=self.label, wrap_at=self.wrap_at)
