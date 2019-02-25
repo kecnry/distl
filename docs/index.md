@@ -130,8 +130,8 @@ prior to sampling.
 
 ```python
 g = npdists.gaussian(10, 2)
-np.random.seed(1234)
-g.sample()
+g.sample(seed=1234)
+g.sample(seed=1234)
 np.random.seed(1234)
 g.sample()
 ```

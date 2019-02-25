@@ -651,7 +651,7 @@ class BaseDistribution(object):
         else:
             return value.value
 
-    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None):
+    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None):
         """
         Sample from the distribution.
 
@@ -670,12 +670,17 @@ class BaseDistribution(object):
             will use the value from <<class>.wrap_at>.  Note: wrapping is
             computed before changing units, so `wrap_at` must be provided
             according to <<class>.unit> not `unit`.
+        * `seed` (int, optional): seed to pass to np.random.seed
+            prior to sampling.
 
         Returns
         ---------
         * float or array: float if `size=None`, otherwise a numpy array with
             shape defined by `size`.
         """
+        if seed is not None:
+            _np.random.seed(seed)
+
         return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
     def distribution(self, x, unit=None):
@@ -745,7 +750,7 @@ class BaseDistribution(object):
 
 
     def plot(self, size=100000, unit=None,
-             wrap_at=None,
+             wrap_at=None, seed=None,
              plot_sample=True, plot_sample_kwargs={'color': 'gray'},
              plot_dist=True, plot_dist_kwargs={'color': 'red'},
              plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
@@ -771,6 +776,8 @@ class BaseDistribution(object):
             will use the value from <<class>.wrap_at>.  Note: wrapping is
             computed before changing units, so `wrap_at` must be provided
             according to <<class>.unit> not `unit`.
+        * `seed` (int, optional): seed to use when sampling.  See also
+            <<class>.sample>.
         * `plot_sample` (bool, optional, default=True): whether to plot the
             histogram from sampling.  See also <<class>.plot_sample>.
         * `plot_sample_kwargs` (dict, optional, default={'color': 'gray'}):
@@ -818,7 +825,7 @@ class BaseDistribution(object):
             plot_sample_kwargs = plot_sample_kwargs.copy()
             for k,v in kwargs.items():
                 plot_sample_kwargs.setdefault(k,v)
-            ret_sample = self.plot_sample(size=size, unit=unit, wrap_at=wrap_at, show=False, **plot_sample_kwargs)
+            ret_sample = self.plot_sample(size=size, unit=unit, wrap_at=wrap_at, seed=seed, show=False, **plot_sample_kwargs)
         else:
             ret_sample = None
 
@@ -865,7 +872,8 @@ class BaseDistribution(object):
         return (ret_sample, ret_dist, ret_gauss)
 
 
-    def plot_sample(self, size=100000, unit=None, wrap_at=None,
+    def plot_sample(self, size=100000, unit=None,
+                    wrap_at=None, seed=None,
                     label=None, show=False, **kwargs):
         """
         Plot both a sampled histogram from the distribution.  Requires
@@ -888,6 +896,8 @@ class BaseDistribution(object):
             will use the value from <<class>.wrap_at>.  Note: wrapping is
             computed before changing units, so `wrap_at` must be provided
             according to <<class>.unit> not `unit`.
+        * `seed` (int, optional): seed to use when sampling.  See also
+            <<class>.sample>.
         * `label` (string, optional, default=None): override the label on the
             x-axis.  If not provided or None, will use <<class>.label>.  Will
             only be used if `show=True`.
@@ -921,7 +931,7 @@ class BaseDistribution(object):
         # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
         # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
         # appropriate bins
-        ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at), density=True, **kwargs)
+        ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed), density=True, **kwargs)
 
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))

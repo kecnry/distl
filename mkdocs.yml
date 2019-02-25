@@ -12,7 +12,7 @@ nav:
     - Installation & Setup: index.md
     - Examples:
         - sampling: examples/sampling.md
-        - random seed: example/random_seed.md
+        - random seed: examples/random_seed.md
         - plotting: examples/plotting.md
         - math: examples/math.md
         - units: examples/units.md
