@@ -3,7 +3,7 @@
 
 ```py
 
-def plot_sample(self, size=100000, unit=None, wrap_at=None, label=None, show=False, **kwargs)
+def plot_sample(self, size=100000, unit=None, wrap_at=None, seed=None, label=None, show=False, **kwargs)
 
 ```
 
@@ -29,6 +29,8 @@ Arguments
     will use the value from [Gaussian.wrap_at](Gaussian.wrap_at.md).  Note: wrapping is
     computed before changing units, so `wrap_at` must be provided
     according to [Gaussian.unit](Gaussian.unit.md) not `unit`.
+* `seed` (int, optional): seed to use when sampling.  See also
+    [Gaussian.sample](Gaussian.sample.md).
 * `label` (string, optional, default=None): override the label on the
     x-axis.  If not provided or None, will use [Gaussian.label](Gaussian.label.md).  Will
     only be used if `show=True`.

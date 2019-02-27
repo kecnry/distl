@@ -3,7 +3,7 @@
 
 ```py
 
-def plot(self, size=100000, unit=None, wrap_at=None, plot_sample=True, plot_sample_kwargs={'color': 'gray'}, plot_dist=True, plot_dist_kwargs={'color': 'red'}, plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'}, label=None, show=False, **kwargs)
+def plot(self, size=100000, unit=None, wrap_at=None, seed=None, plot_sample=True, plot_sample_kwargs={'color': 'gray'}, plot_dist=True, plot_dist_kwargs={'color': 'red'}, plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'}, label=None, show=False, **kwargs)
 
 ```
 
@@ -29,6 +29,8 @@ Arguments
     will use the value from [Function.wrap_at](Function.wrap_at.md).  Note: wrapping is
     computed before changing units, so `wrap_at` must be provided
     according to [Function.unit](Function.unit.md) not `unit`.
+* `seed` (int, optional): seed to use when sampling.  See also
+    [Function.sample](Function.sample.md).
 * `plot_sample` (bool, optional, default=True): whether to plot the
     histogram from sampling.  See also [Function.plot_sample](Function.plot_sample.md).
 * `plot_sample_kwargs` (dict, optional, default={'color': 'gray'}):

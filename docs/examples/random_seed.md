@@ -106,3 +106,51 @@ h.sample(seed=1234)
     8.7221165939664
 
 
+
+If you want a random seed to be used to multiple calls in the same execution, you can access a random array of integers via [get_random_seed](../api/npdists.get_random_seed.md) which can then be passed on to either np.random.seed or sample.
+
+
+```python
+seed = npdists.get_random_seed()
+```
+
+
+```python
+g.sample(seed=seed)
+```
+
+
+
+
+    11.909988111967035
+
+
+
+
+```python
+g.sample(seed=seed)
+```
+
+
+
+
+    11.909988111967035
+
+
+
+
+```python
+g.sample(seed=npdists.get_random_seed())
+```
+
+
+
+
+    6.046845644083414
+
+
+
+
+```python
+
+```

@@ -1,21 +1,22 @@
-### [Function](Function.md).distribution (method)
+### [Function](Function.md).logp (method)
 
 
 ```py
 
-def distribution(self, x, unit=None)
+def logp(self, x, unit=None)
 
 ```
 
 
 
-Give the density (y) values of the underlying distribution for a given
-array of values (x).
+Give the log probability of the underlying distribution for a given value
+x.
 
 Arguments
 ----------
-* `x` (array): x-values at which to compute the densities.  If `unit` is
-    not None, the value of `x` are assumed to be in the original units
+* `x` (float or array array): x-values at which to compute the logps.
+    If `unit` is not None, the value of `x` are assumed to be in the
+    original units
     [Function.unit](Function.unit.md), not `unit`.
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in

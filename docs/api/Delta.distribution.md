@@ -3,7 +3,7 @@
 
 ```py
 
-def distribution(self, x, unit=None, as_quantity=False)
+def distribution(self, x, unit=None)
 
 ```
 
@@ -20,9 +20,6 @@ Arguments
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [Delta.unit](Delta.unit.md).
-* `as_quantity` (bool, optional, default=False): whether to return an
-    astropy quantity object instead of just an array.  Astropy must
-    be installed.
 
 Returns
 ---------

@@ -3,7 +3,7 @@
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None)
 
 ```
 
@@ -26,6 +26,8 @@ Arguments
     will use the value from [Uniform.wrap_at](Uniform.wrap_at.md).  Note: wrapping is
     computed before changing units, so `wrap_at` must be provided
     according to [Uniform.unit](Uniform.unit.md) not `unit`.
+* `seed` (int, optional): seed to pass to np.random.seed
+    prior to sampling.
 
 Returns
 ---------

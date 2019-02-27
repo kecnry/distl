@@ -32,6 +32,7 @@ Histogram distribtuion from the data array itself, see
 * [to_dict](Histogram.to_dict.md)
 * [to_file](Histogram.to_file.md)
 * [to_gaussian](Histogram.to_gaussian.md)
+* [to_histogram](Histogram.to_histogram.md)
 * [to_json](Histogram.to_json.md)
 * [to_uniform](Histogram.to_uniform.md)
 * [unit](Histogram.unit.md)

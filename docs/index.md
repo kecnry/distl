@@ -125,8 +125,8 @@ g.sample(10)
 
 See [these sampling examples](./examples/sampling.md) for more details.
 
-To ensure consistent results (when needed), set the random seed in numpy
-prior to sampling.
+To ensure consistent results (when needed), pass `seed` to [sample](./api/BaseDistribution.sample)
+or set the random seed in numpy prior to sampling.
 
 ```python
 g = npdists.gaussian(10, 2)

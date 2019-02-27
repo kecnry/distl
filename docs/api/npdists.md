@@ -7,6 +7,7 @@
 * [from_json](npdists.from_json.md)
 * [function](npdists.function.md)
 * [gaussian](npdists.gaussian.md)
+* [get_random_seed](npdists.get_random_seed.md)
 * [histogram_from_bins](npdists.histogram_from_bins.md)
 * [histogram_from_data](npdists.histogram_from_data.md)
 * [normal](npdists.normal.md)

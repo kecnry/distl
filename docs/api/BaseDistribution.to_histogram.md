@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to_histogram (method)
+### [BaseDistribution](BaseDistribution.md).to_histogram (method)
 
 
 ```py
@@ -9,9 +9,9 @@ def to_histogram(self, N=1000, bins=10, range=None)
 
 
 
-Convert the [Uniform](Uniform.md) distribution to a [Histogram](Histogram.md) distribution.
+Convert the [BaseDistribution](BaseDistribution.md) distribution to a [Histogram](Histogram.md) distribution.
 
-Under-the-hood, this calls [Uniform.sample](Uniform.sample.md) with `size=N` and `wrap_at=False`
+Under-the-hood, this calls [BaseDistribution.sample](BaseDistribution.sample.md) with `size=N` and `wrap_at=False`
 and passes the resulting array as well as the requested `bins` and `range`
 to [Histogram.from_data](Histogram.from_data.md).
 
