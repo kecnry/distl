@@ -1,4 +1,5 @@
 from . import npdists as _npdists
+from .npdists import get_random_seed, sample_from_dists
 import numpy as _np
 from .npdists import BaseDistribution # for isinstance checking
 import json as _json
@@ -14,19 +15,7 @@ name = 'npdists'
 __version__ = '0.1.0-dev'
 version = __version__
 
-def get_random_seed():
-    """
-    Return a random seed which can be passed to <BaseDistribution.sample>.
 
-    This allows for using a consistent/reproducible but still random seed instead
-    of manually passing some arbitrary integer (like 1234).
-
-    Returns
-    ------------
-    * (array): array of 624 32-bit integers which can be used as a seed to
-        np.random.seed or <BaseDistribution.sample>.
-    """
-    return _np.random.get_state()[1]
 
 def delta(value=0.0, unit=None, label=None, wrap_at=None):
     """
@@ -111,7 +100,6 @@ def normal(loc=0.0, scale=1.0, unit=None, label=None, wrap_at=None):
     Shortcut to <npdists.gaussian>.
     """
     return _npdists.Gaussian(loc, scale, unit=unit, label=label, wrap_at=wrap_at)
-
 
 def histogram_from_bins(bins, density, unit=None, label=None, wrap_at=None):
     """
@@ -199,6 +187,20 @@ def function(func, unit, label, wrap_at, *args):
     * a <Function> object.
     """
     return _npdists.Function(func, unit, label, wrap_at, *args)
+
+
+#### MULTIVARIATE DISTRIBUTJIONS ####
+
+def mvgaussian(locs, cov, unit=None, label=None, wrap_at=None):
+    """
+    Create a <MVGaussian> distribution.
+
+    """
+    return _npdists.MVGaussian(locs, cov, unit, label, wrap_at)
+
+def mvhistogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None, wrap_at=None):
+    """
+    """
 
 
 

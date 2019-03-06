@@ -10,6 +10,13 @@ else:
     _has_mpl = True
 
 try:
+    import corner
+except ImportError:
+    _has_corner = False
+else:
+    _has_corner = True
+
+try:
     from astropy import units as _units
 except ImportError:
     _has_astropy = False
@@ -24,6 +31,107 @@ else:
     _has_dill = True
 
 _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/'}
+
+_builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'sample_args']
+
+############################# HELPER FUNCTIONS #################################
+
+def get_random_seed():
+    """
+    Return a random seed which can be passed to <BaseDistribution.sample>.
+
+    This allows for using a consistent/reproducible but still random seed instead
+    of manually passing some arbitrary integer (like 1234).
+
+    Returns
+    ------------
+    * (array): array of 624 32-bit integers which can be used as a seed to
+        np.random.seed or <BaseDistribution.sample>.
+    """
+    return _np.random.get_state()[1]
+
+
+def sample_from_dists(dists, *args, **kwargs):
+    """
+    Sample from multiple distributions with random seeds automatically determined,
+    but applied to distributions of the same underlying multivariate distribution
+    automatically.
+
+    For each unique <BaseDistribution.hash> in the distributions in `dists` a
+    random seed will be generated and applied to <BaseDistribution.sample>
+    for all distributionis in `dists` which share that same hash value.  By doing
+    so, any <BaseMultivariateDistribution> which samples from the same underlying
+    multivariate distribution (but for a different
+    <BaseMultivariateDistribution.dimension>), will be correctly sampled to account
+    for the covariance/correlation between parameters, but all other 1-D
+    <BaseDistribution> objects will be sampled with their own independent
+    random seeds.
+
+    Arguments
+    -------------
+    * `dists` (list or tuple of distribution objects): distribution objects from
+        which to sample.
+    * `*args`: all positional arguments are sent to <BaseDistribution.sample>
+        for each item in `dists`.
+    * `**kwargs`: all keyword arguments are sent to <BaseDistribution.sample>
+        for each item in `dists`.  Note: `seed` is forbidden and will raise
+        a ValueError.
+
+    Returns
+    -------------
+    * (list): list of samples, in same order as `dists`.
+
+    Raises
+    ----------
+    * ValueError: if `seed` is passed.
+    """
+    if 'seed' in kwargs.keys():
+        raise ValueError("seeds are automatically determined: cannot pass seed")
+
+    seeds = kwargs.pop('seeds', {})
+    if seeds is None:
+        seeds = {}
+
+    # first well expand any Composite distributions to access the underlying
+    # distributions
+    def unpack_dists(dist):
+        if isinstance(dist, Composite):
+            dists = []
+            for dist in dist.dists:
+                dists += unpack_dists(dist)
+            return dists
+        else:
+            return [dist]
+
+    dists_all = []
+    for dist in dists:
+        dists_all += unpack_dists(dist)
+
+    for dist in dists_all:
+        seeds.setdefault(dist.hash, get_random_seed())
+    # print "*** seeds for hashes", seeds.keys()
+    return [dist.sample(*args, seed=seeds, **kwargs) for dist in dists]
+
+def logp_from_dists(dists, values):
+    """
+    """
+    logp = 0.0
+
+    for dist,value in zip(dists, values):
+        hash = dist.hash
+        if hash in dists_dict.keys():
+            dists_dict[hash] += [dist]
+            values_dict[hash] += [value]
+        else:
+            dists_dict[hash] = [dict]
+            values_dict[hash] = [value]
+
+    for dists, values in zip(dists_dict.values(), values_dict.values()):
+        logp += dists[0].logp(values, dimension=[dist.dimension for dist in dists]) #* len(dists)
+
+    return logp
+
+
 
 ################## VALIDATORS ###################
 
@@ -123,6 +231,10 @@ def is_iterable(value):
     """must be an iterable (list, array, tuple)"""
     return isinstance(value, _np.ndarray) or isinstance(value, list) or isinstance(value, tuple), value
 
+def is_square_matrix(value):
+    """must be a square 2D matrix"""
+    return isinstance(value, _np.ndarray) and len(value.shape)==2 and value.shape[0]==value.shape[1], value
+
 
 
 ######################## DISTRIBUTION FUNCTIONS ###############################
@@ -141,6 +253,12 @@ def histogram(x, bins, density):
     filter_in_range = (x >= bins.min()) & (x < bins.max())
     out[filter_in_range] = density[_np.digitize(x[filter_in_range], bins)-1]
     return out
+
+def mvgaussian(x, locs, cov, dimension=None):
+    if dimension is None:
+        raise NotImplementedError
+    else:
+        return gaussian(x, locs[dimension], cov[dimension, dimension])
 
 ######################## DISTRIBUTION ABSTRACT CLASS ###########################
 
@@ -190,6 +308,9 @@ class BaseDistribution(object):
         self.wrap_at = wrap_at
 
         for item in args:
+            if item[0] in _builtin_attrs:
+                raise KeyError("{} is a protected attribute.".format(item[0]))
+
             valid, validated_value = item[2](item[1])
             if valid:
                 self._descriptors[item[0]] = validated_value
@@ -201,7 +322,7 @@ class BaseDistribution(object):
         """
         for anything that isn't overriden here, call the method on the array itself
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '_unit', 'unit', '_label', 'label', '_wrap_at', 'wrap_at']:
+        if name in _builtin_attrs or (name.startswith("_") and not name.startswith('__') and not name.endswith('_')):
             # then we need to actually get the attribute
             return super(BaseDistribution, self).__getattr__(name)
         elif name in self._descriptors.keys():
@@ -213,7 +334,7 @@ class BaseDistribution(object):
     def __setattr__(self, name, value):
         """
         """
-        if name in ['_descriptors', '_validators', '_sample_func', '_sample_args', '_dist_func', '_dist_args', '__class__', '_unit', 'unit', '_label', 'label', '_wrap_at', 'wrap_at']:
+        if name in _builtin_attrs or (name.startswith("_") and not name.startswith('__') and not name.endswith('_')):
             return super(BaseDistribution, self).__setattr__(name, value)
         elif name in self._descriptors.keys():
             valid, validated_value = self._validators[name](value)
@@ -230,6 +351,8 @@ class BaseDistribution(object):
             descriptors += " unit={}".format(self.unit)
         if self.wrap_at is not None:
             descriptors += " wrap_at={}".format(self.wrap_at)
+        if hasattr(self, 'dimension'):
+            descriptors += " dimension={}".format(self.dimension)
         return "<npdists.{} {}>".format(self.__class__.__name__.lower(), descriptors)
 
     def __str__(self):
@@ -678,6 +801,9 @@ class BaseDistribution(object):
         * float or array: float if `size=None`, otherwise a numpy array with
             shape defined by `size`.
         """
+        if isinstance(seed, dict):
+            seed = seed.get(self.hash, None)
+
         if seed is not None:
             _np.random.seed(seed)
 
@@ -1105,6 +1231,12 @@ class BaseDistribution(object):
                                    bins=bins, range=range,
                                    unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
+    @property
+    def hash(self):
+        """
+        """
+        return hash(frozenset({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
+
     def to_dict(self):
         """
         Return the dictionary representation of the distribution object.
@@ -1145,6 +1277,8 @@ class BaseDistribution(object):
             d['label'] = self.label
         if self.wrap_at is not None:
             d['wrap_at'] = self.wrap_at
+        if hasattr(self, 'dimension') and self.dimension is not None:
+            d['dimension'] = self.dimension
         return d
 
     def to_json(self, **kwargs):
@@ -1308,16 +1442,75 @@ class Composite(BaseDistribution):
         else:
             return "{}({})".format(_math_symbols.get(self.math, self.math), self.dist1.__str__())
 
-
-    def _sample_from_children(self, math, dist1, dist2, size=None):
+    @property
+    def dists(self):
         if self.dist2 is not None:
-            return getattr(dist1.sample(size=size), math)(dist2.sample(size=size))
+            return [self.dist1, self.dist2]
+        else:
+            return [self.dist1]
+
+    @property
+    def hash(self):
+        """
+        """
+        if self.dist2 is not None:
+            if self.dist1.hash == self.dist2.hash:
+                return self.dist1.hash
+            else:
+                # NOTE (IMPORTANT): then we are going to "forget" these when
+                # nesting ComposisteDistributions
+                # return super(CompositeDistribution, self).hash()
+                return [self.dist1.hash, self.dist2.hash]
+        else:
+            return self.dist1.hash
+
+    def _sample_from_children(self, math, dist1, dist2, seed={}, size=None):
+        if self.dist2 is not None:
+            # NOTE: this will account for multivariate, but only for THESE 2
+            # if there are nested CompositeDistributions, then the seed will be lost
+
+            # TODO: need to pass seeds on somehow
+            samples = sample_from_dists((dist1, dist2), seeds=seed, size=size)
+            return getattr(samples[0], math)(samples[1])
         else:
             # if math in ['sin', 'cos', 'tan'] and _has_astropy and dist1.unit is not None:
             #     unit = _units.rad
             # else:
             #     unit = None
-            return getattr(_np, math)(dist1.sample(size=size, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
+            return getattr(_np, math)(dist1.sample(size=size, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
+
+
+    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}):
+        """
+        Sample from the distribution.
+
+        Arguments
+        -----------
+        * `size` (int or tuple or None, optional, default=None): size/shape of the
+            resulting array.
+        * `unit` (astropy.unit, optional, default=None): unit to convert the
+            resulting sample(s).  Astropy must be installed in order to convert
+            units.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+        * `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
+            pass to underlying distributions.
+
+        Returns
+        ---------
+        * float or array: float if `size=None`, otherwise a numpy array with
+            shape defined by `size`.
+        """
+
+        return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+
 
     def __float__(self):
         return self.mean
@@ -2098,3 +2291,182 @@ class Uniform(BaseDistribution):
         loc = self.mean
         scale = (self.high - self.low) / (2.0 * sigma)
         return Gaussian(loc, scale, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+
+######################## MULTI-VARIATE DISTRIBUTIONS ###########################
+
+
+class BaseMultivariateDistribution(BaseDistribution):
+    def __init__(self, *args, **kwargs):
+        # TODO: handle units, labels, wrap_ats
+        self.dimension = kwargs.pop('dimension', None)
+
+        super(BaseMultivariateDistribution, self).__init__(*args, **kwargs)
+
+    @property
+    def label(self):
+        """
+        """
+        if self.dimension is None:
+            return self._label
+        else:
+            return self._label[self.dimension]
+
+    @label.setter
+    def label(self, label):
+        if not (label is None or isinstance(label, list)):
+            raise TypeError("label must be of type list")
+
+        self._label = label
+
+    @property
+    def dist_args(self):
+        """
+        Return the arguments sent to the distribution function.
+
+        See also:
+
+        * <<class>.dist_func>
+        * <<class>.distribution>
+
+        Returns
+        --------
+        * tuple
+        """
+
+        return tuple([getattr(self, k) for k in self._dist_args]+[self.dimension])
+
+    @property
+    def ndimensions(self):
+        """
+        """
+        return len(self.locs)
+
+    @property
+    def dimensions(self):
+        """
+        """
+        return range(self.ndimensions)
+
+    @property
+    def dimension(self):
+        """
+        See also:
+
+        * <<class>.sample>
+
+        Returns
+        ---------
+        * (int or None): dimension of the multivariate distribution to sample.
+            If None, will return an array of values for all available parameters.
+        """
+        return self._dimension
+
+    @dimension.setter
+    def dimension(self, dimension):
+        if isinstance(dimension, str) and dimension in self.label:
+            dimension = self.label.index(dimension)
+
+        if not (isinstance(dimension, int) or dimension is None):
+            raise TypeError("dimension must be of type int")
+
+        # TODO: check to make sure within valid range?  Then we'll probably have to set after super
+
+        self._dimension = dimension
+
+    def take_dimension(self, dimension=None):
+        """
+
+        Arguments
+        ----------
+        * `dimension` (int, list of ints, or None, optional, default=None)
+        """
+        if dimension is None:
+            dimension = self.dimensions
+        if hasattr(dimension, '__iter__'):
+            return [self.take_dimension(d) for d in dimension]
+
+        d = self.copy()
+        d.dimension = dimension
+        return d
+
+    def logp(self, x, dimension=None, unit=None):
+        """
+        """
+        if dimension is None:
+            dimension = self.dimension
+        if dimension is None:
+            dimension = self.dimensions
+
+        if len(x) != len(dimension):
+            raise ValueError("x must be same length as dimensions ({})".format(len(dimension)))
+
+        # need to "slice" through the covariance matrix (for gaussian at least),
+        # then return a single logp (whould it be multiplied by len(x)?)
+        raise NotImplementedError
+
+
+    def sample(self, *args, **kwargs):
+        """
+
+        * `dimension`: (int, optional): dimension of the multivariate distribution
+            to sample.  If not provided or None, will default to <<class>.dimension>.
+        * `*args`, `**kwargs`: all additional arguments and keyword arguments
+            are passed on to <BaseDistribution.sample>.
+        """
+        dimension = kwargs.pop('dimension', self.dimension)
+        sample = super(BaseMultivariateDistribution, self).sample(*args, **kwargs)
+
+        if dimension is not None:
+            if len(sample.shape) == 1:
+                return sample[dimension]
+            else:
+                return sample[:, dimension]
+        else:
+            return sample
+
+    def plot(self, *args, **kwargs):
+        """
+        """
+        dimension = kwargs.pop('dimension', None)
+        if dimension is not None:
+            return self.take_dimension(dimension).plot(*args, **kwargs)
+        elif self.dimension is not None:
+            return super(BaseMultivariateDistribution, self).plot(*args, **kwargs)
+        else:
+            # then we need to do a corner plot
+            if not _has_corner:
+                raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
+
+            return corner.corner(self.sample(size=100000), labels=self.label)
+
+
+class MVGaussian(BaseMultivariateDistribution):
+    def __init__(self, locs=0.0, cov=1.0, unit=None, label=None, wrap_at=None):
+        """
+        Create a <MVGaussian> distribution.
+
+        This can also be created from a function at the top-level as:
+
+        * <npdists.mvgaussian>
+
+        Arguments
+        --------------
+        * `locs` (float or int, default=0.0): the central value of the gaussian distribution.
+        * `cov` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution, as well as a shorthand
+            notation when creating a <Composite> distribution.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
+
+        Returns
+        --------
+        * a <MVGaussian> object
+        """
+        super(MVGaussian, self).__init__(unit, label, wrap_at,
+                                       mvgaussian, ('locs', 'cov'),
+                                       _np.random.multivariate_normal, ('locs', 'cov'),
+                                       ('locs', locs, is_iterable), ('cov', cov, is_square_matrix))
