@@ -263,6 +263,41 @@ def mvgaussian(x, locs, cov, dimension=None):
     else:
         return gaussian(x, locs[dimension], cov[dimension, dimension])
 
+
+############################### SAMPLE FUNCTIONS ###############################
+
+def _sample_from_hist(bins, density, size=None):
+    # adapted from: https://stackoverflow.com/a/17822210
+
+    # MV case
+    # density, bins = np.histogramdd(chain_flat, normed=True)
+    # bins = np.asarray(bins)
+
+
+    # 1D case
+    #density, bins = np.histogram(np.random.rand(1000), normed=True)
+    #bins = np.asarray([bins])
+
+    cdf = _np.cumsum(density)
+    cdf = cdf / float(cdf[-1])
+
+    values = _np.random.rand(size if size is not None else 1)
+    value_bins = _np.searchsorted(cdf, values)
+
+    if len(bins.shape) > 1:
+        inds = _np.unravel_index(value_bins, density.shape)
+
+        bin_widths = _np.column_stack([_np.diff(b) for b in bins])
+        values_from_bins = _np.column_stack([b[ind]+bin_widths[ind,dim]*_np.random.rand(size if size is not None else 1) for dim,(b,ind) in enumerate(zip(bins, inds))])
+    else:
+        bin_widths = _np.diff(bins)
+        values_from_bins = bins[value_bins] + bin_widths[value_bins] * _np.random.rand(size if size is not None else 1)
+
+    if size is None:
+        return values_from_bins[0]
+    else:
+        return values_from_bins
+
 ######################## DISTRIBUTION ABSTRACT CLASS ###########################
 
 class BaseDistribution(object):
@@ -1771,7 +1806,7 @@ class Histogram(BaseDistribution):
         """
         super(Histogram, self).__init__(unit, label, wrap_at,
                                         histogram, ('bins', 'density'),
-                                        self._sample_from_hist, ('bins', 'density'),
+                                        _sample_from_hist, ('bins', 'density'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
@@ -1812,25 +1847,6 @@ class Histogram(BaseDistribution):
         hist, bin_edges = _np.histogram(data, bins=bins, range=range, weights=weights, density=True)
 
         return cls(bin_edges, hist, label=label, unit=unit, wrap_at=wrap_at)
-
-    def _sample_from_hist(self, bins, counts, size=None):
-        # adopted from: https://stackoverflow.com/a/17822210
-
-        # bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
-        cdf = _np.cumsum(self.density)
-        cdf = cdf / float(cdf[-1])
-
-        values = _np.random.rand(size if size is not None else 1)
-        value_bins = _np.searchsorted(cdf, values)
-        # random_from_cdf = bin_midpoints[value_bins]
-        bin_widths = _np.diff(self.bins)
-        values_from_bins = self.bins[value_bins] + bin_widths[value_bins] * _np.random.rand(size if size is not None else 1)
-
-        if size is None:
-            return values_from_bins[0]
-        else:
-            return values_from_bins
-
 
     def __float__(self):
         return self.mean
@@ -2350,6 +2366,13 @@ class BaseMultivariateDistribution(BaseDistribution):
         """
         return range(self.ndimensions)
 
+    def get_dimension_by_label(self, dimension):
+        """
+        """
+        if isinstance(dimension, str) and dimension in self.label:
+            dimension = self.label.index(dimension)
+        return dimension
+
     @property
     def dimension(self):
         """
@@ -2366,8 +2389,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
     @dimension.setter
     def dimension(self, dimension):
-        if isinstance(dimension, str) and dimension in self.label:
-            dimension = self.label.index(dimension)
+        dimension = self.get_dimension_by_label(dimension)
 
         if not (isinstance(dimension, int) or dimension is None):
             raise TypeError("dimension must be of type int")
@@ -2416,7 +2438,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         * `*args`, `**kwargs`: all additional arguments and keyword arguments
             are passed on to <BaseDistribution.sample>.
         """
-        dimension = kwargs.pop('dimension', self.dimension)
+        dimension = self.get_dimension_by_label(kwargs.pop('dimension', self.dimension))
         sample = super(BaseMultivariateDistribution, self).sample(*args, **kwargs)
 
         if dimension is not None:
@@ -2430,7 +2452,7 @@ class BaseMultivariateDistribution(BaseDistribution):
     def plot(self, *args, **kwargs):
         """
         """
-        dimension = kwargs.pop('dimension', None)
+        dimension = self.get_dimension_by_label(kwargs.pop('dimension', None))
         if dimension is not None:
             return self.take_dimension(dimension).plot(*args, **kwargs)
         elif self.dimension is not None:
@@ -2441,6 +2463,50 @@ class BaseMultivariateDistribution(BaseDistribution):
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
             return corner.corner(self.sample(size=100000), labels=self.label)
+
+    def to_histogram(self, N=1000, bins=10, range=None, dimension=None):
+        """
+        Convert the <<class>> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+        * `dimension` (int or string, default=None): dimension to use
+            when flattening to the 1-D histogram distribution. If not proivded
+            or None, will use value from <<class>.dimension>.  `dimension` is
+            therefore REQUIRED if <<class>.dimension> is None.
+
+        Returns
+        --------
+        * a <Histogram> object
+
+        Raises
+        ---------
+        * ValueError: if `dimension` and <<class>.dimension> are both None.
+        """
+        if dimension is None:
+            dimension = self.dimension
+
+        dimension = self.get_dimension_by_label(dimension)
+
+        if dimension is None:
+            raise ValueError("must provide dimension.")
+
+        unit = self.unit[dimension] if isinstance(self.unit, list) else self.unit
+        label = self.label[dimension] if isinstance(self.label, list) else self.label
+        wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
+
+        return Histogram.from_data(self.sample(dimension=dimension, size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   unit=unit, label=label, wrap_at=wrap_at)
 
 
 class MVGaussian(BaseMultivariateDistribution):
@@ -2473,3 +2539,57 @@ class MVGaussian(BaseMultivariateDistribution):
                                        mvgaussian, ('locs', 'cov'),
                                        _np.random.multivariate_normal, ('locs', 'cov'),
                                        ('locs', locs, is_iterable), ('cov', cov, is_square_matrix))
+
+    def to_mvhistogram(self, N=1000, bins=10, range=None):
+        """
+        Convert the <<class>> distribution to a <MVHistogram> distribution.
+
+        Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
+        to <MVHistogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=1000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
+        return MVHistogram.from_data(self.sample(size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+
+
+class MVHistogram(BaseMultivariateDistribution):
+    """
+    """
+    def __init__(self, bins, density, unit=None, label=None, wrap_at=None):
+        """
+        """
+        super(MVHistogram, self).__init__(unit, label, wrap_at,
+                                        histogram, ('bins', 'density'),
+                                        _sample_from_hist, ('bins', 'density'),
+                                        ('bins', bins, is_iterable), ('density', density, is_iterable))
+
+    @classmethod
+    def from_data(cls, data, bins=10, range=None, weights=None,
+                  label=None, unit=None, wrap_at=None):
+        """
+        """
+        hist, bin_edges = _np.histogramdd(data, bins=bins, range=range, weights=weights, normed=True) # what version of numpy introduced density?
+
+        return cls(_np.asarray(bin_edges), hist, label=label, unit=unit, wrap_at=wrap_at)
+
+    def plot(self, *args, **kwargs):
+        """
+        """
+        dimension = self.get_dimension_by_label(kwargs.get('dimension', None))
+        if dimension is not None:
+            kwargs.setdefault('bins', self.bins[dimension])
+
+        return super(MVHistogram, self).plot(*args, **kwargs)

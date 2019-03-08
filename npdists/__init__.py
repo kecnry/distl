@@ -201,6 +201,7 @@ def mvgaussian(locs, cov, unit=None, label=None, wrap_at=None):
 def mvhistogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None, wrap_at=None):
     """
     """
+    return _npdists.MVHistogram.from_data(data, bins=bins, range=range, weights=weights, unit=unit, label=label, wrap_at=wrap_at)
 
 
 
