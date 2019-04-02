@@ -16,6 +16,7 @@ Can be created from the top-level via the [npdists.delta](npdists.delta.md) conv
 * [dist_func](Delta.dist_func.md)
 * [distribution](Delta.distribution.md)
 * [get_wrap_at](Delta.get_wrap_at.md)
+* [hash](Delta.hash.md)
 * [label](Delta.label.md)
 * [logp](Delta.logp.md)
 * [mean](Delta.mean.md)
