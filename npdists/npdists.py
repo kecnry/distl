@@ -92,6 +92,12 @@ def sample_from_dists(dists, *args, **kwargs):
     if seeds is None:
         seeds = {}
 
+    if isinstance(dists, BaseDistribution):
+        dists = [dists]
+        flatten = True
+    else:
+        flatten = False
+
     # first well expand any Composite distributions to access the underlying
     # distributions
     def unpack_dists(dist):
@@ -110,7 +116,11 @@ def sample_from_dists(dists, *args, **kwargs):
     for dist in dists_all:
         seeds.setdefault(dist.hash, get_random_seed())
     # print "*** seeds for hashes", seeds.keys()
-    return [dist.sample(*args, seed=seeds, **kwargs) for dist in dists]
+    samples = [dist.sample(*args, seed=seeds, **kwargs) for dist in dists]
+    if flatten:
+        return samples[0]
+    else:
+        return _np.asarray(samples).T
 
 def logp_from_dists(dists, values):
     """
@@ -2462,7 +2472,7 @@ class BaseMultivariateDistribution(BaseDistribution):
             if not _has_corner:
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
-            return corner.corner(self.sample(size=100000), labels=self.label)
+            return corner.corner(self.sample(size=100000), labels=self.label, **kwargs)
 
     def to_histogram(self, N=1000, bins=10, range=None, dimension=None):
         """
