@@ -139,7 +139,8 @@ def logp_from_dists(dists, values):
             values_dict[hash] = [value]
 
     for dists, values in zip(dists_dict.values(), values_dict.values()):
-        logp += dists[0].logp(values[0])
+        for dist, value in zip(dists, values):
+            logp += dist.logp(value)
         # logp += dists[0].logp(values, dimension=[dist.dimension for dist in dists]) #* len(dists)
 
     return logp
