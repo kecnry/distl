@@ -758,7 +758,7 @@ class BaseDistribution(object):
                     elif self.unit.to_string() == 'cycle':
                         wrap_at = 1
                     elif self.unit.to_string() == 'rad':
-                        wrap_at = 2 * np.pi
+                        wrap_at = 2 * _np.pi
                     else:
                         raise NotImplementedError("wrapping for angle unit {} not implemented.".format(self.unit.to_string()))
             else:
