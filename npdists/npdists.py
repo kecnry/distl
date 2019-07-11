@@ -1520,7 +1520,10 @@ class Composite(BaseDistribution):
 
             # TODO: need to pass seeds on somehow
             samples = sample_from_dists((dist1, dist2), seeds=seed, size=size)
-            return getattr(samples[0], math)(samples[1])
+            if size is not None:
+                return getattr(samples[:,0], math)(samples[:,1])
+            else:
+                return getattr(samples[0], math)(samples[1])
         else:
             # if math in ['sin', 'cos', 'tan'] and _has_astropy and dist1.unit is not None:
             #     unit = _units.rad
