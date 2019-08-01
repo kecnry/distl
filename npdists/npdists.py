@@ -2421,7 +2421,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         """
         if dimension is None:
             dimension = self.dimensions
-        if hasattr(dimension, '__iter__'):
+        if not isinstance(dimension, str) and hasattr(dimension, '__iter__'):
             return [self.take_dimension(d) for d in dimension]
 
         d = self.copy()
