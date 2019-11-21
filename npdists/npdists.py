@@ -1166,7 +1166,12 @@ class BaseDistribution(object):
         # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
         # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
         # appropriate bins
-        ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed), density=True, **kwargs)
+        try:
+            ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed), density=True, **kwargs)
+        except AttributeError:
+            # TODO: determine which version of matplotlib
+            # TODO: this still doesn't handle the same
+            ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed), normed=True, **kwargs)
 
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))
