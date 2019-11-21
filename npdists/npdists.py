@@ -152,15 +152,51 @@ def logp_from_dists(dists, values):
 
     return logp
 
+def sample_func_from_dists(dists, func, x, N=1000, func_kwargs={}):
+    """
+    Draw samples from a callable function.
+
+    See also:
+    * <npdists.plot_func_from_dists>
+
+    Arguments
+    -----------
+    * `dists` (list or tuple of distribution objects): distribution objects from
+        which to sample.
+    * `func` (callable): callable function
+    * `x` (array like): x values to pass to `func`.
+    * `N` (int, optional, default=1000): number of samples to draw.
+    * `func_kwargs` (dict, optional): additional keyword arguments to pass to
+        `func`.
+
+
+    Returns
+    -----------
+    * an array of models with shape (N, len(x))
+
+    Raises
+    -----------
+    * ImportError: if scipy is not imported
+    """
+    if not _has_scipy:
+        raise ImportError("plot_from_dists requires scipy.")
+
+    # TODO: allow passing args to sample_from_dists
+    # TODO: optimize this by doing all sampling first?
+    sample_args = [sample_from_dists(dists) for i in range(N)]
+    models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
+    return models
+
 def plot_func_from_dists(dists, func, x, N=1000, func_kwargs={}, show=False):
     """
-    Draw samples and a callable function and plot.
+    Draw samples from a callable function and plot.
 
     The passed callable `func` will be called with arguments `x` followed by
     the individually drawn values from each distribution in `dists` (in order
     provided) and then any additional `func_kwargs`.
 
     See also:
+    * <npdists.sample_func_from_dists>
     * <npdists.sample_from_dists>
 
     Arguments
@@ -187,19 +223,16 @@ def plot_func_from_dists(dists, func, x, N=1000, func_kwargs={}, show=False):
 
     if not _has_mpl:
         raise ImportError("plot_from_dists requires matplotlib.")
-    if not _has_scipy:
-        raise ImportError("plot_from_dists requires scipy.")
 
-    # TODO: allow passing arges to sample_from_dists
-    models = _np.array([func(x, *sample_from_dists(dists), **func_kwargs) for i in range(N)])
+    models = sample_func_from_dists(dists, func, x, N=N, func_kwargs=func_kwargs)
 
     # TODO: allow options for sigma boundaries
     bounds = _np.percentile(models, 100 * _norm.cdf([-2, -1, 1, 2]), axis=0)
 
     ret1 = _plt.fill_between(x, bounds[0, :], bounds[-1, :],
-                     label="95\% uncertainty", fc="#03A9F4", alpha=0.4)
+                     label="95\% uncertainty", facecolor="#03A9F4", alpha=0.4)
     ret2 = _plt.fill_between(x, bounds[1, :], bounds[-2, :],
-                     label="68\% uncertainty", fc="#0288D1", alpha=0.4)
+                     label="68\% uncertainty", facecolor="#0288D1", alpha=0.4)
 
     if show:
         _plt.show()
