@@ -157,6 +157,7 @@ def sample_func_from_dists(dists, func, x, N=1000, func_kwargs={}):
     Draw samples from a callable function.
 
     See also:
+
     * <npdists.plot_func_from_dists>
 
     Arguments
@@ -196,6 +197,7 @@ def plot_func_from_dists(dists, func, x, N=1000, func_kwargs={}, show=False):
     provided) and then any additional `func_kwargs`.
 
     See also:
+
     * <npdists.sample_func_from_dists>
     * <npdists.sample_from_dists>
 

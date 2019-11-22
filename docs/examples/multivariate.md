@@ -3,10 +3,16 @@ import npdists
 import numpy as np
 ```
 
+First we'll create a [multivariate gaussian](../api/MVGaussian.md) distribution by providing the means and covariances of three parameters.
+
 
 ```python
-mvg = npdists.mvgaussian([5,10, 12], np.array([[ 1., 1., -1.], [1, -1, 1], [-1., 1.,  1.]]))
+mvg = npdists.mvgaussian([5,10, 12], 
+                         np.array([[ 1., 1., -1.], [1, -1, 1], [-1., 1.,  1.]]),
+                         label=['a', 'b', 'c'])
 ```
+
+We can then easily access the means and covariances and see that they exactly match what we set.
 
 
 ```python
@@ -34,6 +40,8 @@ mvg.covariances
 
 
 
+and plotting will now show a corner plot (if [corner](https://corner.readthedocs.io/en/latest/) is installed)
+
 
 ```python
 mvg.plot(show=True)
@@ -45,13 +53,15 @@ mvg.plot(show=True)
 
 
 
-![png](multivariate_files/multivariate_4_1.png)
+![png](multivariate_files/multivariate_7_1.png)
 
 
 
 
-![png](multivariate_files/multivariate_4_2.png)
+![png](multivariate_files/multivariate_7_2.png)
 
+
+we can now convert this multivariate gaussian distribution into a [multivariate histogram](../api/MVHistogram.md) distribution
 
 
 ```python
@@ -66,25 +76,15 @@ mvh.plot(show=True)
 
 
 
-![png](multivariate_files/multivariate_6_0.png)
+![png](multivariate_files/multivariate_10_0.png)
 
 
 
 
-![png](multivariate_files/multivariate_6_1.png)
+![png](multivariate_files/multivariate_10_1.png)
 
 
-
-```python
-mvh.ndimensions
-```
-
-
-
-
-    3
-
-
+Now if we access the means and covariances, we'll see that they are slightly different due to the binning.
 
 
 ```python
@@ -112,6 +112,8 @@ mvh.covariances
 
 
 
+If we convert back to a multivariate gaussian, these are the means and covariances that will be adopted.
+
 
 ```python
 mvhg = mvh.to_mvgaussian()
@@ -125,12 +127,12 @@ mvhg.plot(show=True)
 
 
 
-![png](multivariate_files/multivariate_11_0.png)
+![png](multivariate_files/multivariate_16_0.png)
 
 
 
 
-![png](multivariate_files/multivariate_11_1.png)
+![png](multivariate_files/multivariate_16_1.png)
 
 
 

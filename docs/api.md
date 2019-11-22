@@ -1,6 +1,13 @@
 ## npdists (module)
 
-Top-Level Convenience Functions:
+Top-Level Functions for Acting on Distributions
+
+* [sample_from_dists](api/npdists.sample_from_dists.md)
+* [logp_from_dists](api/npdists.logp_from_dists.md)
+* [sample_func_from_dists](api/npdists.sample_func_from_dists.md)
+* [plot_func_from_dists](api/npdists.plot_func_from_dists.md)
+
+Top-Level Convenience Functions to Create Distributions:
 
 * [boxcar](api/npdists.boxcar.md)
 * [delta](api/npdists.delta.md)
@@ -14,6 +21,7 @@ Top-Level Convenience Functions:
 * [normal](api/npdists.normal.md)
 * [uniform](api/npdists.uniform.md)
 
+
 Distribution Classes:
 
 * [Delta](api/Delta.md)
@@ -22,3 +30,5 @@ Distribution Classes:
 * [Compositie](api/Composite.md)
 * [Function](api/Function.md)
 * [Histogram](api/Histogram.md)
+* [MVGaussian](api/MVGaussian.md)
+* [MVHistogram](api/MVHistogram.md)

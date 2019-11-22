@@ -1,5 +1,5 @@
 from . import npdists as _npdists
-from .npdists import get_random_seed, sample_from_dists, logp_from_dists, plot_func_from_dists
+from .npdists import get_random_seed, sample_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists
 import numpy as _np
 from .npdists import BaseDistribution # for isinstance checking
 import json as _json
@@ -196,7 +196,7 @@ def mvgaussian(locs, cov, unit=None, label=None, wrap_at=None):
     Create a <MVGaussian> distribution.
 
     """
-    return _npdists.MVGaussian(locs, cov, unit, label, wrap_at)
+    return _npdists.MVGaussian(locs, cov, unit=unit, label=label, wrap_at=wrap_at)
 
 def mvhistogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None, wrap_at=None):
     """

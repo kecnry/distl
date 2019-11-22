@@ -16,6 +16,7 @@ the individually drawn values from each distribution in `dists` (in order
 provided) and then any additional `func_kwargs`.
 
 See also:
+
 * [npdists.sample_func_from_dists](npdists.sample_func_from_dists.md)
 * [npdists.sample_from_dists](npdists.sample_from_dists.md)
 

@@ -17,6 +17,7 @@ nav:
         - math: examples/math.md
         - units: examples/units.md
         - wrapping: examples/wrapping.md
+        - multivariate: examples/multivariate.md
         # - fitting with EMCEE: examples/fitting_emcee.md
     - API:
         - npdists: api.md
@@ -26,3 +27,5 @@ nav:
         - Composite: api/Composite.md
         - Function: api/Function.md
         - Histogram: api/Histogram.md
+        - Multivariate Gaussian: api/MVGaussian.md
+        - Multivariate Histogram: api/MVHistogram.md
