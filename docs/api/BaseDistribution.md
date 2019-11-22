@@ -18,6 +18,7 @@ Any subclass distribution should override the following:
 * [dist_func](BaseDistribution.dist_func.md)
 * [distribution](BaseDistribution.distribution.md)
 * [get_wrap_at](BaseDistribution.get_wrap_at.md)
+* [hash](BaseDistribution.hash.md)
 * [label](BaseDistribution.label.md)
 * [logp](BaseDistribution.logp.md)
 * [mean](BaseDistribution.mean.md)

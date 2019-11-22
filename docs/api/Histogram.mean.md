@@ -7,7 +7,7 @@ Return the weighted mean value from the histogram.
 
 See also:
 
-* [Histogram.mean](Histogram.mean.md)
+* [Histogram.std](Histogram.std.md)
 
 Returns
 -------

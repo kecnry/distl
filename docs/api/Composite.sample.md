@@ -3,7 +3,7 @@
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={})
 
 ```
 
@@ -26,8 +26,8 @@ Arguments
     will use the value from [Composite.wrap_at](Composite.wrap_at.md).  Note: wrapping is
     computed before changing units, so `wrap_at` must be provided
     according to [Composite.unit](Composite.unit.md) not `unit`.
-* `seed` (int, optional): seed to pass to np.random.seed
-    prior to sampling.
+* `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
+    pass to underlying distributions.
 
 Returns
 ---------

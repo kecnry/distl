@@ -15,6 +15,9 @@ env:
         # Set defaults to avoid repeating in most cases
         - PIP_DEPENDENCIES='nose'
         - CONDA_DEPENDENCIES='matplotlib'
+        - PYTHON_VERSION=2.7
+        - NUMPY_VERSION=1.10
+        - ASTROPY_VERSION=1.0
 
 matrix:
 
@@ -25,17 +28,17 @@ matrix:
 
         # Try with lowest supported numpy/astropy (only with python 2.7)
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 ASTROPY_VERSION=1.0'
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 ASTROPY_VERSION=1.0
 
         # - os: osx
         #   env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 ASTROPY_VERSION=1.0'
 
         # Try with stable versions of numpy/astropy
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=stable ASTROPY_VERSION=stable'
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=stable ASTROPY_VERSION=stable
 
         - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=stable ASTROPY_VERSION=stable'
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=stable ASTROPY_VERSION=stable
 
         # - os: osx
         #   env: PYTHON_VERSION=2.7 NUMPY_VERSION=stable ASTROPY_VERSION=stable'
@@ -45,13 +48,13 @@ matrix:
 
         # Try with dev version of numpy (only with python 3.6)
         - os: linux
-          env: PYTHON_VERSION=3.6 NUMPY_VERSION=dev ASTROPY_VERSION=stable'
+          env: PYTHON_VERSION=3.6 NUMPY_VERSION=dev ASTROPY_VERSION=stable
 
         # - os: osx
         #   env: PYTHON_VERSION=3.6 NUMPY_VERSION=dev ASTROPY_VERSION=stable'
 
     allow_failures:
-      - env: NUMPY_VERSION=dev
+      - env: PYTHON_VERSION=3.6 NUMPY_VERSION=dev ASTROPY_VERSION=stable
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then

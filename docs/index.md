@@ -78,6 +78,8 @@ and available at the [top-level of npdists](./api/npdists.md):
 * [uniform](./api/npdists.uniform.md)
 * [boxcar](./api/npdists.boxcar.md) (shortcut to uniform)
 * [histogram_from_data](./api/npdists.histogram_from_data.md) or [histogram_from_bins](./api/npdists.histogram_from_bins.md)
+* [mvgaussian](./api/npdists.mvgaussian.md)
+* [mvhistogram_from_data](./api/npdists.mvhistogram_from_data.md)
 
 ## Converting Between Distribution Types
 
@@ -107,6 +109,12 @@ and limitations.  Below is a summary of all implemented translation methods:
 * [Histogram](./api/Histogram.md)
     * [to_gaussian](./api/Histogram.to_gaussian.md)
     * [to_uniform](./api/Histogram.to_uniform.md)
+* [MVGaussian](./api/MVGaussian.md)
+    * [to_mvhistogram](./api/MVGaussian.to_mvhistogram.md)
+    * [to_histogram](./api/MVGaussian.to_histogram.md)
+* [MVHistogram](./api/MVHistogram.md)
+    * [to_mvgaussian](./api/MVHistogram.to_mvgaussian.md)
+    * [to_histogram](./api/MVHistogram.to_histogram.md)
 
 
 ## Sampling

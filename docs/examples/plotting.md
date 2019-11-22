@@ -1,5 +1,3 @@
-
-
 ```python
 import npdists
 import numpy as np

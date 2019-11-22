@@ -1,5 +1,3 @@
-
-
 ```python
 import npdists
 import astropy.units as u
