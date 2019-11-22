@@ -701,7 +701,7 @@ class BaseDistribution(object):
     @property
     def mean(self):
         """
-        msean is not implemented for this distribution type.
+        mean is not implemented for this distribution type.
 
         Raises
         --------
@@ -1971,7 +1971,7 @@ class Histogram(BaseDistribution):
 
         See also:
 
-        * <Histogram.mean>
+        * <Histogram.std>
 
         Returns
         -------
@@ -2477,12 +2477,6 @@ class BaseMultivariateDistribution(BaseDistribution):
         return tuple([getattr(self, k) for k in self._dist_args]+[self.dimension])
 
     @property
-    def ndimensions(self):
-        """
-        """
-        return len(self.locs)
-
-    @property
     def dimensions(self):
         """
         """
@@ -2662,9 +2656,45 @@ class MVGaussian(BaseMultivariateDistribution):
                                        _np.random.multivariate_normal, ('locs', 'cov'),
                                        ('locs', locs, is_iterable), ('cov', cov, is_square_matrix))
 
+    @property
+    def ndimensions(self):
+        """
+        """
+        return len(self.locs)
+
+    @property
+    def means(self):
+        """
+        Return the weighted mean values from `locs`.
+
+        See also:
+
+        * <MVGaussian.covariances>
+
+        Returns
+        -------
+        * list of floats: the mean value per dimension
+        """
+        return self.locs
+
+    @property
+    def covariances(self, N=1000):
+        """
+        Return the covariances from `cov`
+
+        See also:
+
+        * <MVGaussian.means>
+
+        Returns
+        ---------
+        * NxN square matrix of floats.
+        """
+        return self.cov
+
     def to_mvhistogram(self, N=1000, bins=10, range=None):
         """
-        Convert the <<class>> distribution to a <MVHistogram> distribution.
+        Convert the <<class>> distribution to an <MVHistogram> distribution.
 
         Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
         and passes the resulting array as well as the requested `bins` and `range`
@@ -2680,7 +2710,7 @@ class MVGaussian(BaseMultivariateDistribution):
 
         Returns
         --------
-        * a <Histogram> object
+        * an <MVHistogram> object
         """
         return MVHistogram.from_data(self.sample(size=N, wrap_at=False),
                                    bins=bins, range=range,
@@ -2707,6 +2737,12 @@ class MVHistogram(BaseMultivariateDistribution):
 
         return cls(_np.asarray(bin_edges), hist, label=label, unit=unit, wrap_at=wrap_at)
 
+    @property
+    def ndimensions(self):
+        """
+        """
+        return self.bins.shape[0]
+
     def plot(self, *args, **kwargs):
         """
         """
@@ -2715,3 +2751,81 @@ class MVHistogram(BaseMultivariateDistribution):
             kwargs.setdefault('bins', self.bins[dimension])
 
         return super(MVHistogram, self).plot(*args, **kwargs)
+
+
+    @property
+    def means(self):
+        """
+        Return the weighted mean values from the histogram.
+
+        See also:
+
+        * <MVHistogram.covariances>
+
+        Returns
+        -------
+        * list of floats: the mean value per dimension
+        """
+        return [self.to_histogram(dimension=d).mean for d in self.dimensions]
+
+    def get_covariances(self, N=1e5):
+        """
+        Return the covariances about the mean from the histogram.
+
+        Under-the-hood, this calls `np.cov` on the output from <<class>.sample>
+        with `N` samples.
+
+        See also:
+
+        * <MVHistogram.covariances>
+        * <MVHistogram.means>
+
+        Arguments
+        ---------
+        * `N` (int, default=1e5): number of samples to use to pass to
+            `np.cov`.
+
+        Returns
+        ---------
+        * NxN square matrix of floats.
+        """
+        return _np.cov(self.sample(int(N)).T)
+
+    @property
+    def covariances(self):
+        """
+        Return the covariances about the mean from the histogram.
+
+        Under-the-hood, this calls `np.cov` on the output from <<class>.sample>
+        with 1e5 samples.  To adjust the number of samples, use <<class>.get_covariances> instead.
+
+        See also:
+
+        * <MVHistogram.get_covariances>
+        * <MVHistogram.means>
+
+        Returns
+        ---------
+        * NxN square matrix of floats.
+        """
+        return self.get_covariances()
+
+    def to_mvgaussian(self, N=1e5):
+        """
+        Convert the <<class>> distribution to an <MVGaussian> distribution.
+
+        See also:
+
+        * <MVHistogram.means>
+        * <MVHistogram.get_covariances>
+
+        Arguments
+        ---------
+        * `N` (int, default=1e5): number of samples to use when calling
+            <<class>.get_covariances>.
+
+        Returns
+        --------
+        * an <MVGaussian> object
+        """
+        return MVGaussian(self.means, self.get_covariances(N), unit=self.unit, label=self.label, wrap_at=self.wrap_at)
