@@ -115,6 +115,7 @@ if __name__ == '__main__':
 
     skip_methods = ['sin', 'cos', 'tan']
     fms = api_docs(npdists._npdists.BaseDistribution, skip=skip_methods)
+    fms = api_docs(npdists._npdists.BaseMultivariateDistribution, skip=skip_methods)
 
     fms = api_docs(npdists._npdists.Composite, skip=skip_methods)
     fms = api_docs(npdists._npdists.Function, skip=skip_methods)
@@ -123,3 +124,6 @@ if __name__ == '__main__':
     fms = api_docs(npdists._npdists.Delta, skip=skip_methods)
     fms = api_docs(npdists._npdists.Gaussian, skip=skip_methods)
     fms = api_docs(npdists._npdists.Uniform, skip=skip_methods)
+
+    fms = api_docs(npdists._npdists.MVGaussian, skip=skip_methods)
+    fms = api_docs(npdists._npdists.MVHistogram, skip=skip_methods)

@@ -3,7 +3,7 @@
 
 
 
-msean is not implemented for this distribution type.
+mean is not implemented for this distribution type.
 
 Raises
 --------
