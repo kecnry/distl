@@ -1994,12 +1994,21 @@ class Histogram(BaseDistribution):
         ---------
         * float: the standard deviation
         """
+        mean, std = self._mean_std()
+        return std
+
+    def _mean_std(self):
+        """
+        Compute the mean and standard deviation.  Useful just to avoid multiple
+        calls when both are needed.
+        """
         bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
         mean = _np.average(bin_midpoints, weights=self.density)
 
         var = _np.average((bin_midpoints - mean)**2, weights=self.density)
         sigma = _np.sqrt(var)
-        return sigma
+
+        return mean, sigma
 
     def to_gaussian(self):
         """
@@ -2010,7 +2019,8 @@ class Histogram(BaseDistribution):
         --------
         * a <Gaussian> object
         """
-        return Gaussian(self.mean, self.std, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        mean, std = self._mean_std()
+        return Gaussian(mean, std, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_uniform(self, sigma=1.0):
         """
