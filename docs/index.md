@@ -26,6 +26,7 @@
 and the following optional dependencies:
 
   - matplotlib 2.2+ (required for plotting distributions)
+  - [corner](https://corner.readthedocs.io) (required for plotting multivariate distributions)
   - astropy 1.0+ (required for units support)
   - dill (required for saving/loading [Function Distributions](./api/Function.md))
 
