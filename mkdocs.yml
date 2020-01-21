@@ -13,6 +13,7 @@ nav:
     - Examples:
         - sampling: examples/sampling.md
         - random seed: examples/random_seed.md
+        - sampling from ppf: examples/ppf.md
         - plotting: examples/plotting.md
         - math: examples/math.md
         - units: examples/units.md

@@ -23,6 +23,8 @@
 * [sample](MVGaussian.sample.md)
 * [sample_args](MVGaussian.sample_args.md)
 * [sample_func](MVGaussian.sample_func.md)
+* [sample_ppf](MVGaussian.sample_ppf.md)
+* [sample_ppf_func](MVGaussian.sample_ppf_func.md)
 * [std](MVGaussian.std.md)
 * [take_dimension](MVGaussian.take_dimension.md)
 * [to](MVGaussian.to.md)

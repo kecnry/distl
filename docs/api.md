@@ -3,6 +3,7 @@
 Top-Level Functions for Acting on Distributions
 
 * [sample_from_dists](api/npdists.sample_from_dists.md)
+* [sample_ppf_from_dists](api/npdists.sample_ppf_from_dists.md)
 * [logp_from_dists](api/npdists.logp_from_dists.md)
 * [sample_func_from_dists](api/npdists.sample_func_from_dists.md)
 * [plot_func_from_dists](api/npdists.plot_func_from_dists.md)

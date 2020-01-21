@@ -29,6 +29,8 @@ Histogram distribtuion from the data array itself, see
 * [sample](Histogram.sample.md)
 * [sample_args](Histogram.sample_args.md)
 * [sample_func](Histogram.sample_func.md)
+* [sample_ppf](Histogram.sample_ppf.md)
+* [sample_ppf_func](Histogram.sample_ppf_func.md)
 * [std](Histogram.std.md)
 * [to](Histogram.to.md)
 * [to_dict](Histogram.to_dict.md)

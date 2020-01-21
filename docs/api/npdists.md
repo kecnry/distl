@@ -17,4 +17,5 @@
 * [plot_func_from_dists](npdists.plot_func_from_dists.md)
 * [sample_from_dists](npdists.sample_from_dists.md)
 * [sample_func_from_dists](npdists.sample_func_from_dists.md)
+* [sample_ppf_from_dists](npdists.sample_ppf_from_dists.md)
 * [uniform](npdists.uniform.md)

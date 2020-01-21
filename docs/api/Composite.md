@@ -56,6 +56,8 @@ a [Uniform](Uniform.md) or [Gaussian](Gaussian.md) distribution by a float will 
 * [sample](Composite.sample.md)
 * [sample_args](Composite.sample_args.md)
 * [sample_func](Composite.sample_func.md)
+* [sample_ppf](Composite.sample_ppf.md)
+* [sample_ppf_func](Composite.sample_ppf_func.md)
 * [std](Composite.std.md)
 * [to](Composite.to.md)
 * [to_dict](Composite.to_dict.md)

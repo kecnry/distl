@@ -29,6 +29,8 @@
 * [sample](MVHistogram.sample.md)
 * [sample_args](MVHistogram.sample_args.md)
 * [sample_func](MVHistogram.sample_func.md)
+* [sample_ppf](MVHistogram.sample_ppf.md)
+* [sample_ppf_func](MVHistogram.sample_ppf_func.md)
 * [std](MVHistogram.std.md)
 * [take_dimension](MVHistogram.take_dimension.md)
 * [to](MVHistogram.to.md)

@@ -26,6 +26,8 @@ Can be created from the top-level via the [npdists.gaussian](npdists.gaussian.md
 * [sample](Gaussian.sample.md)
 * [sample_args](Gaussian.sample_args.md)
 * [sample_func](Gaussian.sample_func.md)
+* [sample_ppf](Gaussian.sample_ppf.md)
+* [sample_ppf_func](Gaussian.sample_ppf_func.md)
 * [std](Gaussian.std.md)
 * [to](Gaussian.to.md)
 * [to_dict](Gaussian.to_dict.md)

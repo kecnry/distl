@@ -149,6 +149,15 @@ def sample_from_dists(dists, *args, **kwargs):
     else:
         return _np.asarray(samples).T
 
+def sample_ppf_from_dists(dists, ppf, *args, **kwargs):
+    """
+
+    Raises
+    ----------
+    * NotImplementedError
+    """
+    raise NotImplementedError
+
 def logp_from_dists(dists, values):
     """
     """
@@ -197,11 +206,7 @@ def sample_func_from_dists(dists, func, x, N=1000, func_kwargs={}):
 
     Raises
     -----------
-    * ImportError: if scipy is not imported
     """
-    if not _has_scipy:
-        raise ImportError("plot_from_dists requires scipy.")
-
     # TODO: allow passing args to sample_from_dists
     # TODO: optimize this by doing all sampling first?
     sample_args = [sample_from_dists(dists) for i in range(N)]
@@ -239,7 +244,6 @@ def plot_func_from_dists(dists, func, x, N=1000, func_kwargs={}, show=False):
     Raises
     -----------
     * ImportError: if matplotlib is not imported
-    * ImportError: if scipy is not imported
     """
 
 
@@ -297,6 +301,12 @@ def is_callable(value):
         else:
             raise ImportError("'dill' package required to load functions")
     return hasattr(value, 'func_name'), value
+
+def is_callable_or_none(value):
+    if value is None:
+        return True, value
+    else:
+        return is_callable(value)
 
 def is_unit(value):
     """must be an astropy unit"""
@@ -393,6 +403,12 @@ def mvgaussian(x, locs, cov, dimension=None):
 ############################### SAMPLE FUNCTIONS ###############################
 
 def _sample_from_hist(bins, density, size=None):
+
+
+    ppf = _np.random.rand(size if size is not None else 1)
+    return _sample_ppf_from_hist(ppf if size is not None else ppf[0], bins, density)
+
+def _sample_ppf_from_hist(ppf, bins, density):
     # adapted from: https://stackoverflow.com/a/17822210
 
     # MV case
@@ -403,26 +419,38 @@ def _sample_from_hist(bins, density, size=None):
     # 1D case
     #density, bins = np.histogram(np.random.rand(1000), normed=True)
     #bins = np.asarray([bins])
+    if np.any(pff > 1) or np.any(ppf < 0):
+        raise ValueError("ppf must be between 0 and 1")
+
+    if isinstance(ppf, float):
+        return_single = True
+        ppf = _np.asarray([ppf])
+    else:
+        return_single = False
+        ppf = _np.asarray(ppf)
+
 
     cdf = _np.cumsum(density)
     cdf = cdf / float(cdf[-1])
 
-    values = _np.random.rand(size if size is not None else 1)
-    value_bins = _np.searchsorted(cdf, values)
+    value_bins = _np.searchsorted(cdf, ppf)
 
     if len(bins.shape) > 1:
         inds = _np.unravel_index(value_bins, density.shape)
 
         bin_widths = _np.column_stack([_np.diff(b) for b in bins])
-        values_from_bins = _np.column_stack([b[ind]+bin_widths[ind,dim]*_np.random.rand(size if size is not None else 1) for dim,(b,ind) in enumerate(zip(bins, inds))])
+        values_from_bins = _np.column_stack([b[ind]+bin_widths[ind,dim] * (ppf % 1) for dim,(b,ind) in enumerate(zip(bins, inds))])
     else:
         bin_widths = _np.diff(bins)
-        values_from_bins = bins[value_bins] + bin_widths[value_bins] * _np.random.rand(size if size is not None else 1)
+        values_from_bins = bins[value_bins] + bin_widths[value_bins] * (ppf % 1)
 
-    if size is None:
+    if return_single:
         return values_from_bins[0]
     else:
         return values_from_bins
+
+def _raise_import_scipy(*args, **kwargs):
+    raise ImportError("sampling requires scipy to be installed")
 
 ######################## DISTRIBUTION ABSTRACT CLASS ###########################
 
@@ -439,7 +467,7 @@ class BaseDistribution(object):
     """
     def __init__(self, unit, label, wrap_at,
                  dist_func, dist_args,
-                 sample_func, sample_args,
+                 sample_func, sample_ppf_func, sample_args,
                  *args):
         """
         BaseDistribution is the parent class for all distributions and should
@@ -465,6 +493,7 @@ class BaseDistribution(object):
         self._dist_args = dist_args
 
         self._sample_func = sample_func
+        self._sample_ppf_func = sample_ppf_func
         self._sample_args = sample_args
 
         self.label = label
@@ -813,6 +842,22 @@ class BaseDistribution(object):
         return self._sample_func
 
     @property
+    def sample_ppf_func(self):
+        """
+        Return the callable function to sample the distribution from a ppf, if available.
+
+        See also:
+
+        * <<class>.sample_args>
+        * <<class>.sample_ppf>
+
+        Returns
+        ---------
+        * callable function
+        """
+        return self._sample_ppf_func
+
+    @property
     def sample_args(self):
         """
         Return the arguments sent to the sample function.
@@ -992,6 +1037,34 @@ class BaseDistribution(object):
             _np.random.seed(seed)
 
         return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+    def sample_ppf(self, ppf, unit=None, as_quantity=False, wrap_at=None):
+        """
+        Sample the distribution by mapping a given percent point function or ppf
+        (a value between [0, 1)).
+
+        Arguments
+        ------------
+        * `ppf` (float or array of floats): ppf value(s) with values in the range
+            [0, 1).
+        * `unit` (astropy.unit, optional, default=None): unit to convert the
+            resulting sample(s).  Astropy must be installed in order to convert
+            units.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+
+        Returns
+        -----------
+        * float or array: float or array depending on the input of `ppf`.
+        """
+
+        return self._return_with_units(self.wrap(self.sample_ppf_func(ppf, *self.sample_args), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
     def distribution(self, x, unit=None):
         """
@@ -1595,7 +1668,7 @@ class Composite(BaseDistribution):
         """
         super(Composite, self).__init__(unit, label, wrap_at,
                                         None, None,
-                                        self._sample_from_children, ('math', 'dist1', 'dist2'),
+                                        self._sample_from_children, self._sample_ppf_from_children, ('math', 'dist1', 'dist2'),
                                         ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
 
         if _has_astropy:
@@ -1670,6 +1743,18 @@ class Composite(BaseDistribution):
             # else:
             #     unit = None
             return getattr(_np, math)(dist1.sample(size=size, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
+
+    def _sample_ppf_from_children(self, math, dist1, dist2, ppf):
+        raise NotImplementedError("sample_ppf_from_dists not yet implemented")
+        if self.dist2 is not None:
+            samples = sample_ppf_from_dists((dist1, dist2), ppf)
+            if not isinstance(ppf, float):
+                return getattr(samples[:,0], math)(samples[:,1])
+            else:
+                return getattr(samples[0], math)(samples[1])
+        else:
+            return getattr(_np, math)(dist1.sample_ppf(ppf, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
+
 
 
     def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}):
@@ -1803,7 +1888,7 @@ class Function(BaseDistribution):
 
     for documentation on loading and saving Function distributions.
     """
-    def __init__(self, func, unit, label, wrap_at, *args):
+    def __init__(self, func, func_ppf, unit, label, wrap_at, *args):
         """
         Create a <Function> distribution from some callable function and
         any number of arguments, including distribution objects.
@@ -1814,8 +1899,12 @@ class Function(BaseDistribution):
 
         Arguments
         ----------
-        * `func` (callable function): the callable function to be called to
-            sample the distribution.
+        * `func` (callable function, or None): the callable function to be called to
+            sample the distribution.  If None, <<class>.sample> will raise a
+            TypeError.
+        * `func_ppf` (callable function, or None): the callable function to be
+            called when sampling from a ppf.  If None, <<class>.sample_ppf> will
+            raise a TypeError.
         * `unit` (astropy.units object or None): the units of the provided values.
         * `label` (string or None): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
@@ -1834,12 +1923,21 @@ class Function(BaseDistribution):
         """
         super(Function, self).__init__(unit, label, wrap_at,
                                        None, None,
-                                       self._sample_from_function, ('func', 'args'),
-                                       ('func', func, is_callable), ('args', args, is_iterable))
+                                       self._sample_from_function, self._sample_ppf_from_function, ('func', 'args'),
+                                       ('func', func, is_callable_or_none), ('func_ppf', func_ppf, is_callable_or_none), ('args', args, is_iterable))
 
     def _sample_from_function(self, func, args, size=None):
+        if func is None:
+            raise TypeError("cannot sample from function when set to None")
         args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
         return func(*args)
+
+    def _sample_pff_from_function(self, func_ppf, args, ppf):
+        if func_ppf is None:
+            raise TypeError("cannot sample from ppf function when set to None")
+        # TODO: not sure this is still what we want here...
+        args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
+        return func_ppf(ppf, *args)
 
     def __float__(self):
         return self.mean
@@ -1960,7 +2058,7 @@ class Histogram(BaseDistribution):
         """
         super(Histogram, self).__init__(unit, label, wrap_at,
                                         histogram, ('bins', 'density'),
-                                        _sample_from_hist, ('bins', 'density'),
+                                        _sample_from_hist, _sample_ppf_from_hist, ('bins', 'density'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
@@ -2019,9 +2117,10 @@ class Histogram(BaseDistribution):
         -------
         * float: the mean value
         """
-        bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
-        mean = _np.average(bin_midpoints, weights=self.density)
-        return mean
+        # bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
+        # mean = _np.average(bin_midpoints, weights=self.density)
+        # return mean
+        return self.sample_ppf(0.5)
 
     @property
     def std(self):
@@ -2051,6 +2150,17 @@ class Histogram(BaseDistribution):
         sigma = _np.sqrt(var)
 
         return mean, sigma
+
+    def logp(self, x, unit=None):
+        """
+        Give the log probability of the underlying distribution for a given value
+        x.
+
+        Raises
+        ----------
+        * NotImplementedError
+        """
+        raise NotImplementedError("logp not implemented for Histogram distributions")
 
     def to_gaussian(self):
         """
@@ -2118,7 +2228,7 @@ class Delta(BaseDistribution):
         """
         super(Delta, self).__init__(unit, label, wrap_at,
                                     delta, ('value',),
-                                    self._sample_from_delta, ('value',),
+                                    self._sample_from_delta, self._sample_ppf_from_delta, ('value',),
                                     ('value', value, is_float))
 
     def _sample_from_delta(self, value, size=None):
@@ -2126,6 +2236,12 @@ class Delta(BaseDistribution):
             return value
         else:
             return _np.full(size, value)
+
+    def _sample_ppf_from_delta(self, ppf, value):
+        if isinstance(ppf, float):
+            return value
+        else:
+            return _np.full_like(ppf, value)
 
     def __mul__(self, other):
         if isinstance(other, Delta):
@@ -2245,7 +2361,7 @@ class Gaussian(BaseDistribution):
         """
         super(Gaussian, self).__init__(unit, label, wrap_at,
                                        gaussian, ('loc', 'scale'),
-                                       _np.random.normal, ('loc', 'scale'),
+                                       _np.random.normal, _norm.ppf if _has_scipy else _raise_import_scipy, ('loc', 'scale'),
                                        ('loc', loc, is_float), ('scale', scale, is_float))
 
     def __mul__(self, other):
@@ -2371,7 +2487,7 @@ class Uniform(BaseDistribution):
         """
         super(Uniform, self).__init__(unit, label, wrap_at,
                                       uniform, ('low', 'high'),
-                                      self._sample_uniform, ('low', 'high'),
+                                      self._sample_uniform, self._sample_ppf_uniform, ('low', 'high'),
                                       ('low', low, is_float), ('high', high, is_float))
 
 
@@ -2428,6 +2544,9 @@ class Uniform(BaseDistribution):
             high = high + wrap_at
 
         return _np.random.uniform(low, high, size=size)
+
+    def _sample_ppf_uniform(self, ppf, low, high):
+        return ppf*(high-low)+low
 
 
     @property
@@ -2695,7 +2814,7 @@ class MVGaussian(BaseMultivariateDistribution):
         """
         super(MVGaussian, self).__init__(unit, label, wrap_at,
                                        mvgaussian, ('locs', 'cov'),
-                                       _np.random.multivariate_normal, ('locs', 'cov'),
+                                       _np.random.multivariate_normal, None, ('locs', 'cov'),
                                        ('locs', locs, is_iterable), ('cov', cov, is_square_matrix))
 
     @property
@@ -2767,7 +2886,7 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         super(MVHistogram, self).__init__(unit, label, wrap_at,
                                         histogram, ('bins', 'density'),
-                                        _sample_from_hist, ('bins', 'density'),
+                                        _sample_from_hist, None, ('bins', 'density'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod

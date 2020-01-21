@@ -27,6 +27,8 @@ Can be created from the top-level via the [npdists.delta](npdists.delta.md) conv
 * [sample](Delta.sample.md)
 * [sample_args](Delta.sample_args.md)
 * [sample_func](Delta.sample_func.md)
+* [sample_ppf](Delta.sample_ppf.md)
+* [sample_ppf_func](Delta.sample_ppf_func.md)
 * [std](Delta.std.md)
 * [to](Delta.to.md)
 * [to_dict](Delta.to_dict.md)

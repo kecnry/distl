@@ -37,6 +37,8 @@ for documentation on loading and saving Function distributions.
 * [sample](Function.sample.md)
 * [sample_args](Function.sample_args.md)
 * [sample_func](Function.sample_func.md)
+* [sample_ppf](Function.sample_ppf.md)
+* [sample_ppf_func](Function.sample_ppf_func.md)
 * [std](Function.std.md)
 * [to](Function.to.md)
 * [to_dict](Function.to_dict.md)

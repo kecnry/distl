@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, func, unit, label, wrap_at, *args)
+def __init__(self, func, func_ppf, unit, label, wrap_at, *args)
 
 ```
 
@@ -18,8 +18,12 @@ This can also be created from a function at the top-level as:
 
 Arguments
 ----------
-* `func` (callable function): the callable function to be called to
-    sample the distribution.
+* `func` (callable function, or None): the callable function to be called to
+    sample the distribution.  If None, [Function.sample](Function.sample.md) will raise a
+    TypeError.
+* `func_ppf` (callable function, or None): the callable function to be
+    called when sampling from a ppf.  If None, [Function.sample_ppf](Function.sample_ppf.md) will
+    raise a TypeError.
 * `unit` (astropy.units object or None): the units of the provided values.
 * `label` (string or None): a label for the distribution.  This is used
     for the x-label while plotting the distribution, as well as a shorthand

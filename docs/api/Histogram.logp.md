@@ -12,17 +12,7 @@ def logp(self, x, unit=None)
 Give the log probability of the underlying distribution for a given value
 x.
 
-Arguments
+Raises
 ----------
-* `x` (float or array array): x-values at which to compute the logps.
-    If `unit` is not None, the value of `x` are assumed to be in the
-    original units
-    [Histogram.unit](Histogram.unit.md), not `unit`.
-* `unit` (astropy.unit, optional, default=None): unit of the values
-    in `x`.  If None or not provided, will assume they're provided in
-    [Histogram.unit](Histogram.unit.md).
-
-Returns
----------
-* array: array of density/y values.
+* NotImplementedError
 

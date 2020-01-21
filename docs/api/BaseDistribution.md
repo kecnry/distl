@@ -29,6 +29,8 @@ Any subclass distribution should override the following:
 * [sample](BaseDistribution.sample.md)
 * [sample_args](BaseDistribution.sample_args.md)
 * [sample_func](BaseDistribution.sample_func.md)
+* [sample_ppf](BaseDistribution.sample_ppf.md)
+* [sample_ppf_func](BaseDistribution.sample_ppf_func.md)
 * [std](BaseDistribution.std.md)
 * [to](BaseDistribution.to.md)
 * [to_dict](BaseDistribution.to_dict.md)

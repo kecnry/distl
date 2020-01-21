@@ -20,6 +20,8 @@
 * [sample](BaseMultivariateDistribution.sample.md)
 * [sample_args](BaseMultivariateDistribution.sample_args.md)
 * [sample_func](BaseMultivariateDistribution.sample_func.md)
+* [sample_ppf](BaseMultivariateDistribution.sample_ppf.md)
+* [sample_ppf_func](BaseMultivariateDistribution.sample_ppf_func.md)
 * [std](BaseMultivariateDistribution.std.md)
 * [take_dimension](BaseMultivariateDistribution.take_dimension.md)
 * [to](BaseMultivariateDistribution.to.md)
