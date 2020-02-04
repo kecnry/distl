@@ -37,7 +37,7 @@ except ImportError:
 else:
     _has_dill = True
 
-_math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/'}
+_math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/', '__and__': '&', '__or__': '|'}
 
 _builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'sample_args']
 
@@ -292,6 +292,7 @@ def is_math(value):
     # TODO: make this more robust checking
     valid_maths = ['__add__', '__radd__', '__sub__', '__rsub__', '__mul__', '__rmul__', '__div__', '__rdiv__']
     valid_maths += ['sin', 'cos', 'tan']
+    valid_maths += ['__and__', '__or__']
     return value in valid_maths, value
 
 def is_callable(value):
@@ -652,6 +653,18 @@ class BaseDistribution(object):
             return self.__sub__(Delta(other))
         else:
             raise TypeError("cannot subtract {} by type {}".format(self.__class__.__name__), type(other))
+
+    def __and__(self, other):
+        if not isinstance(other, BaseDistribution):
+            raise TypeError("cannot use & logic between types {} and {}".format(self.__class__.__name__), type(other))
+
+        return Composite("__and__", self, other)
+
+    def __or__(self, other):
+        if not isinstance(other, BaseDistribution):
+            raise TypeError("cannot use || logic between types {} and {}".format(self.__class__.__name__), type(other))
+
+        return Composite("__or__", self, other)
 
     def sin(self):
         if self.unit is not None:
@@ -1687,7 +1700,7 @@ class Composite(BaseDistribution):
                     # trig always gives unitless
                     self.unit = _units.dimensionless_unscaled
                 elif dist2.unit is not None:
-                    if math in ['__add__', '__sub__']:
+                    if math in ['__add__', '__sub__', '__and__', '__or__']:
                         if dist1.unit == dist2.unit:
                             self.unit = dist1.unit
                         else:
@@ -1737,7 +1750,37 @@ class Composite(BaseDistribution):
             return self.dist1.hash
 
     def _sample_from_children(self, math, dist1, dist2, seed={}, size=None):
-        if self.dist2 is not None:
+        if math == '__and__':
+            # continuous: multiply the pdfs (or cdfs or ppfs?), renormalize, sample (via ppf?)
+            # discrete: rebin to a common binning, multiply bin heights, renormalize (possibly all covered by to_histogram rather than having to_histogram call this?), sample
+
+            raise NotImplementedError()
+        elif math == '__or__':
+            # alternatively we could add the pdfs (for continuous dists), renormalize
+            # and sample from that, but choosing between the two should be more general
+            # and won't be susceptible to the need to re-bin
+
+            # choose randomly between the two child Distributions
+            choice = _np.random.randint(0,2)
+            if size is None:
+                dist = [dist1, dist2][choice]
+                return dist.sample(size=size, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled])
+            else:
+                # NOTE: // for python2 and 3 will do floor division, returning an integer
+                size1 = size//2
+                size2 = size//2
+                if (size % 2) != 0:
+                    # then size is odd, so we'll use the randomly drawn choice
+                    # to determine which child distribution gets the extra sample
+                    if choice == 0:
+                        size1 += 1
+                    else:
+                        size2 += 1
+
+                return _np.concatenate((dist1.sample(size=size1, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]),
+                                        dist2.sample(size=size2, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled])))
+
+        elif self.dist2 is not None:
             # NOTE: this will account for multivariate, but only for THESE 2
             # if there are nested CompositeDistributions, then the seed will be lost
 
