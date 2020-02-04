@@ -1840,7 +1840,63 @@ class Composite(BaseDistribution):
 
         return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
+    def distribution(self, x, unit=None, N=1000, bins=10):
+        """
+        Give the density (y) values of the underlying distribution for a given
+        array of values (x).
 
+        Under-the-hood, the <Composite> distribution is sampled and converted
+        to a <Histogram> distribution via <Composite.to_histogram> with `N` and
+        `bins` first.
+
+        Arguments
+        ----------
+        * `x` (array): x-values at which to compute the densities.  If `unit` is
+            not None, the value of `x` are assumed to be in the original units
+            <<class>.unit>, not `unit`.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+        * `N` (int, optional, default=1000): see <Composite.to_histogram>
+        * `bins` (int, optional, default=10): see <Composite.to_histogram>
+
+        Returns
+        ---------
+        * array: array of density/y values.
+        """
+        raise NotImplementedError("distribution not implemented for Composite distributions")
+        return self.to_histogram(N=N, bins=bins).distribution(x, unit=unit)
+
+    def logp(self, x, unit=None, N=1000, bins=10):
+        """
+        Give the log probability of the underlying distribution for a given value
+        x.
+
+        Under-the-hood, the <Composite> distribution is sampled and converted
+        to a <Histogram> distribution via <Composite.to_histogram> with `N` and
+        `bins` first.
+
+        See also:
+        * <Composite.distribution>
+
+        Arguments
+        ----------
+        * `x` (float or array array): x-values at which to compute the logps.
+            If `unit` is not None, the value of `x` are assumed to be in the
+            original units
+            <<class>.unit>, not `unit`.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+        * `N` (int, optional, default=1000): see <Composite.to_histogram>
+        * `bins` (int, optional, default=10): see <Composite.to_histogram>
+
+        Returns
+        ---------
+        * array: array of density/y values.
+        """
+        raise NotImplementedError("distribution not implemented for Composite distributions")
+        return self.to_histogram(N=N, bins=bins).logp(x, unit=unit)
 
     def __float__(self):
         return self.mean
@@ -2204,6 +2260,11 @@ class Histogram(BaseDistribution):
 
         return mean, sigma
 
+    def distribution(self, x, unit=None):
+        """
+        """
+        raise NotImplementedError("distribution not implemented for Histogram distributions")
+
     def logp(self, x, unit=None):
         """
         Give the log probability of the underlying distribution for a given value
@@ -2213,6 +2274,7 @@ class Histogram(BaseDistribution):
         ----------
         * NotImplementedError
         """
+        # TODO: remove this override entirely once distribution is implemented
         raise NotImplementedError("logp not implemented for Histogram distributions")
 
     def to_gaussian(self):
