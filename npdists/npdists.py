@@ -1,6 +1,7 @@
 import numpy as _np
 from scipy import stats as _stats
 from scipy import interpolate as _interpolate
+from scipy import integrate as _integrate
 import json as _json
 from collections import OrderedDict
 
@@ -314,14 +315,21 @@ class BaseDistribution(object):
         """
         # TODO: should we flip the logic here to check keys first?
 
-        if name in _builtin_attrs or (name.startswith("_") and not name.startswith('__') and not name.endswith('_')):
-            # then we need to actually get the attribute
-            return super(BaseDistribution, self).__getattr__(name)
-        elif name in self._descriptors.keys():
+        # if name in _builtin_attrs or (name.startswith("_") and not name.startswith('__') and not name.endswith('_')):
+        #     # then we need to actually get the attribute
+        #     try:
+        #         return super(BaseDistribution, self).__getattr__(name)
+        #     except:
+        #         print("__getattr__ failed with name={}".format(name))
+        #         raise
+        if name in self._descriptors.keys():
             # then get the item in the dictionary
             return self._descriptors.get(name)
         else:
-            raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
+            try:
+                return super(BaseDistribution, self).__getattr__(name)
+            except:
+                raise AttributeError("{} does not have attribute {}".format(self.__class__.__name__.lower(), name))
 
     def __setattr__(self, name, value):
         """
@@ -2026,7 +2034,7 @@ class Composite(BaseDistribution):
         * a <Composite> object.
         """
         super(Composite, self).__init__(unit, label, wrap_at,
-                                        _stats_custom.generic_pdf, ('pdf_callable'),
+                                        _stats_custom.generic_pdf_cdf_ppf, ('pdf_cdf_ppf_callables'),
                                         ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
 
         if _has_astropy:
@@ -2086,37 +2094,80 @@ class Composite(BaseDistribution):
 
 
     @property
-    def pdf_callable(self):
+    def pdf_cdf_ppf_callables(self):
 
         if self.math in ['__and__', '__or__']:
             # and: multiply pdfs and return interpolator (possibly over range of children 0.99999)
             # or: add pdfs and return interpolator (possibly over range of children 0.999999)
             dist1range = self.dist1.interval(0.9999, wrap_at=False)
             dist2range = self.dist2.interval(0.9999, wrap_at=False)
-            # print("*** dist1range: {}, dist2range: {}".format(dist1range, dist2range))
             # TODO: OPTIMIZE can we cache this interpolator (or even in init?)
-            # TODO: TEST is this safe to just interpolate over 1-million evenly-linearly spaced points in x?
-            x = _np.linspace(min(dist1range[0], dist2range[0]), max(dist1range[1], dist2range[1]), int(1e6))
+
+            # we'll set the sampling so each distribution gets its range sample 1000 times, append, and then sort
+            x = _np.append(_np.linspace(dist1range[0]-0.1*(dist1range[1]-dist1range[0]), dist1range[1]+0.1*(dist1range[1]-dist1range[0]), int(1e4)), _np.linspace(dist2range[0]-0.1*(dist2range[1]-dist2range[0]), dist2range[1]+0.1*(dist2range[1]-dist2range[0]), int(1e4)))
+            x.sort()
             if self.math == '__and__':
-                y = self.dist1.pdf(x) * self.dist2.pdf(x)
+                # TODO: need to normalize this so the integral is correct
+                pdf = self.dist1.pdf(x) * self.dist2.pdf(x)
+                # unfortunately we'll need to integrate to get the cdf... we'll do that later
+                cdf = None
             elif self.math == '__or__':
-                y = self.dist1.pdf(x) + self.dist2.pdf(x)
+                pdf = self.dist1.pdf(x) + self.dist2.pdf(x)
+                cdf = self.dist1.cdf(x) + self.dist2.cdf(x)
             else:
                 raise NotImplementedError()
 
-            # return  _interpolate.interp1d(x, y)
-            return _stats_custom.interpolate_callable(x, y)
+            # make sure pdf is normalized correctly
+            pdf_integral = _np.sum(pdf[1:]*(x[1:]-x[:-1]))
+            pdf /= pdf_integral
+
+            pdf_call = _stats_custom.interpolate_callable(x, pdf)
+
+            if cdf is None:
+                print("*** integrating to compute cdf over spline (this may be slow... we'll eventually cache this so it only needs to be done once until an attribute is changed)")
+                spline = _interpolate.UnivariateSpline(x, pdf, k=1, s=0)
+                def _spline_int_single(xi):
+                    return spline.integral(x[0], xi)
+
+                cdf_vec = _np.vectorize(_spline_int_single)
+                cdf = cdf_vec(x)
+
+            # make sure cdf is normalized correctly
+            cdf /= cdf[-1]
+
+            ppf_call = _stats_custom.interpolate_callable(cdf, x)
+
+            # make sure interpolation on the right always gives 1, not the fill_value of 0
+            cdf_call = _stats_custom.interpolate_callable(_np.append(x, _np.inf), _np.append(cdf, 1.0))
+
+            return pdf_call, cdf_call, ppf_call
 
         else:
             return None
 
     @property
+    def pdf_callable(self):
+        return self.pdf_cdf_ppf_callables[0]
+
+    @property
+    def cdf_callable(self):
+        return self.pdf_cdf_ppf_callables[1]
+
+    @property
+    def ppf_callable(self):
+        return self.pdf_cdf_ppf_callables[2]
+
+    @property
     def dist_constructor_args(self):
-        pdf_callable = self.pdf_callable
-        if pdf_callable is None:
+        return self.pdf_cdf_ppf_callables
+
+    @property
+    def dist_constructor_args(self):
+        pdf_cdf_ppf_callables = self.pdf_cdf_ppf_callables
+        if pdf_cdf_ppf_callables is None:
             return None
         else:
-            return (pdf_callable,)
+            return pdf_cdf_ppf_callables
 
     @property
     def dist_constructor_object(self):
@@ -2218,6 +2269,8 @@ class Composite(BaseDistribution):
         """
         # TODO: remove this by implementing self.ppf / pdf / cdf - and better yet if we can rely on scipy.stats to give all but pdf/ppf
         if self.math in ['__and__', '__or__']:
+            # TODO: implement seed logic
+            seed = None
             return super(Composite, self).sample(size=size, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at, seed=seed)
         else:
             return self._return_with_units(self.wrap(self._sample_from_children(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
@@ -2614,10 +2667,7 @@ class Histogram(BaseDistribution):
         ppf_call = _stats_custom.interpolate_callable(cdf, bincenters)
 
         # make sure interpolation on the right always gives 1, not the fill_value of 0
-        bincenters = _np.append(bincenters, _np.inf)
-        cdf = _np.append(cdf, 1.0)
-
-        cdf_call = _stats_custom.interpolate_callable(bincenters, cdf)
+        cdf_call = _stats_custom.interpolate_callable( _np.append(bincenters, _np.inf), _np.append(cdf, 1.0))
 
         return pdf_call, cdf_call, ppf_call
 

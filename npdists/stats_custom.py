@@ -37,6 +37,16 @@ class interpolate_callable(base_callable):
     def __call__(self, x):
         return self._interpolator(x)
 
+# class composite_callable(base_callable):
+#     def __init__(self, d1_call, d2_call, math):
+#         # math should be the math on the pdfs, not __and__/__or__
+#         self._d1_call = d1_call
+#         self._d2_call = d2_call
+#         self._math = math
+#
+#    def __call__(self, x):
+#        return getattr(self._d1_call(x), self._math)(self._d2_call(x))
+
 
 class generic_pdf_gen(_stats.rv_continuous):
     """
@@ -45,6 +55,8 @@ class generic_pdf_gen(_stats.rv_continuous):
     everything else (cdf, ppf, etc).  This results in overheads which should
     be avoided whenever possible, but does allow for full flexibility when it
     isn't.
+
+    NOTE: it is important that the pdf_callable has an integral of 1
     """
     def _pdf(self, x, pdf_callable):
         # TODO: I have ZERO idea why sometimes this is receiving an array with
@@ -63,6 +75,8 @@ class generic_cdf_gen(_stats.rv_continuous):
     everything else (pdf, ppf, etc).  This results in overheads which should
     be avoided whenever possible, but does allow for full flexibility when it
     isn't.
+
+    NOTE: it is important that the cdf_callable starts at 0 (at -inf) and ends at 1 (at +inf)
     """
 
     def _cdf(self, x, cdf_callable):
@@ -78,6 +92,9 @@ class generic_cdf_gen(_stats.rv_continuous):
 class generic_pdf_cdf_ppf_gen(generic_pdf_gen):
     """
     this class takes callable functions for each of pdf, cdf, and ppf.
+
+    NOTE: it is important that the pdf_callable has an integral of 1
+    NOTE: it is important that the cdf_callable starts at 0 (at -inf) and ends at 1 (at +inf)
     """
     def _pdf(self, x, pdf_callable, cdf_callable, ppf_callable):
         # TODO: I have ZERO idea why sometimes this is receiving an array with
