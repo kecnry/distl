@@ -1,5 +1,5 @@
 from . import npdists as _npdists
-from .npdists import get_random_seed, sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists, _has_astropy, _units
+from .npdists import get_random_seed, _has_astropy, _units# , sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists,
 import numpy as _np
 from .npdists import BaseDistribution # for isinstance checking
 import json as _json

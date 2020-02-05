@@ -1,6 +1,10 @@
 import numpy as _np
+from scipy import stats as _stats
+from scipy import interpolate as _interpolate
 import json as _json
 from collections import OrderedDict
+
+from . import stats_custom as _stats_custom
 
 try:
     import matplotlib.pyplot as _plt
@@ -15,13 +19,6 @@ except ImportError:
     _has_corner = False
 else:
     _has_corner = True
-
-try:
-    from scipy.stats import norm as _norm
-except ImportError:
-    _has_scipy = False
-else:
-    _has_scipy = True
 
 try:
     from astropy import units as _units
@@ -39,7 +36,7 @@ else:
 
 _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/', '__and__': '&', '__or__': '|'}
 
-_builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'sample_args']
+_builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'dist_constructor_argnames', 'dist_constructor_args', 'dist_constructor_func', 'dist_constructor_object']
 
 _physical_types_to_si = {'length': 'solRad',
                          'mass': 'solMass',
@@ -76,196 +73,6 @@ def get_random_seed():
         np.random.seed or <BaseDistribution.sample>.
     """
     return _np.random.get_state()[1]
-
-
-def sample_from_dists(dists, *args, **kwargs):
-    """
-    Sample from multiple distributions with random seeds automatically determined,
-    but applied to distributions of the same underlying multivariate distribution
-    automatically.
-
-    For each unique <BaseDistribution.hash> in the distributions in `dists` a
-    random seed will be generated and applied to <BaseDistribution.sample>
-    for all distributionis in `dists` which share that same hash value.  By doing
-    so, any <BaseMultivariateDistribution> which samples from the same underlying
-    multivariate distribution (but for a different
-    <BaseMultivariateDistribution.dimension>), will be correctly sampled to account
-    for the covariance/correlation between parameters, but all other 1-D
-    <BaseDistribution> objects will be sampled with their own independent
-    random seeds.
-
-    Arguments
-    -------------
-    * `dists` (list or tuple of distribution objects): distribution objects from
-        which to sample.
-    * `*args`: all positional arguments are sent to <BaseDistribution.sample>
-        for each item in `dists`.
-    * `**kwargs`: all keyword arguments are sent to <BaseDistribution.sample>
-        for each item in `dists`.  Note: `seed` is forbidden and will raise
-        a ValueError.
-
-    Returns
-    -------------
-    * (list): list of samples, in same order as `dists`.
-
-    Raises
-    ----------
-    * ValueError: if `seed` is passed.
-    """
-    if 'seed' in kwargs.keys():
-        raise ValueError("seeds are automatically determined: cannot pass seed")
-
-    seeds = kwargs.pop('seeds', {})
-    if seeds is None:
-        seeds = {}
-
-    if isinstance(dists, BaseDistribution):
-        dists = [dists]
-        flatten = True
-    else:
-        flatten = False
-
-    # first well expand any Composite distributions to access the underlying
-    # distributions
-    def unpack_dists(dist):
-        if isinstance(dist, Composite):
-            dists = []
-            for dist in dist.dists:
-                dists += unpack_dists(dist)
-            return dists
-        else:
-            return [dist]
-
-    dists_all = []
-    for dist in dists:
-        dists_all += unpack_dists(dist)
-
-    for i,dist in enumerate(dists_all):
-        seeds.setdefault(dist.hash, get_random_seed()[i])
-
-    # print("*** seeds for {} dists by hashes {} ".format(len(dists_all), seeds))
-
-    samples = [dist.sample(*args, seed=seeds, **kwargs) for dist in dists]
-    if flatten:
-        return samples[0]
-    else:
-        return _np.asarray(samples).T
-
-def sample_ppf_from_dists(dists, ppf, *args, **kwargs):
-    """
-
-    Raises
-    ----------
-    * NotImplementedError
-    """
-    raise NotImplementedError
-
-def logp_from_dists(dists, values):
-    """
-    """
-    logp = 0.0
-    dists_dict = {}
-    values_dict = {}
-
-    for dist,value in zip(dists, values):
-        hash = dist.hash
-        if hash in dists_dict.keys():
-            dists_dict[hash] += [dist]
-            values_dict[hash] += [value]
-        else:
-            dists_dict[hash] = [dist]
-            values_dict[hash] = [value]
-
-    for dists, values in zip(dists_dict.values(), values_dict.values()):
-        for dist, value in zip(dists, values):
-            logp += dist.logp(value)
-        # logp += dists[0].logp(values, dimension=[dist.dimension for dist in dists]) #* len(dists)
-
-    return logp
-
-def sample_func_from_dists(dists, func, x, N=1000, func_kwargs={}):
-    """
-    Draw samples from a callable function.
-
-    See also:
-
-    * <npdists.plot_func_from_dists>
-
-    Arguments
-    -----------
-    * `dists` (list or tuple of distribution objects): distribution objects from
-        which to sample.
-    * `func` (callable): callable function
-    * `x` (array like): x values to pass to `func`.
-    * `N` (int, optional, default=1000): number of samples to draw.
-    * `func_kwargs` (dict, optional): additional keyword arguments to pass to
-        `func`.
-
-
-    Returns
-    -----------
-    * an array of models with shape (N, len(x))
-
-    Raises
-    -----------
-    """
-    # TODO: allow passing args to sample_from_dists
-    # TODO: optimize this by doing all sampling first?
-    sample_args = [sample_from_dists(dists) for i in range(N)]
-    models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
-    return models
-
-def plot_func_from_dists(dists, func, x, N=1000, func_kwargs={}, show=False):
-    """
-    Draw samples from a callable function and plot.
-
-    The passed callable `func` will be called with arguments `x` followed by
-    the individually drawn values from each distribution in `dists` (in order
-    provided) and then any additional `func_kwargs`.
-
-    See also:
-
-    * <npdists.sample_func_from_dists>
-    * <npdists.sample_from_dists>
-
-    Arguments
-    -----------
-    * `dists` (list or tuple of distribution objects): distribution objects from
-        which to sample.
-    * `func` (callable): callable function
-    * `x` (array like): x values to pass to `func`.
-    * `N` (int, optional, default=1000): number of samples to draw.
-    * `func_kwargs` (dict, optional): additional keyword arguments to pass to
-        `func`.
-    * `show` (bool, optional, default=False): whether to call plt.show()
-
-    Returns
-    -----------
-    * list of created matplotlib artists
-
-    Raises
-    -----------
-    * ImportError: if matplotlib is not imported
-    """
-
-
-    if not _has_mpl:
-        raise ImportError("plot_from_dists requires matplotlib.")
-
-    models = sample_func_from_dists(dists, func, x, N=N, func_kwargs=func_kwargs)
-
-    # TODO: allow options for sigma boundaries
-    bounds = _np.percentile(models, 100 * _norm.cdf([-2, -1, 1, 2]), axis=0)
-
-    ret1 = _plt.fill_between(x, bounds[0, :], bounds[-1, :],
-                     label="95\% uncertainty", facecolor="#03A9F4", alpha=0.4)
-    ret2 = _plt.fill_between(x, bounds[1, :], bounds[-2, :],
-                     label="68\% uncertainty", facecolor="#0288D1", alpha=0.4)
-
-    if show:
-        _plt.show()
-
-    return ret1, ret2
 
 
 ################## VALIDATORS ###################
@@ -381,26 +188,23 @@ def is_square_matrix(value):
 
 ######################## DISTRIBUTION FUNCTIONS ###############################
 
-def delta(x, value):
-    return _np.asarray(x==value, dtype='int')
+# def gaussian(x, loc, scale):
+#     return 1./_np.sqrt(2*_np.pi*scale**2) * _np.exp(-(x-loc)**2/(2.*scale**2))
+#
+# def uniform(x, low, high):
+#     return _np.asarray((x >= low) * (x <= high), dtype='int') / float(high - low)
 
-def gaussian(x, loc, scale):
-    return 1./_np.sqrt(2*_np.pi*scale**2) * _np.exp(-(x-loc)**2/(2.*scale**2))
+# def histogram(x, bins, density):
+#     out = _np.zeros_like(x)
+#     filter_in_range = (x >= bins.min()) & (x < bins.max())
+#     out[filter_in_range] = density[_np.digitize(x[filter_in_range], bins)-1]
+#     return out
 
-def uniform(x, low, high):
-    return _np.asarray((x >= low) * (x <= high), dtype='int') / float(high - low)
-
-def histogram(x, bins, density):
-    out = _np.zeros_like(x)
-    filter_in_range = (x >= bins.min()) & (x < bins.max())
-    out[filter_in_range] = density[_np.digitize(x[filter_in_range], bins)-1]
-    return out
-
-def mvgaussian(x, locs, cov, dimension=None):
-    if dimension is None:
-        raise NotImplementedError
-    else:
-        return gaussian(x, locs[dimension], cov[dimension, dimension])
+# def mvgaussian(x, locs, cov, dimension=None):
+#     if dimension is None:
+#         raise NotImplementedError
+#     else:
+#         return gaussian(x, locs[dimension], cov[dimension, dimension])
 
 
 ############################### SAMPLE FUNCTIONS ###############################
@@ -452,9 +256,6 @@ def _sample_ppf_from_hist(ppf, bins, density):
     else:
         return values_from_bins
 
-def _raise_import_scipy(*args, **kwargs):
-    raise ImportError("sampling requires scipy to be installed")
-
 ######################## DISTRIBUTION ABSTRACT CLASS ###########################
 
 class BaseDistribution(object):
@@ -465,12 +266,9 @@ class BaseDistribution(object):
     Any subclass distribution should override the following:
 
     * <BaseDistribution.__init__>
-    * <BaseDistribution.mean>
-    * <BaseDistribution.std>
     """
     def __init__(self, unit, label, wrap_at,
-                 dist_func, dist_args,
-                 sample_func, sample_ppf_func, sample_args,
+                 dist_constructor_func, dist_constructor_argnames,
                  *args):
         """
         BaseDistribution is the parent class for all distributions and should
@@ -492,12 +290,8 @@ class BaseDistribution(object):
         self._descriptors = OrderedDict()
         self._validators = OrderedDict()
 
-        self._dist_func = dist_func
-        self._dist_args = dist_args
-
-        self._sample_func = sample_func
-        self._sample_ppf_func = sample_ppf_func
-        self._sample_args = sample_args
+        self._dist_constructor_func = dist_constructor_func
+        self._dist_constructor_argnames = dist_constructor_argnames
 
         self.label = label
         self.unit = unit
@@ -516,8 +310,10 @@ class BaseDistribution(object):
 
     def __getattr__(self, name):
         """
-        for anything that isn't overriden here, call the method on the array itself
+        for anything that isn't overriden here, expose the values in self._descriptors
         """
+        # TODO: should we flip the logic here to check keys first?
+
         if name in _builtin_attrs or (name.startswith("_") and not name.startswith('__') and not name.endswith('_')):
             # then we need to actually get the attribute
             return super(BaseDistribution, self).__getattr__(name)
@@ -540,6 +336,8 @@ class BaseDistribution(object):
                 raise ValueError("{} {}".format(name, validator.__doc__))
         else:
             raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
+
+    ### REPRESENTATIONS
 
     def __repr__(self):
         descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
@@ -565,7 +363,135 @@ class BaseDistribution(object):
         subclasses can/should override this to be the central/median/mode if
         possible
         """
-        return self.sample()
+        return self.median()
+
+    ### COPYING
+
+    def __copy__(self):
+        return self.__class__(unit=self.unit, label=self.label, **self._descriptors)
+
+    def __deepcopy__(self, memo):
+        return self.__copy__()
+
+    def copy(self):
+        """
+        Make a copy of the distribution object.
+
+        Returns
+        ---------
+        * a copy of the distribution object
+        """
+        return self.__copy__()
+
+    ### IO
+
+    @property
+    def hash(self):
+        """
+        """
+        # return hash(frozenset({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
+        return hash(str({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
+
+    def to_dict(self):
+        """
+        Return the dictionary representation of the distribution object.
+
+        The resulting dictionary can be restored to the original object
+        via <npdists.from_dict>.
+
+        See also:
+
+        * <<class>.to_json>
+        * <<class>.to_file>
+
+        Returns
+        --------
+        * dictionary
+        """
+        def _json_safe(v):
+            if isinstance(v, _np.ndarray):
+                return v.tolist()
+            elif isinstance(v, list) or isinstance(v, tuple):
+                return [_json_safe(li) for li in v]
+            elif isinstance(v, BaseDistribution):
+                return v.to_dict()
+            elif hasattr(v, 'func_name'):
+                if _has_dill:
+                    return _dill.dumps(v)
+                else:
+                    raise ImportError("'dill' package required to export functions to dictionary")
+            # elif is_unit(v)[0]:
+            #     return v.to_string()
+            else:
+                return v
+        d = {k:_json_safe(v) for k,v in self._descriptors.items()}
+        d['npdists'] = self.__class__.__name__.lower()
+        if self.unit is not None:
+            d['unit'] = str(self.unit.to_string())
+        if self.label is not None:
+            d['label'] = self.label
+        if self.wrap_at is not None:
+            d['wrap_at'] = self.wrap_at
+        if hasattr(self, 'dimension') and self.dimension is not None:
+            d['dimension'] = self.dimension
+        return d
+
+    def to_json(self, **kwargs):
+        """
+        Return the json representation of the distribution object.
+
+        The resulting dictionary can be restored to the original object
+        via <npdists.from_json>.
+
+        See also:
+
+        * <<class>.to_dict>
+        * <<class>.to_file>
+
+        Arguments
+        ---------
+        * `**kwargs`: all keyword arguments will be sent to json.dumps
+
+        Returns
+        --------
+        * string
+        """
+        try:
+            return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
+        except:
+            if _has_dill:
+                return _dill.dumps(self)
+            else:
+                raise ImportError("dumping file requires 'dill' package")
+
+    def to_file(self, filename, **kwargs):
+        """
+        Save the json representation of the distribution object to a file.
+
+        The resulting file can be restored to the original object
+        via <npdists.from_file>.
+
+        See also:
+
+        * <<class>.to_dict>
+        * <<class>.to_json>
+
+        Arguments
+        ----------
+        * `filename` (string): path to the file to be created (will overwrite
+            if already exists)
+        * `**kwargs`: all keyword arguments will be sent to json.dumps
+
+        Returns
+        --------
+        * string: the filename
+        """
+        f = open(filename, 'w')
+        f.write(self.to_json(**kwargs))
+        f.close()
+        return filename
+
+    ### MATH AND COMPARISON OPERATORS
 
     def __lt__(self, other):
         if isinstance(other, BaseDistribution):
@@ -586,22 +512,6 @@ class BaseDistribution(object):
         if isinstance(other, BaseDistribution):
             return self.__float__() >= other.__float__()
         return self.__float__() >= other
-
-    def __copy__(self):
-        return self.__class__(unit=self.unit, label=self.label, **self._descriptors)
-
-    def __deepcopy__(self, memo):
-        return self.__copy__()
-
-    def copy(self):
-        """
-        Make a copy of the distribution object.
-
-        Returns
-        ---------
-        * a copy of the distribution object
-        """
-        return self.__copy__()
 
     def __mul__(self, other):
         if _has_astropy and is_unit(other)[0]:
@@ -656,13 +566,13 @@ class BaseDistribution(object):
 
     def __and__(self, other):
         if not isinstance(other, BaseDistribution):
-            raise TypeError("cannot use & logic between types {} and {}".format(self.__class__.__name__), type(other))
+            raise TypeError("cannot use & (and) logic between types {} and {}".format(self.__class__.__name__, type(other)))
 
         return Composite("__and__", self, other)
 
     def __or__(self, other):
         if not isinstance(other, BaseDistribution):
-            raise TypeError("cannot use || logic between types {} and {}".format(self.__class__.__name__), type(other))
+            raise TypeError("cannot use | (or) logic between types {} and {}".format(self.__class__.__name__, type(other)))
 
         return Composite("__or__", self, other)
 
@@ -690,6 +600,7 @@ class BaseDistribution(object):
 
         return Composite("tan", dist, label="tan({})".format(self.label) if self.label is not None else None)
 
+    ### LABEL
 
     @property
     def label(self):
@@ -707,6 +618,8 @@ class BaseDistribution(object):
             raise TypeError("label must be of type str")
 
         self._label = label
+
+    ### UNITS AND UNIT CONVERSIONS
 
     @property
     def unit(self):
@@ -789,109 +702,7 @@ class BaseDistribution(object):
 
         return self.to(_units.Unit(_physical_types_to_solar.get(physical_type)))
 
-    @property
-    def mean(self):
-        """
-        mean is not implemented for this distribution type.
-
-        Raises
-        --------
-        * NotImplementedError
-        """
-        raise NotImplementedError
-
-    @property
-    def std(self):
-        """
-        std is not implemented for this distribution type.
-
-        Raises
-        --------
-        * NotImplementedError
-        """
-        raise NotImplementedError
-
-    @property
-    def dist_func(self):
-        """
-        Return the callable function to access the distribution function, if
-        available.
-
-        See also:
-
-        * <<class>.dist_args>
-        * <<class>.distribution>
-
-        Returns
-        -------
-        * callable function
-        """
-        return self._dist_func
-
-    @property
-    def dist_args(self):
-        """
-        Return the arguments sent to the distribution function.
-
-        See also:
-
-        * <<class>.dist_func>
-        * <<class>.distribution>
-
-        Returns
-        --------
-        * tuple
-        """
-
-        return tuple(getattr(self, k) for k in self._dist_args)
-
-    @property
-    def sample_func(self):
-        """
-        Return the callable function to sample the distribution, if available.
-
-        See also:
-
-        * <<class>.sample_args>
-        * <<class>.sample>
-
-        Returns
-        --------
-        * callable function
-        """
-        return self._sample_func
-
-    @property
-    def sample_ppf_func(self):
-        """
-        Return the callable function to sample the distribution from a ppf, if available.
-
-        See also:
-
-        * <<class>.sample_args>
-        * <<class>.sample_ppf>
-
-        Returns
-        ---------
-        * callable function
-        """
-        return self._sample_ppf_func
-
-    @property
-    def sample_args(self):
-        """
-        Return the arguments sent to the sample function.
-
-        See also:
-
-        * <<class>.sample_func>
-        * <<class>.sample>
-
-        Returns
-        --------
-        * tuple
-        """
-        return tuple(getattr(self, k) for k in self._sample_args)
+    ### CONVENIENCE METHODS FOR SAMPLING/WRAPPING/PLOTTING
 
     @property
     def wrap_at(self):
@@ -1023,9 +834,389 @@ class BaseDistribution(object):
         else:
             return value.value
 
+    ### PROPERTIES/METHODS THAT EXPOSE UNDERLYING SCIPY.STATS FUNCTIONALITY
+
+    @property
+    def dist_constructor_func(self):
+        """
+        Return the callable function to access the underlying distribution
+        constructor (often the scipy.stats random variable generator function).
+
+        See also:
+
+        * <<class>.dist_constructor_args>
+        * <<class>.dist_constructor_object>
+
+        Returns
+        -------
+        * callable function
+        """
+        return self._dist_constructor_func
+
+    @property
+    def dist_constructor_argnames(self):
+        """
+        """
+        return self._dist_constructor_argnames
+
+    @property
+    def dist_constructor_args(self):
+        """
+        Return the arguments to pass to the the underlying distribution
+        constructor (often the scipy.stats random variable generator function)
+
+        See also:
+
+        * <<class>.dist_constructor_func>
+        * <<class>.dist_constructor_object>
+
+        Returns
+        -------
+        * tuple
+        """
+        return [self._descriptors.get(a) for a in self.dist_constructor_argnames]
+
+    @property
+    def dist_constructor_object(self):
+        """
+        Return the instantiated underlying distribution constructor (often the
+        scipy.stats random variable object).
+
+        See also:
+
+        * <<class>.dist_constructor_func>
+        * <<class>.dist_constructor_args>
+
+        Returns
+        -------
+        * object
+        """
+        return self.dist_constructor_func(*self.dist_constructor_args)
+
+    def pdf(self, x, unit=None):
+        """
+        Expose the probability density function (pdf) at values of `x`.
+
+        Arguments
+        ----------
+        * `x` (float or array): x-values at which to expose the pdf
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * (float or array) pdf values of the same type/shape as `x`
+        """
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+
+        try:
+            return self.dist_constructor_object.pdf(x)
+        except AttributeError:
+            raise NotImplementedError("{} does not support pdf".format(self.__class__.__name__))
+
+    def logpdf(self, x, unit=None):
+        """
+        Expose the log-probability density function (log of pdf) at values of `x`.
+
+        Arguments
+        ----------
+        * `x` (float or array): x-values at which to expose the logpdf
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * (float or array) logpdf values of the same type/shape as `x`
+        """
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+
+        try:
+            return self.dist_constructor_object.logpdf(x)
+        except AttributeError:
+            raise NotImplementedError("{} does not support logpdf".format(self.__class__.__name__))
+
+    def cdf(self, x, unit=None):
+        """
+        Expose the cummulative density function (cdf) at values of `x`.
+
+        Arguments
+        ----------
+        * `x` (float or array): x-values at which to expose the cdf
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * (float or array) cdf values of the same type/shape as `x`
+        """
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+
+        try:
+            return self.dist_constructor_object.cdf(x)
+        except AttributeError:
+            raise NotImplementedError("{} does not support cdf".format(self.__class__.__name__))
+
+    def logcdf(self, x, unit=None):
+        """
+        Expose the log-cummulative density function (log of cdf) at values of `x`.
+
+        Arguments
+        ----------
+        * `x` (float or array): x-values at which to expose the logcdf
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * (float or array) logcdf values of the same type/shape as `x`
+        """
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+
+        try:
+            return self.dist_constructor_object.logcdf(x)
+        except AttributeError:
+            raise NotImplementedError("{} does not support logcdf".format(self.__class__.__name__))
+
+    def ppf(self, q, unit=None, as_quantity=False, wrap_at=None):
+        """
+        Expose the percent point function (ppf; iverse of cdf - percentiles) at
+        values of `q`.
+
+        Arguments
+        ----------
+        * `q` (float or array): percentiles at which to expose the ppf
+        * `unit` (astropy.unit, optional, default=None): unit of the exposed
+            values.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+
+        Returns
+        ---------
+        * (float or array) ppf values of the same type/shape as `x`
+        """
+        try:
+            ppf = self.dist_constructor_object.ppf(q)
+        except AttributeError:
+            raise NotImplementedError("{} does not support ppf".format(self.__class__.__name__))
+
+        return self._return_with_units(self.wrap(ppf, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+    def median(self, unit=None, as_quantity=False, wrap_at=None):
+        """
+        Expose the median of the distribution.
+
+        Arguments
+        ----------
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x` to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+
+        Returns
+        ---------
+        * (float) median of the distribution in units `unit`.
+        """
+        try:
+            median = self.dist_constructor_object.median()
+        except AttributeError:
+            raise NotImplementedError("{} does not support median".format(self.__class__.__name__))
+
+        return self._return_with_units(self.wrap(median, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+    def mean(self, unit=None, as_quantity=False, wrap_at=None):
+        """
+        Expose the mean of the distribution.
+
+        Arguments
+        ----------
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x` to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+
+        Returns
+        ---------
+        * (float) mean of the distribution in units `unit`.
+        """
+        try:
+            mean = self.dist_constructor_object.mean()
+        except AttributeError:
+            raise NotImplementedError("{} does not support mean".format(self.__class__.__name__))
+
+        return self._return_with_units(self.wrap(mean, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+    def var(self, unit=None, as_quantity=False, wrap_at=None):
+        """
+        Expose the variance of the distribution.
+
+        Arguments
+        ----------
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x` to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+
+        Returns
+        ---------
+        * (float) variance of the distribution in units `unit`.
+        """
+        try:
+            var = self.dist_constructor_object.var()
+        except AttributeError:
+            raise NotImplementedError("{} does not support var".format(self.__class__.__name__))
+
+        return self._return_with_units(self.wrap(var, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+    def std(self, unit=None, as_quantity=False, wrap_at=None):
+        """
+        Expose the standard deviation of the distribution.
+
+        Arguments
+        ----------
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x` to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+
+        Returns
+        ---------
+        * (float) standard deviation of the distribution in units `unit`.
+        """
+        try:
+            std = self.dist_constructor_object.std()
+        except AttributeError:
+            raise NotImplementedError("{} does not support std".format(self.__class__.__name__))
+
+        return self._return_with_units(self.wrap(std, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+    def interval(self, alpha, unit=None, as_quantity=False, wrap_at=None):
+        """
+        Expose the range that contains alpha percent of the distribution.
+
+        Arguments
+        ----------
+        * `alpha` (float):
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x` to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+        * `as_quantity` (bool, optional, default=False): whether to return an
+            astropy quantity object instead of just the value.  Astropy must
+            be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+
+        Returns
+        ---------
+        * (array) endpoints in units `unit`.
+        """
+        try:
+            interval = self.dist_constructor_object.interval(alpha)
+        except AttributeError:
+            raise NotImplementedError("{} does not support interval".format(self.__class__.__name__))
+
+        # we call np.asarray so that wrapping and units works on an array object instead of a tuple
+        return self._return_with_units(self.wrap(_np.asarray(interval), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+    ### remaining (unimplemented) scipy.stats methods
+        # rvs(loc=0, scale=1, size=1, random_state=None)
+        # Random variates.
+        #
+        # sf(x, loc=0, scale=1)
+        # Survival function (also defined as 1 - cdf, but sf is sometimes more accurate).
+        #
+        # logsf(x, loc=0, scale=1)
+        # Log of the survival function.
+        #
+        # isf(q, loc=0, scale=1)
+        # Inverse survival function (inverse of sf).
+        #
+        # moment(n, loc=0, scale=1)
+        # Non-central moment of order n
+        #
+        # stats(loc=0, scale=1, moments=’mv’)
+        # Mean(‘m’), variance(‘v’), skew(‘s’), and/or kurtosis(‘k’).
+        #
+        # entropy(loc=0, scale=1)
+        # (Differential) entropy of the RV.
+        #
+        # fit(data, loc=0, scale=1)
+        # Parameter estimates for generic data.
+        #
+        # expect(func, args=(), loc=0, scale=1, lb=None, ub=None, conditional=False, **kwds)
+        # Expected value of a function (of one argument) with respect to the distribution.
+        #
+
+    ### SAMPLING
+
     def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None):
         """
         Sample from the distribution.
+
+        See also:
+
+        * <<class>.ppf>
 
         Arguments
         -----------
@@ -1058,85 +1249,12 @@ class BaseDistribution(object):
         if seed is not None:
             _np.random.seed(seed)
 
-        return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+        qs = _np.random.random(size=size)
 
-    def sample_ppf(self, ppf, unit=None, as_quantity=False, wrap_at=None):
-        """
-        Sample the distribution by mapping a given percent point function or ppf
-        (a value between [0, 1)).
+        return self._return_with_units(self.wrap(self.ppf(q=qs, wrap_at=False), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+        # return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-        Arguments
-        ------------
-        * `ppf` (float or array of floats): ppf value(s) with values in the range
-            [0, 1).
-        * `unit` (astropy.unit, optional, default=None): unit to convert the
-            resulting sample(s).  Astropy must be installed in order to convert
-            units.
-        * `as_quantity` (bool, optional, default=False): whether to return an
-            astropy quantity object instead of just the value.  Astropy must
-            be installed.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
-            use for wrapping.  See <<class>.wrap>.  If not provided or None,
-            will use the value from <<class>.wrap_at>.  Note: wrapping is
-            computed before changing units, so `wrap_at` must be provided
-            according to <<class>.unit> not `unit`.
-
-        Returns
-        -----------
-        * float or array: float or array depending on the input of `ppf`.
-        """
-
-        return self._return_with_units(self.wrap(self.sample_ppf_func(ppf, *self.sample_args), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
-
-    def distribution(self, x, unit=None):
-        """
-        Give the density (y) values of the underlying distribution for a given
-        array of values (x).
-
-        Arguments
-        ----------
-        * `x` (array): x-values at which to compute the densities.  If `unit` is
-            not None, the value of `x` are assumed to be in the original units
-            <<class>.unit>, not `unit`.
-        * `unit` (astropy.unit, optional, default=None): unit of the values
-            in `x`.  If None or not provided, will assume they're provided in
-            <<class>.unit>.
-
-        Returns
-        ---------
-        * array: array of density/y values.
-        """
-        # x is assumed to be in the new units
-        if unit is not None:
-            if self.unit is None:
-                raise ValueError("can only convert units on Distributions with units set")
-            # convert to original units
-            x = (x * unit).to(self.unit).value
-
-        # print "*** x passed to dist_func", x.min(), x.max()
-        return self.dist_func(x, *self.dist_args)
-
-    def logp(self, x, unit=None):
-        """
-        Give the log probability of the underlying distribution for a given value
-        x.
-
-        Arguments
-        ----------
-        * `x` (float or array array): x-values at which to compute the logps.
-            If `unit` is not None, the value of `x` are assumed to be in the
-            original units
-            <<class>.unit>, not `unit`.
-        * `unit` (astropy.unit, optional, default=None): unit of the values
-            in `x`.  If None or not provided, will assume they're provided in
-            <<class>.unit>.
-
-        Returns
-        ---------
-        * array: array of density/y values.
-        """
-        densities = self.distribution(x=x, unit=unit)
-        return _np.log(densities)
+    ### PLOTTING
 
     # def plot_func(self, show=False, **kwargs):
     #     ret = _plt.hist(self.sample(size), **kwargs)
@@ -1157,7 +1275,7 @@ class BaseDistribution(object):
     def plot(self, size=100000, unit=None,
              wrap_at=None, seed=None,
              plot_sample=True, plot_sample_kwargs={'color': 'gray'},
-             plot_dist=True, plot_dist_kwargs={'color': 'red'},
+             plot_pdf=True, plot_pdf_kwargs={'color': 'red'},
              plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
              label=None, show=False, **kwargs):
         """
@@ -1167,7 +1285,7 @@ class BaseDistribution(object):
         See also:
 
         * <<class>.plot_sample>
-        * <<class>.plot_dist>
+        * <<class>.plot_pdf>
         * <<class>.plot_gaussian>
 
         Arguments
@@ -1187,11 +1305,11 @@ class BaseDistribution(object):
             histogram from sampling.  See also <<class>.plot_sample>.
         * `plot_sample_kwargs` (dict, optional, default={'color': 'gray'}):
             keyword arguments to send to <<class>.plot_sample>.
-        * `plot_dist` (bool, optional, default=True): whether to plot the
+        * `plot_pdf` (bool, optional, default=True): whether to plot the
             analytic form of the underlying distribution, if applicable.
-            See also <<class>.plot_dist>.
-        * `plot_dist_kwargs` (dict, optional, default={'color': 'red'}):
-            keyword arguments to send to <<class>.plot_dist>.
+            See also <<class>.plot_pdf>.
+        * `plot_pdf_kwargs` (dict, optional, default={'color': 'red'}):
+            keyword arguments to send to <<class>.plot_pdf>.
         * `plot_gaussian` (bool, optional, default=False): whether to plot
             a guassian distribution fit to the sample.  Only supported for
             distributions that have <<class>.to_gaussian> methods.
@@ -1203,17 +1321,17 @@ class BaseDistribution(object):
         * `show` (bool, optional, default=True): whether to show the resulting
             matplotlib figure.
         * `**kwargs`: all keyword arguments (except for `bins`) will be passed
-            on to <<class>.plot_dist> and <<class>.plot_gaussian> and all
+            on to <<class>.plot_pdf> and <<class>.plot_gaussian> and all
             keyword arguments will be passed on to <<class>.plot_sample>.
             Keyword arguments defined in `plot_sample_kwargs`,
-            `plot_dist_kwargs`, and `plot_gaussian_kwargs`
+            `plot_pdf_kwargs`, and `plot_gaussian_kwargs`
             will override the values sent in `kwargs`.
 
         Returns
         --------
         * tuple: the return values from <<class>.plot_sample> (or None if
-            `plot_sample=False`), <<class>.plot_dist> (or None if `plot_dist=False`),
-            and <Gaussian.plot_dist> (or None if `plot_gaussian=False`).
+            `plot_sample=False`), <<class>.plot_pdf> (or None if `plot_pdf=False`),
+            and <Gaussian.plot_pdf> (or None if `plot_gaussian=False`).
 
         Raises
         --------
@@ -1234,11 +1352,12 @@ class BaseDistribution(object):
         else:
             ret_sample = None
 
-        if plot_gaussian or plot_dist:
+        if plot_gaussian or plot_pdf:
             # we need to know the original x-range, before wrapping
-            sample = self.sample(size=size, unit=unit, wrap_at=False)
-            xmin = _np.min(sample)
-            xmax = _np.max(sample)
+            # sample = self.sample(size=size, unit=unit, wrap_at=False)
+            # xmin = _np.min(sample)
+            # xmax = _np.max(sample)
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
 
             x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1001)
 
@@ -1257,15 +1376,15 @@ class BaseDistribution(object):
         else:
             ret_gauss = None
 
-        if plot_dist:
+        if plot_pdf:
             # we have to make a copy here, otherwise setdefault will change the
             # defaults in the function declaration for successive calls
-            plot_dist_kwargs = plot_dist_kwargs.copy()
+            plot_pdf_kwargs = plot_pdf_kwargs.copy()
             for k,v in kwargs.items():
                 if k in ['bins']:
                     continue
-                plot_dist_kwargs.setdefault(k,v)
-            ret_dist = self.plot_dist(x, unit=unit, wrap_at=wrap_at, show=False, **plot_dist_kwargs)
+                plot_pdf_kwargs.setdefault(k,v)
+            ret_dist = self.plot_pdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_pdf_kwargs)
         else:
             ret_dist = None
 
@@ -1287,7 +1406,7 @@ class BaseDistribution(object):
         See also:
 
         * <<class>.plot>
-        * <<class>.plot_dist>
+        * <<class>.plot_pdf>
         * <<class>.plot_gaussian>
 
         Arguments
@@ -1336,12 +1455,13 @@ class BaseDistribution(object):
         # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
         # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
         # appropriate bins
+        samples = self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed)
         try:
-            ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed), density=True, **kwargs)
+            ret = _plt.hist(samples, density=True, **kwargs)
         except AttributeError:
             # TODO: determine which version of matplotlib
             # TODO: this still doesn't handle the same
-            ret = _plt.hist(self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed), normed=True, **kwargs)
+            ret = _plt.hist(samples, normed=True, **kwargs)
 
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))
@@ -1350,10 +1470,10 @@ class BaseDistribution(object):
 
         return ret
 
-    def plot_dist(self, x, unit=None, wrap_at=None,
+    def plot_pdf(self, x, unit=None, wrap_at=None,
                   label=None, show=False, **kwargs):
         """
-        Plot the analytic distribution function.  Requires matplotlib to be installed.
+        Plot the pdf function.  Requires matplotlib to be installed.
 
         See also:
 
@@ -1398,8 +1518,8 @@ class BaseDistribution(object):
             raise ImportError("matplotlib required for plotting")
 
         # x is assumed to be in new units
-        if self.dist_func is not None:
-            y = self.distribution(x, unit=unit)
+        if hasattr(self, 'pdf'):
+            y = self.pdf(x, unit=unit)
             x = self.wrap(x, wrap_at=wrap_at)
 
             # if unit is not None:
@@ -1414,9 +1534,9 @@ class BaseDistribution(object):
             xs, ys = _np.split(x, split_inds+1), _np.split(y, split_inds+1)
             for x,y in zip(xs, ys):
                 ret = _plt.plot(x, y, **kwargs)
-
         else:
-            ret = None
+            return None
+
 
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))
@@ -1439,7 +1559,7 @@ class BaseDistribution(object):
 
         * <<class>.plot>
         * <<class>.plot_sample>
-        * <<class>.plot_dist>
+        * <<class>.plot_pdf>
 
         Arguments
         -----------
@@ -1461,7 +1581,7 @@ class BaseDistribution(object):
         * `**kwargs`: keyword arguments for `sigma`, `N`, `bins`, `range` will
             be passed on to <<class>.to_gaussian> (must be accepted by the
             given distribution type).  All other keyword arguments will be passed
-            on to <Gaussian.plot_dist> on the resulting distribution.
+            on to <Gaussian.plot_pdf> on the resulting distribution.
 
         Returns
         --------
@@ -1483,7 +1603,7 @@ class BaseDistribution(object):
                 wrap_at = (wrap_at * self.unit).to(unit).value
 
         # TODO: this time wrap_at is assumed to be in the plotted units, not the original... do we need to convert?
-        ret = g.plot_dist(x, wrap_at=wrap_at, **{k:v for k,v in kwargs.items() if k not in to_gauss_keys})
+        ret = g.plot_pdf(x, wrap_at=wrap_at, **{k:v for k,v in kwargs.items() if k not in to_gauss_keys})
 
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))
@@ -1491,7 +1611,9 @@ class BaseDistribution(object):
             _plt.show()
         return ret
 
-    def to_histogram(self, N=1000, bins=10, range=None):
+    ### CONVERSION TO OTHER DISTRIBUTION TYPES
+
+    def to_histogram(self, N=100000, bins=10, range=None):
         """
         Convert the <<class>> distribution to a <Histogram> distribution.
 
@@ -1501,7 +1623,7 @@ class BaseDistribution(object):
 
         Arguments
         -----------
-        * `N` (int, optional, default=1000): number of samples to use for
+        * `N` (int, optional, default=100000): number of samples to use for
             the histogram.
         * `bins` (int, optional, default=10): number of bins to use for the
             histogram.
@@ -1515,114 +1637,210 @@ class BaseDistribution(object):
                                    bins=bins, range=range,
                                    unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
+
+
+class DistributionCollection(object):
+    """
+    <DistributionCollection> allows sampling from multiple distribution objects
+    simultaneously, respecting all underlying covariances whenever possible.
+    """
+    def __init__(self, distributions):
+        if isinstance(distributions, BaseDistribution):
+            distributions = [distributions]
+
+        if not (isinstance(distributions, list) or isinstance(distributions, tuple)):
+            raise TypeError("distributions must be a list or tuple of distribution objects")
+        if not _np.all(isinstance(dist, BaseDistribution) for dist in distributions):
+            raise ValueError("all items in distributions must be of type BaseDistribution")
+
+        self._dists = distributions
+
     @property
-    def hash(self):
-        """
-        """
-        # return hash(frozenset({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
-        return hash(str({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
+    def distributions(self):
+        return self._dists
 
-    def to_dict(self):
-        """
-        Return the dictionary representation of the distribution object.
-
-        The resulting dictionary can be restored to the original object
-        via <npdists.from_dict>.
-
-        See also:
-
-        * <<class>.to_json>
-        * <<class>.to_file>
-
-        Returns
-        --------
-        * dictionary
-        """
-        def _json_safe(v):
-            if isinstance(v, _np.ndarray):
-                return v.tolist()
-            elif isinstance(v, list) or isinstance(v, tuple):
-                return [_json_safe(li) for li in v]
-            elif isinstance(v, BaseDistribution):
-                return v.to_dict()
-            elif hasattr(v, 'func_name'):
-                if _has_dill:
-                    return _dill.dumps(v)
-                else:
-                    raise ImportError("'dill' package required to export functions to dictionary")
-            # elif is_unit(v)[0]:
-            #     return v.to_string()
+    @property
+    def distributions_unpacked(self):
+        # first well expand any Composite distributions to access the underlying
+        # distributions
+        def unpack_dists(dist):
+            if isinstance(dist, Composite):
+                dists = []
+                for dist in dist.dists:
+                    dists += unpack_dists(dist)
+                return dists
             else:
-                return v
-        d = {k:_json_safe(v) for k,v in self._descriptors.items()}
-        d['npdists'] = self.__class__.__name__.lower()
-        if self.unit is not None:
-            d['unit'] = str(self.unit.to_string())
-        if self.label is not None:
-            d['label'] = self.label
-        if self.wrap_at is not None:
-            d['wrap_at'] = self.wrap_at
-        if hasattr(self, 'dimension') and self.dimension is not None:
-            d['dimension'] = self.dimension
-        return d
+                return [dist]
 
-    def to_json(self, **kwargs):
+        dists_all = []
+        for dist in self.distributions:
+            dists_all += unpack_dists(dist)
+
+        return dists_all
+
+    def sample(self, *args, **kwargs):
         """
-        Return the json representation of the distribution object.
+        Sample from multiple distributions with random seeds automatically determined,
+        but applied to distributions of the same underlying multivariate distribution
+        automatically.
 
-        The resulting dictionary can be restored to the original object
-        via <npdists.from_json>.
-
-        See also:
-
-        * <<class>.to_dict>
-        * <<class>.to_file>
+        For each unique <BaseDistribution.hash> in the distributions in `dists` a
+        random seed will be generated and applied to <BaseDistribution.sample>
+        for all distributionis in `dists` which share that same hash value.  By doing
+        so, any <BaseMultivariateDistribution> which samples from the same underlying
+        multivariate distribution (but for a different
+        <BaseMultivariateDistribution.dimension>), will be correctly sampled to account
+        for the covariance/correlation between parameters, but all other 1-D
+        <BaseDistribution> objects will be sampled with their own independent
+        random seeds.
 
         Arguments
-        ---------
-        * `**kwargs`: all keyword arguments will be sent to json.dumps
+        -------------
+        * `*args`: all positional arguments are sent to <BaseDistribution.sample>
+            for each item in `dists`.
+        * `**kwargs`: all keyword arguments are sent to <BaseDistribution.sample>
+            for each item in `dists`.  Note: `seed` is forbidden and will raise
+            a ValueError.
 
         Returns
-        --------
-        * string
-        """
-        try:
-            return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
-        except:
-            if _has_dill:
-                return _dill.dumps(self)
-            else:
-                raise ImportError("dumping file requires 'dill' package")
+        -------------
+        * (list): list of samples, in same order as <<class>.distributions>.
 
-    def to_file(self, filename, **kwargs):
-        """
-        Save the json representation of the distribution object to a file.
-
-        The resulting file can be restored to the original object
-        via <npdists.from_file>.
-
-        See also:
-
-        * <<class>.to_dict>
-        * <<class>.to_json>
-
-        Arguments
+        Raises
         ----------
-        * `filename` (string): path to the file to be created (will overwrite
-            if already exists)
-        * `**kwargs`: all keyword arguments will be sent to json.dumps
+        * ValueError: if `seed` is passed.
+        """
+        if 'seed' in kwargs.keys():
+            raise ValueError("seeds are automatically determined: cannot pass seed")
+
+        seeds = kwargs.pop('seeds', {})
+        if seeds is None:
+            seeds = {}
+
+        for i,dist in enumerate(self.distributions_unpacked):
+            seeds.setdefault(dist.hash, get_random_seed()[i])
+
+
+        samples = [dist.sample(*args, seed=seeds, **kwargs) for dist in dists]
+        return _np.asarray(samples).T
+
+
+    def logpdf(self, values):
+        """
+
+        Arguments
+        ------------
+        * `values` (list, tuple, or array): list of values in same length and
+            order as <<class>.distributions>.
 
         Returns
-        --------
-        * string: the filename
+        ----------
+        * float
         """
-        f = open(filename, 'w')
-        f.write(self.to_json(**kwargs))
-        f.close()
-        return filename
+        logpdf = 0.0
+        dists_dict = {}
+        values_dict = {}
+
+        for dist,value in zip(self.distributions, values):
+            hash = dist.hash
+            if hash in dists_dict.keys():
+                dists_dict[hash] += [dist]
+                values_dict[hash] += [value]
+            else:
+                dists_dict[hash] = [dist]
+                values_dict[hash] = [value]
+
+        for dists, values in zip(dists_dict.values(), values_dict.values()):
+            for dist, value in zip(dists, values):
+                logpdf += dist.logpdf(value)
+            # logpdf += dists[0].logp(values, dimension=[dist.dimension for dist in dists]) #* len(dists)
+
+        return logpdf
+
+    def sample_func(self, func, x, N=1000, func_kwargs={}):
+        """
+        Draw samples from a callable function.
+
+        See also:
+
+        * <<class>.plot_func>
+
+        Arguments
+        -----------
+        * `func` (callable): callable function
+        * `x` (array like): x values to pass to `func`.
+        * `N` (int, optional, default=1000): number of samples to draw.
+        * `func_kwargs` (dict, optional): additional keyword arguments to pass to
+            `func`.
+
+
+        Returns
+        -----------
+        * an array of models with shape (N, len(x))
+
+        Raises
+        -----------
+        """
+        # TODO: allow passing args to sample_from_dists
+        # TODO: optimize this by doing all sampling first?
+        sample_args = [self.sample() for i in range(N)]
+        models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
+        return models
+
+    def plot_func(self, func, x, N=1000, func_kwargs={}, show=False):
+        """
+        Draw samples from a callable function and plot.
+
+        The passed callable `func` will be called with arguments `x` followed by
+        the individually drawn values from each distribution in `dists` (in order
+        provided) and then any additional `func_kwargs`.
+
+        See also:
+
+        * <<class>.sample_func>
+        * <<class>.sample>
+
+        Arguments
+        -----------
+        * `func` (callable): callable function
+        * `x` (array like): x values to pass to `func`.
+        * `N` (int, optional, default=1000): number of samples to draw.
+        * `func_kwargs` (dict, optional): additional keyword arguments to pass to
+            `func`.
+        * `show` (bool, optional, default=False): whether to call plt.show()
+
+        Returns
+        -----------
+        * list of created matplotlib artists
+
+        Raises
+        -----------
+        * ImportError: if matplotlib is not imported
+        """
+
+
+        if not _has_mpl:
+            raise ImportError("plot_func requires matplotlib.")
+
+        models = self.sample_func(func, x, N=N, func_kwargs=func_kwargs)
+
+        # TODO: allow options for sigma boundaries
+        bounds = _np.percentile(models, 100 * _norm.cdf([-2, -1, 1, 2]), axis=0)
+
+        ret1 = _plt.fill_between(x, bounds[0, :], bounds[-1, :],
+                         label="95\% uncertainty", facecolor="#03A9F4", alpha=0.4)
+        ret2 = _plt.fill_between(x, bounds[1, :], bounds[-2, :],
+                         label="68\% uncertainty", facecolor="#0288D1", alpha=0.4)
+
+        if show:
+            _plt.show()
+
+        return ret1, ret2
+
 
 
 ####################### DISTRIBUTION SUB-CLASSES ###############################
+
 
 class Composite(BaseDistribution):
     """
@@ -1644,14 +1862,15 @@ class Composite(BaseDistribution):
     ```py
     import numpy as np
     g = npdists.gaussian(0, 1)
-    sing = np.sin(g)
-    print(sing)
+    sin_g = np.sin(g)
+    print(sin_g)
     ```
 
     Currently supported operators include:
 
     * multiplication, division, addition, subtraction
     * np.sin, np.cos, np.tan (but not math.sin, etc)
+    * bitwise and (&), bitwise or (|)
 
     When doing math between a distribution and a float or integer, that float/int
     will be treated as a <Delta> distribution.  In some simple cases, the
@@ -1690,8 +1909,7 @@ class Composite(BaseDistribution):
         * a <Composite> object.
         """
         super(Composite, self).__init__(unit, label, wrap_at,
-                                        None, None,
-                                        self._sample_from_children, self._sample_ppf_from_children, ('math', 'dist1', 'dist2'),
+                                        _stats_custom.generic_pdf, ('pdf_callable'),
                                         ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
 
         if _has_astropy:
@@ -1749,6 +1967,50 @@ class Composite(BaseDistribution):
         else:
             return self.dist1.hash
 
+
+    @property
+    def pdf_callable(self):
+
+        if self.math in ['__and__', '__or__']:
+            # and: multiply pdfs and return interpolator (possibly over range of children 0.99999)
+            # or: add pdfs and return interpolator (possibly over range of children 0.999999)
+            dist1range = self.dist1.interval(0.9999, wrap_at=False)
+            dist2range = self.dist2.interval(0.9999, wrap_at=False)
+            # print("*** dist1range: {}, dist2range: {}".format(dist1range, dist2range))
+            # TODO: OPTIMIZE can we cache this interpolator (or even in init?)
+            # TODO: TEST is this safe to just interpolate over 1-million evenly-linearly spaced points in x?
+            x = _np.linspace(min(dist1range[0], dist2range[0]), max(dist1range[1], dist2range[1]), int(1e6))
+            if self.math == '__and__':
+                y = self.dist1.pdf(x) * self.dist2.pdf(x)
+            elif self.math == '__or__':
+                y = self.dist1.pdf(x) + self.dist2.pdf(x)
+            else:
+                raise NotImplementedError()
+
+            # return  _interpolate.interp1d(x, y)
+            return _stats_custom.interpolate_callable(x, y)
+
+        else:
+            return None
+
+    @property
+    def dist_constructor_args(self):
+        pdf_callable = self.pdf_callable
+        if pdf_callable is None:
+            return None
+        else:
+            return (pdf_callable,)
+
+    @property
+    def dist_constructor_object(self):
+        args = self.dist_constructor_args
+        if args is None:
+            # we'll return None, which will raise NotImplementedError in all pdf/cdf/ppf methods that rely on scipy.stats objects (unless we override here)
+            return None
+
+        else:
+            return self.dist_constructor_func(*args)
+
     def _sample_from_children(self, math, dist1, dist2, seed={}, size=None):
         if math == '__and__':
             # continuous: multiply the pdfs (or cdfs or ppfs?), renormalize, sample (via ppf?)
@@ -1797,16 +2059,16 @@ class Composite(BaseDistribution):
             #     unit = None
             return getattr(_np, math)(dist1.sample(size=size, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
 
-    def _sample_ppf_from_children(self, math, dist1, dist2, ppf):
-        raise NotImplementedError("sample_ppf_from_dists not yet implemented")
-        if self.dist2 is not None:
-            samples = sample_ppf_from_dists((dist1, dist2), ppf)
-            if not isinstance(ppf, float):
-                return getattr(samples[:,0], math)(samples[:,1])
-            else:
-                return getattr(samples[0], math)(samples[1])
-        else:
-            return getattr(_np, math)(dist1.sample_ppf(ppf, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
+    # def _sample_ppf_from_children(self, math, dist1, dist2, ppf):
+    #     raise NotImplementedError("sample_ppf_from_dists not yet implemented")
+    #     if self.dist2 is not None:
+    #         samples = sample_ppf_from_dists((dist1, dist2), ppf)
+    #         if not isinstance(ppf, float):
+    #             return getattr(samples[:,0], math)(samples[:,1])
+    #         else:
+    #             return getattr(samples[0], math)(samples[1])
+    #     else:
+    #         return getattr(_np, math)(dist1.sample_ppf(ppf, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
 
 
 
@@ -1837,70 +2099,69 @@ class Composite(BaseDistribution):
         * float or array: float if `size=None`, otherwise a numpy array with
             shape defined by `size`.
         """
+        # TODO: remove this by implementing self.ppf / pdf / cdf - and better yet if we can rely on scipy.stats to give all but pdf/ppf
+        if self.math in ['__and__', '__or__']:
+            return super(Composite, self).sample(size=size, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at, seed=seed)
+        else:
+            return self._return_with_units(self.wrap(self._sample_from_children(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-        return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
-
-    def distribution(self, x, unit=None, N=1000, bins=10):
-        """
-        Give the density (y) values of the underlying distribution for a given
-        array of values (x).
-
-        Under-the-hood, the <Composite> distribution is sampled and converted
-        to a <Histogram> distribution via <Composite.to_histogram> with `N` and
-        `bins` first.
-
-        Arguments
-        ----------
-        * `x` (array): x-values at which to compute the densities.  If `unit` is
-            not None, the value of `x` are assumed to be in the original units
-            <<class>.unit>, not `unit`.
-        * `unit` (astropy.unit, optional, default=None): unit of the values
-            in `x`.  If None or not provided, will assume they're provided in
-            <<class>.unit>.
-        * `N` (int, optional, default=1000): see <Composite.to_histogram>
-        * `bins` (int, optional, default=10): see <Composite.to_histogram>
-
-        Returns
-        ---------
-        * array: array of density/y values.
-        """
-        raise NotImplementedError("distribution not implemented for Composite distributions")
-        return self.to_histogram(N=N, bins=bins).distribution(x, unit=unit)
-
-    def logp(self, x, unit=None, N=1000, bins=10):
-        """
-        Give the log probability of the underlying distribution for a given value
-        x.
-
-        Under-the-hood, the <Composite> distribution is sampled and converted
-        to a <Histogram> distribution via <Composite.to_histogram> with `N` and
-        `bins` first.
-
-        See also:
-        * <Composite.distribution>
-
-        Arguments
-        ----------
-        * `x` (float or array array): x-values at which to compute the logps.
-            If `unit` is not None, the value of `x` are assumed to be in the
-            original units
-            <<class>.unit>, not `unit`.
-        * `unit` (astropy.unit, optional, default=None): unit of the values
-            in `x`.  If None or not provided, will assume they're provided in
-            <<class>.unit>.
-        * `N` (int, optional, default=1000): see <Composite.to_histogram>
-        * `bins` (int, optional, default=10): see <Composite.to_histogram>
-
-        Returns
-        ---------
-        * array: array of density/y values.
-        """
-        raise NotImplementedError("distribution not implemented for Composite distributions")
-        return self.to_histogram(N=N, bins=bins).logp(x, unit=unit)
-
-    def __float__(self):
-        return self.mean
-        # return self.sample()
+    # def pdf(self, x, unit=None, N=1000, bins=10):
+    #     """
+    #     Give the density (y) values of the underlying distribution for a given
+    #     array of values (x).
+    #
+    #     Under-the-hood, the <Composite> distribution is sampled and converted
+    #     to a <Histogram> distribution via <Composite.to_histogram> with `N` and
+    #     `bins` first.
+    #
+    #     Arguments
+    #     ----------
+    #     * `x` (array): x-values at which to compute the densities.  If `unit` is
+    #         not None, the value of `x` are assumed to be in the original units
+    #         <<class>.unit>, not `unit`.
+    #     * `unit` (astropy.unit, optional, default=None): unit of the values
+    #         in `x`.  If None or not provided, will assume they're provided in
+    #         <<class>.unit>.
+    #     * `N` (int, optional, default=1000): see <Composite.to_histogram>
+    #     * `bins` (int, optional, default=10): see <Composite.to_histogram>
+    #
+    #     Returns
+    #     ---------
+    #     * array: array of density/y values.
+    #     """
+    #     raise NotImplementedError("distribution not implemented for Composite distributions")
+    #     return self.to_histogram(N=N, bins=bins).distribution(x, unit=unit)
+    #
+    # def logpdf(self, x, unit=None, N=1000, bins=10):
+    #     """
+    #     Give the log probability of the underlying distribution for a given value
+    #     x.
+    #
+    #     Under-the-hood, the <Composite> distribution is sampled and converted
+    #     to a <Histogram> distribution via <Composite.to_histogram> with `N` and
+    #     `bins` first.
+    #
+    #     See also:
+    #     * <Composite.distribution>
+    #
+    #     Arguments
+    #     ----------
+    #     * `x` (float or array array): x-values at which to compute the logps.
+    #         If `unit` is not None, the value of `x` are assumed to be in the
+    #         original units
+    #         <<class>.unit>, not `unit`.
+    #     * `unit` (astropy.unit, optional, default=None): unit of the values
+    #         in `x`.  If None or not provided, will assume they're provided in
+    #         <<class>.unit>.
+    #     * `N` (int, optional, default=1000): see <Composite.to_histogram>
+    #     * `bins` (int, optional, default=10): see <Composite.to_histogram>
+    #
+    #     Returns
+    #     ---------
+    #     * array: array of density/y values.
+    #     """
+    #     raise NotImplementedError("distribution not implemented for Composite distributions")
+    #     return self.to_histogram(N=N, bins=bins).logp(x, unit=unit)
 
         # if self.dist2 is not None:
             # return getattr(dist1.mean, math)(dist2.mean)
@@ -1909,27 +2170,38 @@ class Composite(BaseDistribution):
 
 
 
-    @property
-    def mean(self):
-        """
-        Determine the mean sampled value.
-
-        This is done under-the-hood by converting to a histogram via
-        <Composite.to_histogram>, sampling 10000 times with 100 bins and
-        calling <Histogram.mean>.
-        """
-        return self.to_histogram(N=10000, bins=100).mean
-
-    @property
-    def std(self):
-        """
-        Determine the standard deviations of the sampled values.
-
-        This is done under-the-hood by converting to a histogram via
-        <Composite.to_histogram>, sampling 10000 times with 100 bins and
-        calling <Histogram.std>.
-        """
-        return self.to_histogram(N=10000, bins=100).std
+    # @property
+    # def median(self):
+    #     """
+    #     Determine the median sampled value.
+    #
+    #     This is done under-the-hood by converting to a histogram via
+    #     <Composite.to_histogram>, sampling 10000 times with 100 bins and
+    #     calling <Histogram.median>.
+    #     """
+    #     return self.to_histogram(N=10000, bins=100).median()
+    #
+    # @property
+    # def mean(self):
+    #     """
+    #     Determine the mean sampled value.
+    #
+    #     This is done under-the-hood by converting to a histogram via
+    #     <Composite.to_histogram>, sampling 10000 times with 100 bins and
+    #     calling <Histogram.mean>.
+    #     """
+    #     return self.to_histogram(N=10000, bins=100).mean()
+    #
+    # @property
+    # def std(self):
+    #     """
+    #     Determine the standard deviations of the sampled values.
+    #
+    #     This is done under-the-hood by converting to a histogram via
+    #     <Composite.to_histogram>, sampling 10000 times with 100 bins and
+    #     calling <Histogram.std>.
+    #     """
+    #     return self.to_histogram(N=10000, bins=100).std()
 
     def to_gaussian(self, N=1000, bins=10, range=None):
         """
@@ -1978,149 +2250,146 @@ class Composite(BaseDistribution):
         """
         return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
-class Function(BaseDistribution):
-    """
-    A Function distribution allows for any python callable to be stored that
-    utilizes distributions under-the-hood.  When calling <Function.sample>,
-    any argument passed to the function that is a <BaseDistribution> object
-    will be sampled prior to being passed to the callable function.
-
-    In order to save or load these distributions, it is necessary to have
-    the `dill` package installed.  Note that you should not load from untrusted
-    sources, as any executable could be contained in the callable function.
-
-    See:
-
-    * <Function.to_dict>
-    * <Function.to_json>
-    * <Function.to_file>
-
-    for documentation on loading and saving Function distributions.
-    """
-    def __init__(self, func, func_ppf, unit, label, wrap_at, *args):
-        """
-        Create a <Function> distribution from some callable function and
-        any number of arguments, including distribution objects.
-
-        This can also be created from a function at the top-level as:
-
-        * <npdists.function>
-
-        Arguments
-        ----------
-        * `func` (callable function, or None): the callable function to be called to
-            sample the distribution.  If None, <<class>.sample> will raise a
-            TypeError.
-        * `func_ppf` (callable function, or None): the callable function to be
-            called when sampling from a ppf.  If None, <<class>.sample_ppf> will
-            raise a TypeError.
-        * `unit` (astropy.units object or None): the units of the provided values.
-        * `label` (string or None): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
-            use for wrapping.  If None and `unit` are angles, will default to
-            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
-            to 1.0.
-        * `*args`: all additional positional arguments will be passed on to
-            `func` when sampling.  These can be, but are not limited to,
-            other distribution objects.
-
-        Returns
-        ---------
-        * a <Function> object.
-        """
-        super(Function, self).__init__(unit, label, wrap_at,
-                                       None, None,
-                                       self._sample_from_function, self._sample_ppf_from_function, ('func', 'args'),
-                                       ('func', func, is_callable_or_none), ('func_ppf', func_ppf, is_callable_or_none), ('args', args, is_iterable))
-
-    def _sample_from_function(self, func, args, size=None):
-        if func is None:
-            raise TypeError("cannot sample from function when set to None")
-        args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
-        return func(*args)
-
-    def _sample_pff_from_function(self, func_ppf, args, ppf):
-        if func_ppf is None:
-            raise TypeError("cannot sample from ppf function when set to None")
-        # TODO: not sure this is still what we want here...
-        args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
-        return func_ppf(ppf, *args)
-
-    def __float__(self):
-        return self.mean
-        # return self.sample()
-
-    @property
-    def mean(self):
-        """
-        Determine the mean sampled value.
-
-        This is done under-the-hood by converting to a histogram via
-        <Function.to_histogram>, sampling 10000 times with 100 bins and
-        calling <Histogram.mean>.
-        """
-        return self.to_histogram(N=10000, bins=100).mean
-
-    @property
-    def std(self):
-        """
-        Determine the standard deviations of the sampled values.
-
-        This is done under-the-hood by converting to a histogram via
-        <Function.to_histogram>, sampling 10000 times with 100 bins and
-        calling <Histogram.std>.
-        """
-        return self.to_histogram(N=10000, bins=100).std
-
-    def to_gaussian(self, N=1000, bins=10, range=None):
-        """
-        Convert the <Function> distribution to a <Gaussian> distribution via
-        a <Histogram> distribution.
-
-        Under-the-hood, this calls <Function.to_histogram> with the requested
-        values of `N`, `bins`, and `range` and then calls <Histogram.to_gaussian>.
-
-        Arguments
-        -----------
-        * `N` (int, optional, default=1000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-
-        Returns
-        --------
-        * a <Gaussian> object
-        """
-        return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
-
-    def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
-        """
-        Convert the <Function> distribution to a <Uniform> distribution via
-        a <Histogram> distribution.
-
-        Under-the-hood, this calls <Function.to_histogram> with the requested
-        values of `N`, `bins`, and `range` and then calls <Histogram.to_uniform>
-        with the requested value of `sigma` (which in turn is calling
-        <Histogram.to_gaussian> first).
-
-        Arguments
-        -----------
-        * `sigma` (float, optional, default=1.0): the number of standard deviations
-            to adopt as the lower and upper bounds of the uniform distribution.
-        * `N` (int, optional, default=1000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-
-        Returns
-        --------
-        * a <Uniform> object
-        """
-        return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
+# class Function(BaseDistribution):
+#     """
+#     A Function distribution allows for any python callable to be stored that
+#     utilizes distributions under-the-hood.  When calling <Function.sample>,
+#     any argument passed to the function that is a <BaseDistribution> object
+#     will be sampled prior to being passed to the callable function.
+#
+#     In order to save or load these distributions, it is necessary to have
+#     the `dill` package installed.  Note that you should not load from untrusted
+#     sources, as any executable could be contained in the callable function.
+#
+#     See:
+#
+#     * <Function.to_dict>
+#     * <Function.to_json>
+#     * <Function.to_file>
+#
+#     for documentation on loading and saving Function distributions.
+#     """
+#     def __init__(self, func, func_ppf, unit, label, wrap_at, *args):
+#         """
+#         Create a <Function> distribution from some callable function and
+#         any number of arguments, including distribution objects.
+#
+#         This can also be created from a function at the top-level as:
+#
+#         * <npdists.function>
+#
+#         Arguments
+#         ----------
+#         * `func` (callable function, or None): the callable function to be called to
+#             sample the distribution.  If None, <<class>.sample> will raise a
+#             TypeError.
+#         * `func_ppf` (callable function, or None): the callable function to be
+#             called when sampling from a ppf.  If None, <<class>.sample_ppf> will
+#             raise a TypeError.
+#         * `unit` (astropy.units object or None): the units of the provided values.
+#         * `label` (string or None): a label for the distribution.  This is used
+#             for the x-label while plotting the distribution, as well as a shorthand
+#             notation when creating a <Composite> distribution.
+#         * `wrap_at` (float, None, or False, optional, default=None): value to
+#             use for wrapping.  If None and `unit` are angles, will default to
+#             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+#             to 1.0.
+#         * `*args`: all additional positional arguments will be passed on to
+#             `func` when sampling.  These can be, but are not limited to,
+#             other distribution objects.
+#
+#         Returns
+#         ---------
+#         * a <Function> object.
+#         """
+#         super(Function, self).__init__(unit, label, wrap_at,
+#                                        None, None,
+#                                        self._sample_from_function, self._sample_ppf_from_function, ('func', 'args'),
+#                                        ('func', func, is_callable_or_none), ('func_ppf', func_ppf, is_callable_or_none), ('args', args, is_iterable))
+#
+#     def _sample_from_function(self, func, args, size=None):
+#         if func is None:
+#             raise TypeError("cannot sample from function when set to None")
+#         args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
+#         return func(*args)
+#
+#     def _sample_pff_from_function(self, func_ppf, args, ppf):
+#         if func_ppf is None:
+#             raise TypeError("cannot sample from ppf function when set to None")
+#         # TODO: not sure this is still what we want here...
+#         args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
+#         return func_ppf(ppf, *args)
+#
+#
+#     @property
+#     def mean(self):
+#         """
+#         Determine the mean sampled value.
+#
+#         This is done under-the-hood by converting to a histogram via
+#         <Function.to_histogram>, sampling 10000 times with 100 bins and
+#         calling <Histogram.mean>.
+#         """
+#         return self.to_histogram(N=10000, bins=100).mean
+#
+#     @property
+#     def std(self):
+#         """
+#         Determine the standard deviations of the sampled values.
+#
+#         This is done under-the-hood by converting to a histogram via
+#         <Function.to_histogram>, sampling 10000 times with 100 bins and
+#         calling <Histogram.std>.
+#         """
+#         return self.to_histogram(N=10000, bins=100).std
+#
+#     def to_gaussian(self, N=1000, bins=10, range=None):
+#         """
+#         Convert the <Function> distribution to a <Gaussian> distribution via
+#         a <Histogram> distribution.
+#
+#         Under-the-hood, this calls <Function.to_histogram> with the requested
+#         values of `N`, `bins`, and `range` and then calls <Histogram.to_gaussian>.
+#
+#         Arguments
+#         -----------
+#         * `N` (int, optional, default=1000): number of samples to use for
+#             the histogram.
+#         * `bins` (int, optional, default=10): number of bins to use for the
+#             histogram.
+#         * `range` (tuple or None): range to use for the histogram.
+#
+#         Returns
+#         --------
+#         * a <Gaussian> object
+#         """
+#         return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
+#
+#     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
+#         """
+#         Convert the <Function> distribution to a <Uniform> distribution via
+#         a <Histogram> distribution.
+#
+#         Under-the-hood, this calls <Function.to_histogram> with the requested
+#         values of `N`, `bins`, and `range` and then calls <Histogram.to_uniform>
+#         with the requested value of `sigma` (which in turn is calling
+#         <Histogram.to_gaussian> first).
+#
+#         Arguments
+#         -----------
+#         * `sigma` (float, optional, default=1.0): the number of standard deviations
+#             to adopt as the lower and upper bounds of the uniform distribution.
+#         * `N` (int, optional, default=1000): number of samples to use for
+#             the histogram.
+#         * `bins` (int, optional, default=10): number of bins to use for the
+#             histogram.
+#         * `range` (tuple or None): range to use for the histogram.
+#
+#         Returns
+#         --------
+#         * a <Uniform> object
+#         """
+#         return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
 
 class Histogram(BaseDistribution):
@@ -2165,9 +2434,13 @@ class Histogram(BaseDistribution):
         --------
         * a <Histogram> object
         """
+        # super(Histogram, self).__init__(unit, label, wrap_at,
+        #                                 histogram, ('bins', 'density'),
+        #                                 _sample_from_hist, _sample_ppf_from_hist, ('bins', 'density'),
+        #                                 ('bins', bins, is_iterable), ('density', density, is_iterable))
+
         super(Histogram, self).__init__(unit, label, wrap_at,
-                                        histogram, ('bins', 'density'),
-                                        _sample_from_hist, _sample_ppf_from_hist, ('bins', 'density'),
+                                        _stats_custom.generic_pdf_cdf_ppf, ('pdf_cdf_ppf_callables'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
@@ -2209,73 +2482,45 @@ class Histogram(BaseDistribution):
 
         return cls(bin_edges, hist, label=label, unit=unit, wrap_at=wrap_at)
 
-    def __float__(self):
-        return self.mean
-        # return self.sample()
+    @property
+    def pdf_cdf_ppf_callables(self):
+        bincenters = _np.mean(_np.vstack([self.bins[0:-1], self.bins[1:]]), axis=0)
+        pdf = self.density
+        pdf_call = _stats_custom.interpolate_callable(bincenters, pdf)
+
+        bincenters = _np.mean(_np.vstack([self.bins[0:-1], self.bins[1:]]), axis=0)
+        cdf = _np.cumsum(self.density)
+        cdf = cdf / float(cdf[-1])
+
+        ppf_call = _stats_custom.interpolate_callable(cdf, bincenters)
+
+        # make sure interpolation on the right always gives 1, not the fill_value of 0
+        bincenters = _np.append(bincenters, _np.inf)
+        cdf = _np.append(cdf, 1.0)
+
+        cdf_call = _stats_custom.interpolate_callable(bincenters, cdf)
+
+        return pdf_call, cdf_call, ppf_call
 
     @property
-    def mean(self):
-        """
-        Return the weighted mean value from the histogram.
-
-        See also:
-
-        * <Histogram.std>
-
-        Returns
-        -------
-        * float: the mean value
-        """
-        # bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
-        # mean = _np.average(bin_midpoints, weights=self.density)
-        # return mean
-        return self.sample_ppf(0.5)
+    def pdf_callable(self):
+        return self.pdf_cdf_ppf_callables[0]
 
     @property
-    def std(self):
-        """
-        Return the standard deviation about the mean from the histogram.
+    def cdf_callable(self):
+        return self.pdf_cdf_ppf_callables[1]
 
-        See also:
+    @property
+    def ppf_callable(self):
+        return self.pdf_cdf_ppf_callables[2]
 
-        * <Histogram.mean>
+    @property
+    def dist_constructor_args(self):
+        return self.pdf_cdf_ppf_callables
 
-        Returns
-        ---------
-        * float: the standard deviation
-        """
-        mean, std = self._mean_std()
-        return std
-
-    def _mean_std(self):
-        """
-        Compute the mean and standard deviation.  Useful just to avoid multiple
-        calls when both are needed.
-        """
-        bin_midpoints = self.bins[:-1] + _np.diff(self.bins)/2
-        mean = _np.average(bin_midpoints, weights=self.density)
-
-        var = _np.average((bin_midpoints - mean)**2, weights=self.density)
-        sigma = _np.sqrt(var)
-
-        return mean, sigma
-
-    def distribution(self, x, unit=None):
-        """
-        """
-        raise NotImplementedError("distribution not implemented for Histogram distributions")
-
-    def logp(self, x, unit=None):
-        """
-        Give the log probability of the underlying distribution for a given value
-        x.
-
-        Raises
-        ----------
-        * NotImplementedError
-        """
-        # TODO: remove this override entirely once distribution is implemented
-        raise NotImplementedError("logp not implemented for Histogram distributions")
+    @property
+    def dist_constructor_object(self):
+        return self.dist_constructor_func(*self.dist_constructor_args)
 
     def to_gaussian(self):
         """
@@ -2286,8 +2531,8 @@ class Histogram(BaseDistribution):
         --------
         * a <Gaussian> object
         """
-        mean, std = self._mean_std()
-        return Gaussian(mean, std, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        dco = self.dist_constructor_object
+        return Gaussian(dco.median(), dco.std(), label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_uniform(self, sigma=1.0):
         """
@@ -2317,7 +2562,7 @@ class Delta(BaseDistribution):
 
     Can be created from the top-level via the <npdists.delta> convenience function.
     """
-    def __init__(self, value=0.0, unit=None, label=None, wrap_at=None):
+    def __init__(self, loc=0.0, unit=None, label=None, wrap_at=None):
         """
         Create a <Delta> distribution.
 
@@ -2327,7 +2572,7 @@ class Delta(BaseDistribution):
 
         Arguments
         --------------
-        * `value` (float or int, default=0.0): the value at which the delta function is True.
+        * `loc` (float or int, default=0.0): the loc at which the delta function is True.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
@@ -2342,29 +2587,16 @@ class Delta(BaseDistribution):
         * a <Delta> object
         """
         super(Delta, self).__init__(unit, label, wrap_at,
-                                    delta, ('value',),
-                                    self._sample_from_delta, self._sample_ppf_from_delta, ('value',),
-                                    ('value', value, is_float))
-
-    def _sample_from_delta(self, value, size=None):
-        if size is None:
-            return value
-        else:
-            return _np.full(size, value)
-
-    def _sample_ppf_from_delta(self, ppf, value):
-        if isinstance(ppf, float):
-            return value
-        else:
-            return _np.full_like(ppf, value)
+                                    _stats_custom.delta, ('loc',),
+                                    ('loc', loc, is_float))
 
     def __mul__(self, other):
         if isinstance(other, Delta):
-            other = other.value
+            other = other.loc
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
-            dist.value *= other
+            dist.loc *= other
             return dist
 
         return super(Delta, self).__mul__(other)
@@ -2374,11 +2606,11 @@ class Delta(BaseDistribution):
 
     def __add__(self, other):
         if isinstance(other, Delta):
-            other = other.value
+            other = other.loc
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
-            dist.value += other
+            dist.loc += other
             return dist
 
         return super(Delta, self).__add__(other)
@@ -2387,29 +2619,7 @@ class Delta(BaseDistribution):
         return self.__add__(-1*other)
 
     def __float__(self):
-        return self.value
-
-    @property
-    def mean(self):
-        """
-        The mean value of a delta function is the value itself.
-
-        Returns
-        -------
-        * float: the value
-        """
-        return self.value
-
-    @property
-    def std(self):
-        """
-        The standard deviation of a delta function is 0.0 by definition
-
-        Returns
-        --------
-        * float: 0.0
-        """
-        return 0.0
+        return self.loc
 
     def to_uniform(self):
         """
@@ -2420,8 +2630,8 @@ class Delta(BaseDistribution):
         ----------
         * a <Uniform> object
         """
-        low = self.value
-        high = self.value
+        low = self.loc
+        high = self.loc
         return Uniform(low, high, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
     def to_gaussian(self):
@@ -2438,12 +2648,12 @@ class Delta(BaseDistribution):
         --------
         * a <Gaussian> object
         """
-        return Gaussian(self.value, 0.0, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        return Gaussian(self.loc, 0.0, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
 
 class Gaussian(BaseDistribution):
     """
-    A Gaussian (or Normal) distribution uses [numpy.random.normal](https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.normal.html)
+    A Gaussian (or Normal) distribution uses [scipy.stats.norm](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html)
     to sample values from a gaussian function.
 
     Can be created from the top-level via the <npdists.gaussian> or
@@ -2459,8 +2669,10 @@ class Gaussian(BaseDistribution):
 
         Arguments
         --------------
-        * `loc` (float or int, default=0.0): the central value of the gaussian distribution.
-        * `scale` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
+        * `loc` (float or int, default=0.0): the central value (mean) of the
+            gaussian distribution.
+        * `scale` (float or int, default=1.0): the scale (sigma) of the gaussian
+            distribution.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
             for the x-label while plotting the distribution, as well as a shorthand
@@ -2475,13 +2687,12 @@ class Gaussian(BaseDistribution):
         * a <Gaussian> object
         """
         super(Gaussian, self).__init__(unit, label, wrap_at,
-                                       gaussian, ('loc', 'scale'),
-                                       _np.random.normal, _norm.ppf if _has_scipy else _raise_import_scipy, ('loc', 'scale'),
+                                       _stats.norm, ('loc', 'scale'),
                                        ('loc', loc, is_float), ('scale', scale, is_float))
 
     def __mul__(self, other):
         if isinstance(other, Delta):
-            other = other.value
+            other = other.loc
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
@@ -2496,7 +2707,7 @@ class Gaussian(BaseDistribution):
 
     def __add__(self, other):
         if isinstance(other, Delta):
-            other = other.value
+            other = other.loc
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
@@ -2510,38 +2721,6 @@ class Gaussian(BaseDistribution):
 
     def __float__(self):
         return self.loc
-        # return self.sample()
-
-    @property
-    def mean(self):
-        """
-        The mean of a <Gaussian> distribution is the value of `loc`, by definition.
-
-        See also:
-
-        * <Gaussian.std>
-
-        Returns
-        --------
-        * float
-        """
-        return self.loc
-
-    @property
-    def std(self):
-        """
-        The standard deviation of a <Gaussian> distribution is the value of `scale`,
-        by definition.
-
-        See also:
-
-        * <Gaussian.mean>
-
-        Returns
-        --------
-        * float
-        """
-        return self.scale
 
     def to_uniform(self, sigma=1.0):
         """
@@ -2567,7 +2746,7 @@ class Gaussian(BaseDistribution):
 class Uniform(BaseDistribution):
     """
     A Uniform (or Boxcar) distribution gives equal weights to all values within
-    the defined range and uses [numpy.random.uniform](https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.uniform.html)
+    the defined range and uses [scipy.stats.uniform](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.uniform.html)
     to sample values.
 
     Can be created from the top-level via the <npdists.uniform> or
@@ -2601,14 +2780,12 @@ class Uniform(BaseDistribution):
         * a <Uniform> object
         """
         super(Uniform, self).__init__(unit, label, wrap_at,
-                                      uniform, ('low', 'high'),
-                                      self._sample_uniform, self._sample_ppf_uniform, ('low', 'high'),
-                                      ('low', low, is_float), ('high', high, is_float))
-
+                                       _stats.uniform, ('low', 'high'),
+                                       ('low', low, is_float), ('high', high, is_float))
 
     def __mul__(self, other):
         if isinstance(other, Delta):
-            other = other.value
+            other = other.loc
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
@@ -2624,7 +2801,7 @@ class Uniform(BaseDistribution):
 
     def __add__(self, other):
         if isinstance(other, Delta):
-            other = other.value
+            other = other.loc
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
@@ -2644,51 +2821,6 @@ class Uniform(BaseDistribution):
     def __sub__(self, other):
         return self.__add__(-1*other)
 
-    def __float__(self):
-        return self.mean
-        # return self.sample()
-
-    def _sample_uniform(self, low, high, size=None):
-        if low > high:
-            # NOTE: we cannot send the wrap_at argument from sample or plot
-            wrap_at = self.get_wrap_at()
-            if not wrap_at:
-                raise ValueError("low must be >= high unless wrap_at is set or units are angular.")
-
-            # unwrap low
-            high = high + wrap_at
-
-        return _np.random.uniform(low, high, size=size)
-
-    def _sample_ppf_uniform(self, ppf, low, high):
-        return ppf*(high-low)+low
-
-
-    @property
-    def mean(self):
-        """
-        The mean value of a <Uniform> distribution is the average of the `low`
-        and `high` values.
-
-        Returns
-        -------
-        * float
-        """
-        return (self.low+self.high) / 2.0
-
-    @property
-    def std(self):
-        """
-        Determine the standard deviations of the sampled values, adopting
-        `sigma=1.0`.
-
-        See also:
-
-        * <Uniform.to_gaussian>
-        """
-        sigma = 1.0
-        return (self.high - self.low) / (2.0 * sigma)
-
     def to_gaussian(self, sigma=1.0):
         """
         Convert the <Uniform> distribution to a <Gaussian> distribution by
@@ -2705,7 +2837,7 @@ class Uniform(BaseDistribution):
         ---------
         * a <Gaussian> distribution
         """
-        loc = self.mean
+        loc = self.median()
         scale = (self.high - self.low) / (2.0 * sigma)
         return Gaussian(loc, scale, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
@@ -2734,23 +2866,23 @@ class BaseMultivariateDistribution(BaseDistribution):
             raise TypeError("label must be of type list")
 
         self._label = label
-
-    @property
-    def dist_args(self):
-        """
-        Return the arguments sent to the distribution function.
-
-        See also:
-
-        * <<class>.dist_func>
-        * <<class>.distribution>
-
-        Returns
-        --------
-        * tuple
-        """
-
-        return tuple([getattr(self, k) for k in self._dist_args]+[self.dimension])
+    #
+    # @property
+    # def dist_args(self):
+    #     """
+    #     Return the arguments sent to the distribution function.
+    #
+    #     See also:
+    #
+    #     * <<class>.dist_func>
+    #     * <<class>.distribution>
+    #
+    #     Returns
+    #     --------
+    #     * tuple
+    #     """
+    #
+    #     return tuple([getattr(self, k) for k in self._dist_args]+[self.dimension])
 
     @property
     def dimensions(self):
@@ -2856,7 +2988,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
             return corner.corner(self.sample(size=100000), labels=self.label, **kwargs)
 
-    def to_histogram(self, N=1000, bins=10, range=None, dimension=None):
+    def to_histogram(self, N=100000, bins=10, range=None, dimension=None):
         """
         Convert the <<class>> distribution to a <Histogram> distribution.
 
@@ -2866,7 +2998,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         Arguments
         -----------
-        * `N` (int, optional, default=1000): number of samples to use for
+        * `N` (int, optional, default=100000): number of samples to use for
             the histogram.
         * `bins` (int, optional, default=10): number of bins to use for the
             histogram.
