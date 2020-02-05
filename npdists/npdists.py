@@ -1276,6 +1276,7 @@ class BaseDistribution(object):
              wrap_at=None, seed=None,
              plot_sample=True, plot_sample_kwargs={'color': 'gray'},
              plot_pdf=True, plot_pdf_kwargs={'color': 'red'},
+             plot_cdf=False, plot_cdf_kwargs={'color': 'green'},
              plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
              label=None, show=False, **kwargs):
         """
@@ -1310,6 +1311,11 @@ class BaseDistribution(object):
             See also <<class>.plot_pdf>.
         * `plot_pdf_kwargs` (dict, optional, default={'color': 'red'}):
             keyword arguments to send to <<class>.plot_pdf>.
+        * `plot_cdf` (bool, optional, default=True): whether to plot the
+            analytic form of the cdf, if applicable.
+            See also <<class>.plot_cdf>.
+        * `plot_cdf_kwargs` (dict, optional, default={'color': 'green'}):
+            keyword arguments to send to <<class>.plot_cdf>.
         * `plot_gaussian` (bool, optional, default=False): whether to plot
             a guassian distribution fit to the sample.  Only supported for
             distributions that have <<class>.to_gaussian> methods.
@@ -1331,6 +1337,7 @@ class BaseDistribution(object):
         --------
         * tuple: the return values from <<class>.plot_sample> (or None if
             `plot_sample=False`), <<class>.plot_pdf> (or None if `plot_pdf=False`),
+            <<class>.plot_cdf> (or None if `plot_cdf=False`),
             and <Gaussian.plot_pdf> (or None if `plot_gaussian=False`).
 
         Raises
@@ -1352,14 +1359,13 @@ class BaseDistribution(object):
         else:
             ret_sample = None
 
-        if plot_gaussian or plot_pdf:
+        if plot_gaussian or plot_pdf or plot_cdf:
             # we need to know the original x-range, before wrapping
             # sample = self.sample(size=size, unit=unit, wrap_at=False)
             # xmin = _np.min(sample)
             # xmax = _np.max(sample)
             xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
-
-            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1001)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
 
         if plot_gaussian:
             if not hasattr(self, 'to_gaussian'):
@@ -1384,16 +1390,28 @@ class BaseDistribution(object):
                 if k in ['bins']:
                     continue
                 plot_pdf_kwargs.setdefault(k,v)
-            ret_dist = self.plot_pdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_pdf_kwargs)
+            ret_pdf = self.plot_pdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_pdf_kwargs)
         else:
-            ret_dist = None
+            ret_pdf = None
+
+        if plot_cdf:
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_cdf_kwargs = plot_cdf_kwargs.copy()
+            for k,v in kwargs.items():
+                if k in ['bins']:
+                    continue
+                plot_cdf_kwargs.setdefault(k,v)
+            ret_cdf = self.plot_cdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_cdf_kwargs)
+        else:
+            ret_cdf = None
 
         if show:
             _plt.xlabel(self._xlabel(unit, label=label))
             _plt.ylabel('density')
             _plt.show()
 
-        return (ret_sample, ret_dist, ret_gauss)
+        return (ret_sample, ret_pdf, ret_cdf, ret_gauss)
 
 
     def plot_sample(self, size=100000, unit=None,
@@ -1470,7 +1488,7 @@ class BaseDistribution(object):
 
         return ret
 
-    def plot_pdf(self, x, unit=None, wrap_at=None,
+    def plot_pdf(self, x=None, unit=None, wrap_at=None,
                   label=None, show=False, **kwargs):
         """
         Plot the pdf function.  Requires matplotlib to be installed.
@@ -1483,9 +1501,12 @@ class BaseDistribution(object):
 
         Arguments
         -----------
-        * `x` (np array): the numpy array at which to sample the value on the
-            x-axis.  If `unit` is not None, the value of `x` are assumed to be
-            in the original units <<class>.unit>, not `unit`.
+        * `x` (array, optional, default=None): the numpy array at which to
+            sample the value on the x-axis.  If `unit` is not None, the value
+            of `x` are assumed to be in the original units <<class>.unit>,
+            not `unit`.  If not provided or None, `x` will be based to cover
+            the 99.9% of all distributions (see <<class>.interval>) with 1000
+            points and 10% padding.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
         * `wrap_at` (float, None, or False, optional, default=None): value to
@@ -1517,6 +1538,11 @@ class BaseDistribution(object):
         if not _has_mpl:
             raise ImportError("matplotlib required for plotting")
 
+        if x is None:
+            # TODO: test how this plays with units
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
+
         # x is assumed to be in new units
         if hasattr(self, 'pdf'):
             y = self.pdf(x, unit=unit)
@@ -1545,7 +1571,90 @@ class BaseDistribution(object):
 
         return ret
 
-    def plot_gaussian(self, x, unit=None, wrap_at=None,
+    def plot_cdf(self, x=None, unit=None, wrap_at=None,
+                  label=None, show=False, **kwargs):
+        """
+        Plot the pdf function.  Requires matplotlib to be installed.
+
+        See also:
+
+        * <<class>.plot>
+        * <<class>.plot_sample>
+        * <<class>.plot_gaussian>
+
+        Arguments
+        -----------
+        * `x` (array, optional, default=None): the numpy array at which to
+            sample the value on the x-axis.  If `unit` is not None, the value
+            of `x` are assumed to be in the original units <<class>.unit>,
+            not `unit`.  If not provided or None, `x` will be based to cover
+            the 99.9% of all distributions (see <<class>.interval>) with 1000
+            points and 10% padding.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments will be passed on to plt.plot.  Note:
+            if wrapping is enabled, either via `wrap_at` or <<class>.wrap_at>,
+            the resulting line will break when wrapping, resulting in using multiple
+            colors.  Sending `color` as a keyword argument will prevent this
+            matplotlib behavior.  Calling this through <<class>.plot> with
+            `plot_gaussian=True` defaults to sending `color='blue'` through
+            the `plot_gaussian_kwargs` argument.
+
+        Returns
+        --------
+        * the return from plt.plot
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        if x is None:
+            # TODO: test how this plays with units
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
+
+        # x is assumed to be in new units
+        if hasattr(self, 'cdf'):
+            y = self.cdf(x, unit=unit)
+            x = self.wrap(x, wrap_at=wrap_at)
+
+            # if unit is not None:
+                # print "*** converting from {} to {}".format(self.unit, unit)
+                # print "*** before convert", x.min(), x.max()
+                # x = (x*self.unit).to(unit).value
+                # print "*** after convert", x.min(), x.max()
+
+            # handle wrapping by making multiple calls to plot whenever the sign
+            # changes direction
+            split_inds = _np.where(x[1:]-x[:-1] < 0)[0]
+            xs, ys = _np.split(x, split_inds+1), _np.split(y, split_inds+1)
+            for x,y in zip(xs, ys):
+                ret = _plt.plot(x, y, **kwargs)
+        else:
+            return None
+
+
+        if show:
+            _plt.xlabel(self._xlabel(unit, label=label))
+            _plt.ylabel('cummulative density')
+            _plt.show()
+
+        return ret
+
+    def plot_gaussian(self, x=None, unit=None, wrap_at=None,
                       label=None, show=False, **kwargs):
         """
         Plot the gaussian distribution that would result from calling
@@ -1563,9 +1672,12 @@ class BaseDistribution(object):
 
         Arguments
         -----------
-        * `x` (np array): the numpy array at which to sample the value on the
-            x-axis. If `unit` is not None, the value of `x` are assumed to be
-            in the original units <<class>.unit>, not `unit`.
+        * `x` (array, optional, default=None): the numpy array at which to
+            sample the value on the x-axis.  If `unit` is not None, the value
+            of `x` are assumed to be in the original units <<class>.unit>,
+            not `unit`.  If not provided or None, `x` will be based to cover
+            the 99.9% of all distributions (see <<class>.interval>) with 1000
+            points and 10% padding.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
         * `wrap_at` (float, None, or False, optional, default=None): value to
@@ -1593,6 +1705,11 @@ class BaseDistribution(object):
         """
         if not _has_mpl:
             raise ImportError("matplotlib required for plotting")
+
+        if x is None:
+            # TODO: test how this plays with units
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
 
         to_gauss_keys = ['sigma', 'N', 'bins', 'range']
         g = self.to_gaussian(**{k:v for k,v in kwargs.items() if k in to_gauss_keys})
@@ -2447,7 +2564,9 @@ class Histogram(BaseDistribution):
     def from_data(cls, data, bins=10, range=None, weights=None,
                   label=None, unit=None, wrap_at=None):
         """
-        Create a <Histogram> distribution from data.
+        Create a <Histogram> distribution from data.  Note that under-the-hood
+        a linear interpolator is used between the bins for the pdf, cdf, and ppf
+        functions (and for sampling).
 
         This can also be created from a function at the top-level as:
 
@@ -2525,7 +2644,7 @@ class Histogram(BaseDistribution):
     def to_gaussian(self):
         """
         Convert the <Histogram> distribution to a <Gaussian> distribution by
-        adopting the values of <Histogram.mean> and <Histogram.std>.
+        adopting the values of <Histogram.median> and <Histogram.std>.
 
         Returns
         --------
