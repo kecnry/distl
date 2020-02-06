@@ -191,12 +191,13 @@ def function(func, unit, label, wrap_at, *args):
 
 #### MULTIVARIATE DISTRIBUTJIONS ####
 
-def mvgaussian(locs, cov, unit=None, label=None, wrap_at=None):
+def mvgaussian(mean, cov, allow_singular=False, unit=None, label=None, wrap_at=None):
     """
     Create a <MVGaussian> distribution.
 
     """
-    return _npdists.MVGaussian(locs, cov, unit=unit, label=label, wrap_at=wrap_at)
+    return _npdists.MVGaussian(mean, cov, allow_singular=allow_singular,
+                               unit=unit, label=label, wrap_at=wrap_at)
 
 def mvhistogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None, wrap_at=None):
     """

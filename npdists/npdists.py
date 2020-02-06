@@ -186,77 +186,6 @@ def is_square_matrix(value):
     return isinstance(value, _np.ndarray) and len(value.shape)==2 and value.shape[0]==value.shape[1], value
 
 
-
-######################## DISTRIBUTION FUNCTIONS ###############################
-
-# def gaussian(x, loc, scale):
-#     return 1./_np.sqrt(2*_np.pi*scale**2) * _np.exp(-(x-loc)**2/(2.*scale**2))
-#
-# def uniform(x, low, high):
-#     return _np.asarray((x >= low) * (x <= high), dtype='int') / float(high - low)
-
-# def histogram(x, bins, density):
-#     out = _np.zeros_like(x)
-#     filter_in_range = (x >= bins.min()) & (x < bins.max())
-#     out[filter_in_range] = density[_np.digitize(x[filter_in_range], bins)-1]
-#     return out
-
-# def mvgaussian(x, locs, cov, dimension=None):
-#     if dimension is None:
-#         raise NotImplementedError
-#     else:
-#         return gaussian(x, locs[dimension], cov[dimension, dimension])
-
-
-############################### SAMPLE FUNCTIONS ###############################
-
-def _sample_from_hist(bins, density, size=None):
-
-
-    ppf = _np.random.rand(size if size is not None else 1)
-    return _sample_ppf_from_hist(ppf if size is not None else ppf[0], bins, density)
-
-def _sample_ppf_from_hist(ppf, bins, density):
-    # adapted from: https://stackoverflow.com/a/17822210
-
-    # MV case
-    # density, bins = np.histogramdd(chain_flat, normed=True)
-    # bins = np.asarray(bins)
-
-
-    # 1D case
-    #density, bins = np.histogram(np.random.rand(1000), normed=True)
-    #bins = np.asarray([bins])
-    if _np.any(ppf > 1) or _np.any(ppf < 0):
-        raise ValueError("ppf must be between 0 and 1")
-
-    if isinstance(ppf, float):
-        return_single = True
-        ppf = _np.asarray([ppf])
-    else:
-        return_single = False
-        ppf = _np.asarray(ppf)
-
-
-    cdf = _np.cumsum(density)
-    cdf = cdf / float(cdf[-1])
-
-    value_bins = _np.searchsorted(cdf, ppf)
-
-    if len(bins.shape) > 1:
-        inds = _np.unravel_index(value_bins, density.shape)
-
-        bin_widths = _np.column_stack([_np.diff(b) for b in bins])
-        values_from_bins = _np.column_stack([b[ind]+bin_widths[ind,dim] * (ppf % 1) for dim,(b,ind) in enumerate(zip(bins, inds))])
-    else:
-        bin_widths = _np.diff(bins)
-        values_from_bins = bins[value_bins] + bin_widths[value_bins] * (ppf % 1)
-
-    if return_single:
-        return values_from_bins[0]
-    else:
-        return values_from_bins
-
 ######################## DISTRIBUTION ABSTRACT CLASS ###########################
 
 class BaseDistribution(object):
@@ -1020,6 +949,17 @@ class BaseDistribution(object):
         except AttributeError:
             raise NotImplementedError("{} does not support logcdf".format(self.__class__.__name__))
 
+    def sample(self, *args, **kwargs):
+        # must be implemented by any subclasses
+        raise NotImplementedError("sample not implemented for {}".format(self.__class__.__name__))
+
+    def plot(self, *args, **kwargs):
+        # must be implemented by any subclasses
+        raise NotImplementedError("plot not implemented for {}".format(self.__class__.__name__))
+
+
+class BaseUnivariateDistribution(BaseDistribution):
+
     def ppf(self, q, unit=None, as_quantity=False, wrap_at=None):
         """
         Expose the percent point function (ppf; iverse of cdf - percentiles) at
@@ -1268,10 +1208,12 @@ class BaseDistribution(object):
         if seed is not None:
             _np.random.seed(seed)
 
-        qs = _np.random.random(size=size)
 
-        return self._return_with_units(self.wrap(self.ppf(q=qs, wrap_at=False), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
-        # return self._return_with_units(self.wrap(self.sample_func(*self.sample_args, size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+        return self._return_with_units(self.wrap(self.dist_constructor_object.rv(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+
+        # qs = _np.random.random(size=size)
+        # return self._return_with_units(self.wrap(self.ppf(q=qs, wrap_at=False), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
     ### PLOTTING
 
@@ -1291,7 +1233,7 @@ class BaseDistribution(object):
         return l
 
 
-    def plot(self, size=100000, unit=None,
+    def plot(self, size=1e5, unit=None,
              wrap_at=None, seed=None,
              plot_sample=True, plot_sample_kwargs={'color': 'gray'},
              plot_pdf=True, plot_pdf_kwargs={'color': 'red'},
@@ -1310,7 +1252,7 @@ class BaseDistribution(object):
 
         Arguments
         -----------
-        * `size` (int, optional, default=100000): number of points to sample for
+        * `size` (int, optional, default=1e5): number of points to sample for
             the histogram.  See also <<class>.sample>.
         * `unit` (astropy.unit, optional, default=None): units to use along
             the x-axis.  Astropy must be installed.
@@ -1374,7 +1316,7 @@ class BaseDistribution(object):
             plot_sample_kwargs = plot_sample_kwargs.copy()
             for k,v in kwargs.items():
                 plot_sample_kwargs.setdefault(k,v)
-            ret_sample = self.plot_sample(size=size, unit=unit, wrap_at=wrap_at, seed=seed, show=False, **plot_sample_kwargs)
+            ret_sample = self.plot_sample(size=int(size), unit=unit, wrap_at=wrap_at, seed=seed, show=False, **plot_sample_kwargs)
         else:
             ret_sample = None
 
@@ -1777,6 +1719,220 @@ class BaseDistribution(object):
                                    unit=self.unit, label=self.label, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
 
 
+class BaseMultivariateDistribution(BaseDistribution):
+    def __init__(self, *args, **kwargs):
+        # TODO: handle units, labels, wrap_ats
+        dimension = kwargs.pop('dimension', None)
+
+        super(BaseMultivariateDistribution, self).__init__(*args, **kwargs)
+
+        self.dimension = dimension
+
+    @property
+    def label(self):
+        """
+        """
+        if self.dimension is None:
+            return self._label
+        else:
+            return self._label[self.dimension]
+
+    @label.setter
+    def label(self, label):
+        if not (label is None or isinstance(label, list)):
+            raise TypeError("label must be of type list")
+
+        self._label = label
+    #
+    # @property
+    # def dist_args(self):
+    #     """
+    #     Return the arguments sent to the distribution function.
+    #
+    #     See also:
+    #
+    #     * <<class>.dist_func>
+    #     * <<class>.distribution>
+    #
+    #     Returns
+    #     --------
+    #     * tuple
+    #     """
+    #
+    #     return tuple([getattr(self, k) for k in self._dist_args]+[self.dimension])
+
+    @property
+    def dimensions(self):
+        """
+        """
+        return range(self.ndimensions)
+
+    def get_dimension_by_label(self, dimension):
+        """
+        """
+        if isinstance(dimension, str) and dimension in self.label:
+            dimension = self.label.index(dimension)
+        return dimension
+
+    @property
+    def dimension(self):
+        """
+        See also:
+
+        * <<class>.sample>
+
+        Returns
+        ---------
+        * (int or None): dimension of the multivariate distribution to sample.
+            If None, will return an array of values for all available parameters.
+        """
+        return self._dimension
+
+    @dimension.setter
+    def dimension(self, dimension):
+        dimension = self.get_dimension_by_label(dimension)
+
+        if not (isinstance(dimension, int) or dimension is None):
+            raise TypeError("dimension must be of type int")
+
+        # TODO: check to make sure within valid range?  Then we'll probably have to set after super
+
+        self._dimension = dimension
+
+    def take_dimension(self, dimension=None):
+        """
+
+        Arguments
+        ----------
+        * `dimension` (int, list of ints, or None, optional, default=None)
+        """
+        if dimension is None:
+            dimension = self.dimensions
+        if not isinstance(dimension, str) and hasattr(dimension, '__iter__'):
+            return [self.take_dimension(d) for d in dimension]
+
+        d = self.copy()
+        d.dimension = dimension
+        return d
+
+    def pdf(self, x):
+        if hasattr(x, '__iter__'):
+            raise TypeError('x must an array with length ndimensions')
+
+        return super(BaseMultivariateDistribution, self).pdf(x)
+
+    def logpdf(self, x):
+        if hasattr(x, '__iter__'):
+            raise TypeError('x must an array with length ndimensions')
+
+        return super(BaseMultivariateDistribution, self).logpdf(x)
+
+    def cdf(self, x):
+        if hasattr(x, '__iter__'):
+            raise TypeError('x must an array with length ndimensions')
+
+        return super(BaseMultivariateDistribution, self).cdf(x)
+
+    def logcdf(self, x):
+        if hasattr(x, '__iter__'):
+            raise TypeError('x must an array with length ndimensions')
+
+        return super(BaseMultivariateDistribution, self).logcdf(x)
+
+
+    def sample(self, size=None, dimension=None):
+        """
+        Sample from the distribution.
+
+        Arguments
+        -----------
+        * `size` (int or tuple or None, optional, default=None): size/shape of the
+            resulting array.
+        * `dimension`: (int, optional): dimension of the multivariate distribution
+            to sample.  If not provided or None, will default to <<class>.dimension>.
+
+        Returns
+        ---------
+        * float or array: float if `size=None`, otherwise a numpy array with
+            shape defined by `size`.
+        """
+
+        # TODO: add support for per-dimension unit, wrap_at, as_quantity (and pass in to_mvhistogram)
+
+        dimension = self.get_dimension_by_label(dimension if dimension is not None else self.dimension)
+        sample = self.dist_constructor_object.rvs(size=size)
+
+        if dimension is not None:
+            if len(sample.shape) == 1:
+                return sample[dimension]
+            else:
+                return sample[:, dimension]
+        else:
+            return sample
+
+    def plot(self, *args, **kwargs):
+        """
+        """
+        dimension = self.get_dimension_by_label(kwargs.pop('dimension', None))
+        if dimension is not None:
+            return self.take_dimension(dimension).plot(*args, **kwargs)
+        elif self.dimension is not None:
+            return super(BaseMultivariateDistribution, self).plot(*args, **kwargs)
+        else:
+            # then we need to do a corner plot
+            if not _has_corner:
+                raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
+
+            return corner.corner(self.sample(size=int(1e5)), labels=self.label, **kwargs)
+
+    def to_histogram(self, N=100000, bins=10, range=None, dimension=None, wrap_at=None):
+        """
+        Convert the <<class>> distribution to a <Histogram> distribution.
+
+        Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
+        and passes the resulting array as well as the requested `bins` and `range`
+        to <Histogram.from_data>.
+
+        Arguments
+        -----------
+        * `N` (int, optional, default=100000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+        * `dimension` (int or string, default=None): dimension to use
+            when flattening to the 1-D histogram distribution. If not proivded
+            or None, will use value from <<class>.dimension>.  `dimension` is
+            therefore REQUIRED if <<class>.dimension> is None.
+        * `wrap_at` (float or None, optional, default=None): value to set for
+            `wrap_at` of the returned <Histogram>.  If None or not provided,
+            will default to <<class>.wrap_at>.
+
+        Returns
+        --------
+        * a <Histogram> object
+
+        Raises
+        ---------
+        * ValueError: if `dimension` and <<class>.dimension> are both None.
+        """
+        if dimension is None:
+            dimension = self.dimension
+
+        dimension = self.get_dimension_by_label(dimension)
+
+        if dimension is None:
+            raise ValueError("must provide dimension.")
+
+        unit = self.unit[dimension] if isinstance(self.unit, list) else self.unit
+        label = self.label[dimension] if isinstance(self.label, list) else self.label
+        if wrap_at is None:
+            wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
+
+        return Histogram.from_data(self.sample(dimension=dimension, size=N, wrap_at=False),
+                                   bins=bins, range=range,
+                                   unit=unit, label=label, wrap_at=wrap_at)
+
 
 class DistributionCollection(object):
     """
@@ -1978,10 +2134,10 @@ class DistributionCollection(object):
 
 
 
-####################### DISTRIBUTION SUB-CLASSES ###############################
+########################## UNIVARIATE DISTRIBUTIONS ############################
 
 
-class Composite(BaseDistribution):
+class Composite(BaseUnivariateDistribution):
     """
     A composite distribution consisting of some math operator between one or two
     other Distribution objects.
@@ -2314,7 +2470,7 @@ class Composite(BaseDistribution):
         """
         return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
-# class Function(BaseDistribution):
+# class Function(BaseUnivariateDistribution):
 #     """
 #     A Function distribution allows for any python callable to be stored that
 #     utilizes distributions under-the-hood.  When calling <Function.sample>,
@@ -2456,7 +2612,7 @@ class Composite(BaseDistribution):
 #         return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
 
-class Histogram(BaseDistribution):
+class Histogram(BaseUnivariateDistribution):
     """
     A Histogram distribution stores a discrete PDF and allows sampling from
     that binned density distribution.
@@ -2498,11 +2654,6 @@ class Histogram(BaseDistribution):
         --------
         * a <Histogram> object
         """
-        # super(Histogram, self).__init__(unit, label, wrap_at,
-        #                                 histogram, ('bins', 'density'),
-        #                                 _sample_from_hist, _sample_ppf_from_hist, ('bins', 'density'),
-        #                                 ('bins', bins, is_iterable), ('density', density, is_iterable))
-
         super(Histogram, self).__init__(unit, label, wrap_at,
                                         _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
@@ -2600,7 +2751,7 @@ class Histogram(BaseDistribution):
         """
         return self.to_gaussian(label=self.label, unit=self.unit).to_uniform(sigma=sigma)
 
-class Delta(BaseDistribution):
+class Delta(BaseUnivariateDistribution):
     """
     A Delta distribution will _always_ return the central values.  In most cases,
     there is no need to manually create a Delta distribution.  But when doing
@@ -2698,7 +2849,7 @@ class Delta(BaseDistribution):
         return Gaussian(self.loc, 0.0, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
 
-class Gaussian(BaseDistribution):
+class Gaussian(BaseUnivariateDistribution):
     """
     A Gaussian (or Normal) distribution uses [scipy.stats.norm](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.norm.html)
     to sample values from a gaussian function.
@@ -2790,7 +2941,7 @@ class Gaussian(BaseDistribution):
         return Uniform(low, high, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
 
 
-class Uniform(BaseDistribution):
+class Uniform(BaseUnivariateDistribution):
     """
     A Uniform (or Boxcar) distribution gives equal weights to all values within
     the defined range and uses [scipy.stats.uniform](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.uniform.html)
@@ -2892,204 +3043,10 @@ class Uniform(BaseDistribution):
         scale = (self.high - self.low) / (2.0 * sigma)
         return Gaussian(loc, scale, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
-######################## MULTI-VARIATE DISTRIBUTIONS ###########################
-
-
-class BaseMultivariateDistribution(BaseDistribution):
-    def __init__(self, *args, **kwargs):
-        # TODO: handle units, labels, wrap_ats
-        self.dimension = kwargs.pop('dimension', None)
-
-        super(BaseMultivariateDistribution, self).__init__(*args, **kwargs)
-
-    @property
-    def label(self):
-        """
-        """
-        if self.dimension is None:
-            return self._label
-        else:
-            return self._label[self.dimension]
-
-    @label.setter
-    def label(self, label):
-        if not (label is None or isinstance(label, list)):
-            raise TypeError("label must be of type list")
-
-        self._label = label
-    #
-    # @property
-    # def dist_args(self):
-    #     """
-    #     Return the arguments sent to the distribution function.
-    #
-    #     See also:
-    #
-    #     * <<class>.dist_func>
-    #     * <<class>.distribution>
-    #
-    #     Returns
-    #     --------
-    #     * tuple
-    #     """
-    #
-    #     return tuple([getattr(self, k) for k in self._dist_args]+[self.dimension])
-
-    @property
-    def dimensions(self):
-        """
-        """
-        return range(self.ndimensions)
-
-    def get_dimension_by_label(self, dimension):
-        """
-        """
-        if isinstance(dimension, str) and dimension in self.label:
-            dimension = self.label.index(dimension)
-        return dimension
-
-    @property
-    def dimension(self):
-        """
-        See also:
-
-        * <<class>.sample>
-
-        Returns
-        ---------
-        * (int or None): dimension of the multivariate distribution to sample.
-            If None, will return an array of values for all available parameters.
-        """
-        return self._dimension
-
-    @dimension.setter
-    def dimension(self, dimension):
-        dimension = self.get_dimension_by_label(dimension)
-
-        if not (isinstance(dimension, int) or dimension is None):
-            raise TypeError("dimension must be of type int")
-
-        # TODO: check to make sure within valid range?  Then we'll probably have to set after super
-
-        self._dimension = dimension
-
-    def take_dimension(self, dimension=None):
-        """
-
-        Arguments
-        ----------
-        * `dimension` (int, list of ints, or None, optional, default=None)
-        """
-        if dimension is None:
-            dimension = self.dimensions
-        if not isinstance(dimension, str) and hasattr(dimension, '__iter__'):
-            return [self.take_dimension(d) for d in dimension]
-
-        d = self.copy()
-        d.dimension = dimension
-        return d
-
-    def logp(self, x, dimension=None, unit=None):
-        """
-        """
-        if dimension is None:
-            dimension = self.dimension
-        if dimension is None:
-            dimension = self.dimensions
-
-        if len(x) != len(dimension):
-            raise ValueError("x must be same length as dimensions ({})".format(len(dimension)))
-
-        # need to "slice" through the covariance matrix (for gaussian at least),
-        # then return a single logp (whould it be multiplied by len(x)?)
-        raise NotImplementedError
-
-
-    def sample(self, *args, **kwargs):
-        """
-
-        * `dimension`: (int, optional): dimension of the multivariate distribution
-            to sample.  If not provided or None, will default to <<class>.dimension>.
-        * `*args`, `**kwargs`: all additional arguments and keyword arguments
-            are passed on to <BaseDistribution.sample>.
-        """
-        dimension = self.get_dimension_by_label(kwargs.pop('dimension', self.dimension))
-        sample = super(BaseMultivariateDistribution, self).sample(*args, **kwargs)
-
-        if dimension is not None:
-            if len(sample.shape) == 1:
-                return sample[dimension]
-            else:
-                return sample[:, dimension]
-        else:
-            return sample
-
-    def plot(self, *args, **kwargs):
-        """
-        """
-        dimension = self.get_dimension_by_label(kwargs.pop('dimension', None))
-        if dimension is not None:
-            return self.take_dimension(dimension).plot(*args, **kwargs)
-        elif self.dimension is not None:
-            return super(BaseMultivariateDistribution, self).plot(*args, **kwargs)
-        else:
-            # then we need to do a corner plot
-            if not _has_corner:
-                raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
-
-            return corner.corner(self.sample(size=100000), labels=self.label, **kwargs)
-
-    def to_histogram(self, N=100000, bins=10, range=None, dimension=None, wrap_at=None):
-        """
-        Convert the <<class>> distribution to a <Histogram> distribution.
-
-        Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
-        and passes the resulting array as well as the requested `bins` and `range`
-        to <Histogram.from_data>.
-
-        Arguments
-        -----------
-        * `N` (int, optional, default=100000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-        * `dimension` (int or string, default=None): dimension to use
-            when flattening to the 1-D histogram distribution. If not proivded
-            or None, will use value from <<class>.dimension>.  `dimension` is
-            therefore REQUIRED if <<class>.dimension> is None.
-        * `wrap_at` (float or None, optional, default=None): value to set for
-            `wrap_at` of the returned <Histogram>.  If None or not provided,
-            will default to <<class>.wrap_at>.
-
-        Returns
-        --------
-        * a <Histogram> object
-
-        Raises
-        ---------
-        * ValueError: if `dimension` and <<class>.dimension> are both None.
-        """
-        if dimension is None:
-            dimension = self.dimension
-
-        dimension = self.get_dimension_by_label(dimension)
-
-        if dimension is None:
-            raise ValueError("must provide dimension.")
-
-        unit = self.unit[dimension] if isinstance(self.unit, list) else self.unit
-        label = self.label[dimension] if isinstance(self.label, list) else self.label
-        if wrap_at is None:
-            wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
-
-        return Histogram.from_data(self.sample(dimension=dimension, size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   unit=unit, label=label, wrap_at=wrap_at)
-
+######################### MULTIVARIATE DISTRIBUTIONS ###########################
 
 class MVGaussian(BaseMultivariateDistribution):
-    def __init__(self, locs=0.0, cov=1.0, unit=None, label=None, wrap_at=None):
+    def __init__(self, mean=0.0, cov=1.0, allow_singular=False, unit=None, label=None, wrap_at=None):
         """
         Create a <MVGaussian> distribution.
 
@@ -3099,7 +3056,7 @@ class MVGaussian(BaseMultivariateDistribution):
 
         Arguments
         --------------
-        * `locs` (float or int, default=0.0): the central value of the gaussian distribution.
+        * `mean` (float or int, default=0.0): the central value of the gaussian distribution.
         * `cov` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
@@ -3115,47 +3072,46 @@ class MVGaussian(BaseMultivariateDistribution):
         * a <MVGaussian> object
         """
         super(MVGaussian, self).__init__(unit, label, wrap_at,
-                                       mvgaussian, ('locs', 'cov'),
-                                       _np.random.multivariate_normal, None, ('locs', 'cov'),
-                                       ('locs', locs, is_iterable), ('cov', cov, is_square_matrix))
+                                         _stats.multivariate_normal, ('mean', 'cov', 'allow_singular'),
+                                         ('mean', mean, is_iterable), ('cov', cov, is_square_matrix), ('allow_singular', allow_singular, is_bool))
 
     @property
     def ndimensions(self):
         """
         """
-        return len(self.locs)
+        return len(self.mean)
 
-    @property
-    def means(self):
-        """
-        Return the weighted mean values from `locs`.
+    # @property
+    # def means(self):
+    #     """
+    #     Return the weighted mean values from `locs`.
+    #
+    #     See also:
+    #
+    #     * <MVGaussian.covariances>
+    #
+    #     Returns
+    #     -------
+    #     * list of floats: the mean value per dimension
+    #     """
+    #     return self.locs
+    #
+    # @property
+    # def covariances(self, N=1000):
+    #     """
+    #     Return the covariances from `cov`
+    #
+    #     See also:
+    #
+    #     * <MVGaussian.means>
+    #
+    #     Returns
+    #     ---------
+    #     * NxN square matrix of floats.
+    #     """
+    #     return self.cov
 
-        See also:
-
-        * <MVGaussian.covariances>
-
-        Returns
-        -------
-        * list of floats: the mean value per dimension
-        """
-        return self.locs
-
-    @property
-    def covariances(self, N=1000):
-        """
-        Return the covariances from `cov`
-
-        See also:
-
-        * <MVGaussian.means>
-
-        Returns
-        ---------
-        * NxN square matrix of floats.
-        """
-        return self.cov
-
-    def to_mvhistogram(self, N=10000, bins=10, range=None):
+    def to_mvhistogram(self, N=1e6, bins=15, range=None):
         """
         Convert the <<class>> distribution to an <MVHistogram> distribution.
 
@@ -3165,9 +3121,9 @@ class MVGaussian(BaseMultivariateDistribution):
 
         Arguments
         -----------
-        * `N` (int, optional, default=1000): number of samples to use for
+        * `N` (int, optional, default=1e6): number of samples to use for
             the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
+        * `bins` (int, optional, default=15): number of bins to use for the
             histogram.
         * `range` (tuple or None): range to use for the histogram.
 
@@ -3175,9 +3131,10 @@ class MVGaussian(BaseMultivariateDistribution):
         --------
         * an <MVHistogram> object
         """
-        return MVHistogram.from_data(self.sample(size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+        # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
+        return MVHistogram.from_data(self.sample(size=int(N)),
+                                     bins=bins, range=range,
+                                     unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
 
 class MVHistogram(BaseMultivariateDistribution):
@@ -3187,18 +3144,90 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         """
         super(MVHistogram, self).__init__(unit, label, wrap_at,
-                                        histogram, ('bins', 'density'),
-                                        _sample_from_hist, None, ('bins', 'density'),
-                                        ('bins', bins, is_iterable), ('density', density, is_iterable))
+                                          None, None,
+                                          ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
     def from_data(cls, data, bins=10, range=None, weights=None,
                   label=None, unit=None, wrap_at=None):
         """
         """
-        hist, bin_edges = _np.histogramdd(data, bins=bins, range=range, weights=weights, normed=True) # what version of numpy introduced density?
+        # TODO:  what version of numpy introduced density?  Do we need a try/except or to check the version?
+        try:
+            hist, bin_edges = _np.histogramdd(data, bins=bins, range=range, weights=weights, density=True)
+        except TypeError:
+            hist, bin_edges = _np.histogramdd(data, bins=bins, range=range, weights=weights, normed=True)
+
 
         return cls(_np.asarray(bin_edges), hist, label=label, unit=unit, wrap_at=wrap_at)
+
+    def pdf(self, x):
+        # TODO: N-dimension interpolation of (self.bins, self.density)
+        raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+
+    def logpdf(self, x):
+        raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+
+    @property
+    def _cdf_per_bin(self):
+        cdf = _np.cumsum(self.density)
+        cdf /= float(cdf[-1])
+        return cdf
+
+    def cdf(self, x):
+        # TODO: N-dimensional interpolation of (self.bins, self._cdf_per_bin)
+        raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+
+    def logcdf(self, x):
+        raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+
+    def ppf(self, q):
+        # adapted from: https://stackoverflow.com/a/17822210
+        #
+        # MV case
+        # density, bins = np.histogramdd(chain_flat, normed=True)
+        # bins = np.asarray(bins)
+        #
+        # 1D case
+        # density, bins = np.histogram(np.random.rand(1000), normed=True)
+        # bins = np.asarray([bins])
+
+        if _np.any(q > 1) or _np.any(q < 0):
+            raise ValueError("q must be between 0 and 1")
+
+        if isinstance(q, float):
+            return_single = True
+            q = _np.asarray([q])
+        else:
+            return_single = False
+            q = _np.asarray(q)
+
+        # this is cdf on the unraveled densities
+        cdf = self._cdf_per_bin
+
+        unraveled_index_float = _np.interp(q, cdf, range(len(cdf)))
+        # print("unraveled_index_float: {}".format(unraveled_index_float))
+
+        unraveled_index = unraveled_index_float.astype(int)
+        unraveled_index_rem = unraveled_index_float - unraveled_index
+        # print("unraveled_index: {}, unraveled_index_rem: {}".format(unraveled_index, unraveled_index_rem))
+
+        # multivariate case
+        ind_per_dim = _np.unravel_index(unraveled_index, self.density.shape)
+        # now we'll essentially subdivide each bin by the shape of the original grid so that we can linearly interpolate inside the chosen bin
+        rem_per_dim = _np.asarray(_np.unravel_index((unraveled_index_rem*len(cdf)).astype(int), self.density.shape)).astype(float) / _np.asarray(self.density.shape)[:, _np.newaxis]
+        bin_width_per_dim = _np.row_stack([_np.diff(b) for b in self.bins])
+        # print("ind_per_dim: {}".format(ind_per_dim))
+        # print("bin_width_per_dim: {}".format(bin_width_per_dim))
+        # print("rem_per_dim: {}".format(rem_per_dim))
+
+        # b[ind] is the lower-edge of the bin... so we want to interpolate based on that bin_width
+        values_from_bins = _np.column_stack([self.bins[dim,ind_this_dim]+bin_width_per_dim[dim,ind_this_dim]*rem_per_dim[dim] for dim,ind_this_dim in enumerate(ind_per_dim)])
+
+        if return_single:
+            return values_from_bins[0]
+        else:
+            return values_from_bins
 
     @property
     def ndimensions(self):
@@ -3206,32 +3235,79 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         return self.bins.shape[0]
 
+    def sample(self, size=None, dimension=None):
+        """
+        """
+        dimension = self.get_dimension_by_label(dimension if dimension is not None else self.dimension)
+        if dimension is not None:
+            bins = self.bins[dimension]
+            density = self.density[dimension]
+        else:
+            bins = self.bins
+            density = self.density
+
+        q = _np.random.rand(size if size is not None else 1)
+        return self.ppf(q)
+
     def plot(self, *args, **kwargs):
         """
         """
+        # TODO: add plot_mvgaussian or plot_gaussian options to overplot the MVGaussian pdfs/contours
+
         dimension = self.get_dimension_by_label(kwargs.get('dimension', None))
         if dimension is not None:
             kwargs.setdefault('bins', self.bins[dimension])
 
         return super(MVHistogram, self).plot(*args, **kwargs)
 
+    def calculate_means_covariances(self, N=1e5):
+        """
+        Return the weighted mean values and covariances from the histogram.
 
-    @property
-    def means(self):
+        See also:
+
+        * <MVHistogram.calculate_means>
+        * <MVHistogram.calculate_covariances>
+
+        Arguments
+        ---------
+        * `N` (int, default=1e5): number of samples to use to pass to
+            `np.cov`.
+
+        Returns
+        -------
+        * means (array of floats), covariances (matrix)
+        """
+        # means could also be self.ppf(0.5)
+
+        # TODO: pass wrap_at=False once supported
+        samples = self.sample(size=int(N))
+        # means = [_np.mean(samples[:,d] for d in range(self.dimensions))]
+        means = _np.mean(samples, axis=0)
+        covariances = _np.cov(samples.T)
+        return means, covariances
+
+    def calculate_means(self, N=1e5):
         """
         Return the weighted mean values from the histogram.
 
         See also:
 
-        * <MVHistogram.covariances>
+        * <MVHistogram.calculate_covariances>
+        * <MVHistogram.calculate_means_covariances>
+
+        Arguments
+        ---------
+        * `N` (int, default=1e5): number of samples to use to pass to
+            `np.cov`.
 
         Returns
         -------
         * list of floats: the mean value per dimension
         """
-        return [self.to_histogram(dimension=d).mean for d in self.dimensions]
+        return self.calculate_means_covariances(N=N)[0]
 
-    def get_covariances(self, N=1e5):
+    def calculate_covariances(self, N=1e5):
         """
         Return the covariances about the mean from the histogram.
 
@@ -3240,8 +3316,8 @@ class MVHistogram(BaseMultivariateDistribution):
 
         See also:
 
-        * <MVHistogram.covariances>
-        * <MVHistogram.means>
+        * <MVHistogram.calculate_means>
+        * <MVHistogram.calculate_means_covariances>
 
         Arguments
         ---------
@@ -3250,45 +3326,30 @@ class MVHistogram(BaseMultivariateDistribution):
 
         Returns
         ---------
-        * NxN square matrix of floats.
+        * MxM square matrix of floats.
         """
-        return _np.cov(self.sample(int(N)).T)
+        return self.calculate_means_covariances(N=N)[1]
 
-    @property
-    def covariances(self):
-        """
-        Return the covariances about the mean from the histogram.
 
-        Under-the-hood, this calls `np.cov` on the output from <<class>.sample>
-        with 1e5 samples.  To adjust the number of samples, use <<class>.get_covariances> instead.
-
-        See also:
-
-        * <MVHistogram.get_covariances>
-        * <MVHistogram.means>
-
-        Returns
-        ---------
-        * NxN square matrix of floats.
-        """
-        return self.get_covariances()
-
-    def to_mvgaussian(self, N=1e5):
+    def to_mvgaussian(self, N=1e5, allow_singular=False):
         """
         Convert the <<class>> distribution to an <MVGaussian> distribution.
 
         See also:
 
-        * <MVHistogram.means>
-        * <MVHistogram.get_covariances>
+        * <MVHistogram.calculate_means>
+        * <MVHistogram.calculate_covariances>
 
         Arguments
         ---------
         * `N` (int, default=1e5): number of samples to use when calling
-            <<class>.get_covariances>.
+            <<class>.calculate_means> and <<class>.calculate_covariances>.
+        * `allow_singular` (bool, optional, default=False): value to pass to
+            <MVGaussian>.
 
         Returns
         --------
         * an <MVGaussian> object
         """
-        return MVGaussian(self.means, self.get_covariances(N), unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+        mean, cov = self.calculate_means_covariances(N)
+        return MVGaussian(mean, cov, allow_singular=allow_singular, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
