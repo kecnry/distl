@@ -882,7 +882,7 @@ class BaseDistribution(object):
         -------
         * tuple
         """
-        return [self._descriptors.get(a) for a in self.dist_constructor_argnames]
+        return [getattr(self, a) for a in self.dist_constructor_argnames]
 
     def _dist_constructor_object_clear_cache(self):
         """
@@ -2827,7 +2827,7 @@ class Uniform(BaseDistribution):
         * a <Uniform> object
         """
         super(Uniform, self).__init__(unit, label, wrap_at,
-                                       _stats.uniform, ('low', 'high'),
+                                       _stats.uniform, ('low', 'width'),
                                        ('low', low, is_float), ('high', high, is_float))
 
     def __mul__(self, other):
@@ -2867,6 +2867,10 @@ class Uniform(BaseDistribution):
 
     def __sub__(self, other):
         return self.__add__(-1*other)
+
+    @property
+    def width(self):
+        return self.high - self.low
 
     def to_gaussian(self, sigma=1.0):
         """
