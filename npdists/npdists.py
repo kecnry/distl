@@ -294,6 +294,9 @@ class BaseDistribution(object):
         self._dist_constructor_func = dist_constructor_func
         self._dist_constructor_argnames = dist_constructor_argnames
 
+        self._dist_constructor_object_cache = None
+        self._parents_with_cache = []
+
         self.label = label
         self.unit = unit
         self.wrap_at = wrap_at
@@ -313,16 +316,7 @@ class BaseDistribution(object):
         """
         for anything that isn't overriden here, expose the values in self._descriptors
         """
-        # TODO: should we flip the logic here to check keys first?
-
-        # if name in _builtin_attrs or (name.startswith("_") and not name.startswith('__') and not name.endswith('_')):
-        #     # then we need to actually get the attribute
-        #     try:
-        #         return super(BaseDistribution, self).__getattr__(name)
-        #     except:
-        #         print("__getattr__ failed with name={}".format(name))
-        #         raise
-        if name in self._descriptors.keys():
+        if not name.startswith('_') and name in self._descriptors.keys():
             # then get the item in the dictionary
             return self._descriptors.get(name)
         else:
@@ -334,16 +328,22 @@ class BaseDistribution(object):
     def __setattr__(self, name, value):
         """
         """
-        if name in _builtin_attrs or (name.startswith("_") and not name.startswith('__') and not name.endswith('_')):
-            return super(BaseDistribution, self).__setattr__(name, value)
-        elif name in self._descriptors.keys():
+        if not name.startswith('_') and name in self._descriptors.keys():
             valid, validated_value = self._validators[name](value)
             if valid:
+                # clear the cache first since the underlying constructor object
+                # will now need to be rebuilt.  This also bubbles up to anything
+                # in self._parents_with_cache
+                self._dist_constructor_object_clear_cache()
+                # and then set the value in the dictionary
                 self._descriptors[name] = validated_value
             else:
                 raise ValueError("{} {}".format(name, validator.__doc__))
         else:
-            raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
+            try:
+                return super(BaseDistribution, self).__setattr__(name, value)
+            except:
+                raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
 
     ### REPRESENTATIONS
 
@@ -884,6 +884,14 @@ class BaseDistribution(object):
         """
         return [self._descriptors.get(a) for a in self.dist_constructor_argnames]
 
+    def _dist_constructor_object_clear_cache(self):
+        """
+        """
+        # print("*** clearing cache {}".format(self))
+        self._dist_constructor_object_cache = None
+        for parent in self._parents_with_cache:
+            parent._dist_constructor_object_clear_cache()
+
     @property
     def dist_constructor_object(self):
         """
@@ -899,7 +907,10 @@ class BaseDistribution(object):
         -------
         * object
         """
-        return self.dist_constructor_func(*self.dist_constructor_args)
+        if self._dist_constructor_object_cache is None:
+            self._dist_constructor_object_cache = self.dist_constructor_func(*self.dist_constructor_args)
+
+        return self._dist_constructor_object_cache
 
     def pdf(self, x, unit=None):
         """
@@ -2033,8 +2044,13 @@ class Composite(BaseDistribution):
         ---------
         * a <Composite> object.
         """
+
+        # TODO: do we need to make copies of dist1 and dist2?
+        dist1 = dist1.copy()
+        dist2 = dist2.copy()
+
         super(Composite, self).__init__(unit, label, wrap_at,
-                                        _stats_custom.generic_pdf_cdf_ppf, ('pdf_cdf_ppf_callables'),
+                                        _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
                                         ('math', math, is_math), ('dist1', dist1, is_distribution), ('dist2', dist2, is_distribution_or_none))
 
         if _has_astropy:
@@ -2059,6 +2075,12 @@ class Composite(BaseDistribution):
                 self.unit = dist2.unit
             else:
                 self.unit = None
+
+        # do some paperwork so changes to descriptors in the children bubble
+        # up and will call self._dist_constructor_object_clear_cache()
+        dist1._parents_with_cache.append(self)
+        if dist2 is not None:
+            dist2._parents_with_cache.append(self)
 
 
     def __repr__(self):
@@ -2094,7 +2116,7 @@ class Composite(BaseDistribution):
 
 
     @property
-    def pdf_cdf_ppf_callables(self):
+    def _pdf_cdf_ppf_callables(self):
 
         if self.math in ['__and__', '__or__']:
             # and: multiply pdfs and return interpolator (possibly over range of children 0.99999)
@@ -2124,7 +2146,7 @@ class Composite(BaseDistribution):
             pdf_call = _stats_custom.interpolate_callable(x, pdf)
 
             if cdf is None:
-                print("*** integrating to compute cdf over spline (this may be slow... we'll eventually cache this so it only needs to be done once until an attribute is changed)")
+                # print("*** integrating to compute cdf over spline (this may be slow... we'll eventually cache this so it only needs to be done once until an attribute is changed)")
                 spline = _interpolate.UnivariateSpline(x, pdf, k=1, s=0)
                 def _spline_int_single(xi):
                     return spline.integral(x[0], xi)
@@ -2143,41 +2165,11 @@ class Composite(BaseDistribution):
             return pdf_call, cdf_call, ppf_call
 
         else:
-            return None
-
-    @property
-    def pdf_callable(self):
-        return self.pdf_cdf_ppf_callables[0]
-
-    @property
-    def cdf_callable(self):
-        return self.pdf_cdf_ppf_callables[1]
-
-    @property
-    def ppf_callable(self):
-        return self.pdf_cdf_ppf_callables[2]
+            raise NotImplementedError("support for math {} not yet implemented".format(self.math))
 
     @property
     def dist_constructor_args(self):
-        return self.pdf_cdf_ppf_callables
-
-    @property
-    def dist_constructor_args(self):
-        pdf_cdf_ppf_callables = self.pdf_cdf_ppf_callables
-        if pdf_cdf_ppf_callables is None:
-            return None
-        else:
-            return pdf_cdf_ppf_callables
-
-    @property
-    def dist_constructor_object(self):
-        args = self.dist_constructor_args
-        if args is None:
-            # we'll return None, which will raise NotImplementedError in all pdf/cdf/ppf methods that rely on scipy.stats objects (unless we override here)
-            return None
-
-        else:
-            return self.dist_constructor_func(*args)
+        return self._pdf_cdf_ppf_callables
 
     def _sample_from_children(self, math, dist1, dist2, seed={}, size=None):
         if math == '__and__':
@@ -2610,7 +2602,7 @@ class Histogram(BaseDistribution):
         #                                 ('bins', bins, is_iterable), ('density', density, is_iterable))
 
         super(Histogram, self).__init__(unit, label, wrap_at,
-                                        _stats_custom.generic_pdf_cdf_ppf, ('pdf_cdf_ppf_callables'),
+                                        _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
                                         ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
@@ -2655,7 +2647,7 @@ class Histogram(BaseDistribution):
         return cls(bin_edges, hist, label=label, unit=unit, wrap_at=wrap_at)
 
     @property
-    def pdf_cdf_ppf_callables(self):
+    def _pdf_cdf_ppf_callables(self):
         bincenters = _np.mean(_np.vstack([self.bins[0:-1], self.bins[1:]]), axis=0)
         pdf = self.density
         pdf_call = _stats_custom.interpolate_callable(bincenters, pdf)
@@ -2672,24 +2664,8 @@ class Histogram(BaseDistribution):
         return pdf_call, cdf_call, ppf_call
 
     @property
-    def pdf_callable(self):
-        return self.pdf_cdf_ppf_callables[0]
-
-    @property
-    def cdf_callable(self):
-        return self.pdf_cdf_ppf_callables[1]
-
-    @property
-    def ppf_callable(self):
-        return self.pdf_cdf_ppf_callables[2]
-
-    @property
     def dist_constructor_args(self):
-        return self.pdf_cdf_ppf_callables
-
-    @property
-    def dist_constructor_object(self):
-        return self.dist_constructor_func(*self.dist_constructor_args)
+        return self._pdf_cdf_ppf_callables
 
     def to_gaussian(self):
         """
