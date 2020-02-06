@@ -1749,7 +1749,7 @@ class BaseDistribution(object):
 
     ### CONVERSION TO OTHER DISTRIBUTION TYPES
 
-    def to_histogram(self, N=100000, bins=10, range=None):
+    def to_histogram(self, N=100000, bins=10, range=None, wrap_at=None):
         """
         Convert the <<class>> distribution to a <Histogram> distribution.
 
@@ -1764,6 +1764,9 @@ class BaseDistribution(object):
         * `bins` (int, optional, default=10): number of bins to use for the
             histogram.
         * `range` (tuple or None): range to use for the histogram.
+        * `wrap_at` (float or None, optional, default=None): value to set for
+            `wrap_at` of the returned <Histogram>.  If None or not provided,
+            will default to <<class>.wrap_at>.
 
         Returns
         --------
@@ -1771,7 +1774,7 @@ class BaseDistribution(object):
         """
         return Histogram.from_data(self.sample(size=N, wrap_at=False),
                                    bins=bins, range=range,
-                                   unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+                                   unit=self.unit, label=self.label, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
 
 
 
@@ -1780,12 +1783,12 @@ class DistributionCollection(object):
     <DistributionCollection> allows sampling from multiple distribution objects
     simultaneously, respecting all underlying covariances whenever possible.
     """
-    def __init__(self, distributions):
-        if isinstance(distributions, BaseDistribution):
-            distributions = [distributions]
+    def __init__(self, *distributions):
+        # if isinstance(distributions, BaseDistribution):
+            # distributions = [distributions]
 
-        if not (isinstance(distributions, list) or isinstance(distributions, tuple)):
-            raise TypeError("distributions must be a list or tuple of distribution objects")
+        # if not (isinstance(distributions, list) or isinstance(distributions, tuple)):
+            # raise TypeError("distributions must be a list or tuple of distribution objects")
         if not _np.all(isinstance(dist, BaseDistribution) for dist in distributions):
             raise ValueError("all items in distributions must be of type BaseDistribution")
 
@@ -1857,7 +1860,7 @@ class DistributionCollection(object):
             seeds.setdefault(dist.hash, get_random_seed()[i])
 
 
-        samples = [dist.sample(*args, seed=seeds, **kwargs) for dist in dists]
+        samples = [dist.sample(*args, seed=seeds, **kwargs) for dist in self.distributions]
         return _np.asarray(samples).T
 
 
@@ -2047,7 +2050,8 @@ class Composite(BaseDistribution):
 
         # TODO: do we need to make copies of dist1 and dist2?
         dist1 = dist1.copy()
-        dist2 = dist2.copy()
+        if dist2 is not None:
+            dist2 = dist2.copy()
 
         super(Composite, self).__init__(unit, label, wrap_at,
                                         _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
@@ -2119,17 +2123,18 @@ class Composite(BaseDistribution):
     def _pdf_cdf_ppf_callables(self):
 
         if self.math in ['__and__', '__or__']:
-            # and: multiply pdfs and return interpolator (possibly over range of children 0.99999)
-            # or: add pdfs and return interpolator (possibly over range of children 0.999999)
             dist1range = self.dist1.interval(0.9999, wrap_at=False)
             dist2range = self.dist2.interval(0.9999, wrap_at=False)
-            # TODO: OPTIMIZE can we cache this interpolator (or even in init?)
 
             # we'll set the sampling so each distribution gets its range sample 1000 times, append, and then sort
-            x = _np.append(_np.linspace(dist1range[0]-0.1*(dist1range[1]-dist1range[0]), dist1range[1]+0.1*(dist1range[1]-dist1range[0]), int(1e4)), _np.linspace(dist2range[0]-0.1*(dist2range[1]-dist2range[0]), dist2range[1]+0.1*(dist2range[1]-dist2range[0]), int(1e4)))
+            x = _np.append(_np.linspace(dist1range[0]-0.1*(dist1range[1]-dist1range[0]),
+                                        dist1range[1]+0.1*(dist1range[1]-dist1range[0]),
+                                        int(1e4)),
+                           _np.linspace(dist2range[0]-0.1*(dist2range[1]-dist2range[0]),
+                                        dist2range[1]+0.1*(dist2range[1]-dist2range[0]),
+                                        int(1e4)))
             x.sort()
             if self.math == '__and__':
-                # TODO: need to normalize this so the integral is correct
                 pdf = self.dist1.pdf(x) * self.dist2.pdf(x)
                 # unfortunately we'll need to integrate to get the cdf... we'll do that later
                 cdf = None
@@ -2165,7 +2170,10 @@ class Composite(BaseDistribution):
             return pdf_call, cdf_call, ppf_call
 
         else:
-            raise NotImplementedError("support for math {} not yet implemented".format(self.math))
+            # TODO: how do we send reasonable defaults here to know how to bin?
+            # Should we look at the ranges of the children like we do for
+            # and/or?
+            return self.to_histogram(N=int(1e6), bins=100, wrap_at=False)._pdf_cdf_ppf_callables
 
     @property
     def dist_constructor_args(self):
@@ -2173,15 +2181,8 @@ class Composite(BaseDistribution):
 
     def _sample_from_children(self, math, dist1, dist2, seed={}, size=None):
         if math == '__and__':
-            # continuous: multiply the pdfs (or cdfs or ppfs?), renormalize, sample (via ppf?)
-            # discrete: rebin to a common binning, multiply bin heights, renormalize (possibly all covered by to_histogram rather than having to_histogram call this?), sample
-
-            raise NotImplementedError()
-        elif math == '__or__':
-            # alternatively we could add the pdfs (for continuous dists), renormalize
-            # and sample from that, but choosing between the two should be more general
-            # and won't be susceptible to the need to re-bin
-
+            raise NotImplementedError("cannot sample from children with & logic")
+        elif self.math == '__or__':
             # choose randomly between the two child Distributions
             choice = _np.random.randint(0,2)
             if size is None:
@@ -2206,8 +2207,9 @@ class Composite(BaseDistribution):
             # NOTE: this will account for multivariate, but only for THESE 2
             # if there are nested CompositeDistributions, then the seed will be lost
 
-            # TODO: need to pass seeds on somehow
-            samples = sample_from_dists((dist1, dist2), seeds=seed, size=size)
+            # samples = sample_from_dists((dist1, dist2), seeds=seed, size=size)
+            # TODO: OPTIMIZE: should we cache the collection?
+            samples = DistributionCollection(dist1, dist2).sample(seeds=seed, size=size)
             if size is not None:
                 return getattr(samples[:,0], math)(samples[:,1])
             else:
@@ -2219,17 +2221,9 @@ class Composite(BaseDistribution):
             #     unit = None
             return getattr(_np, math)(dist1.sample(size=size, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
 
-    # def _sample_ppf_from_children(self, math, dist1, dist2, ppf):
-    #     raise NotImplementedError("sample_ppf_from_dists not yet implemented")
-    #     if self.dist2 is not None:
-    #         samples = sample_ppf_from_dists((dist1, dist2), ppf)
-    #         if not isinstance(ppf, float):
-    #             return getattr(samples[:,0], math)(samples[:,1])
-    #         else:
-    #             return getattr(samples[0], math)(samples[1])
-    #     else:
-    #         return getattr(_np, math)(dist1.sample_ppf(ppf, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
 
+
+            return self._return_with_units(self.wrap(self._sample_from_children(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
 
     def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}):
@@ -2259,111 +2253,19 @@ class Composite(BaseDistribution):
         * float or array: float if `size=None`, otherwise a numpy array with
             shape defined by `size`.
         """
-        # TODO: remove this by implementing self.ppf / pdf / cdf - and better yet if we can rely on scipy.stats to give all but pdf/ppf
-        if self.math in ['__and__', '__or__']:
-            # TODO: implement seed logic
-            seed = None
+        if self.math in ['__and__']:
+            # fallback on using the interpolated combined pdf/cdf/ppf
+
+            # TODO: technically we could support sample_from_children with a
+            # while loop... but that is likely more expensive
             return super(Composite, self).sample(size=size, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at, seed=seed)
         else:
-            return self._return_with_units(self.wrap(self._sample_from_children(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+            # NOTE: even though in these cases we sample from the underlying children
+            # (and therefore can account for covariances from multivariate children),
+            # calls to pdf/cdf/ppf will still need to merge and interpolate
+            # and will ignore these covariances.
+            return self._return_with_units(self.wrap(self._sample_from_children(self.math, self.dist1, self.dist2, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-    # def pdf(self, x, unit=None, N=1000, bins=10):
-    #     """
-    #     Give the density (y) values of the underlying distribution for a given
-    #     array of values (x).
-    #
-    #     Under-the-hood, the <Composite> distribution is sampled and converted
-    #     to a <Histogram> distribution via <Composite.to_histogram> with `N` and
-    #     `bins` first.
-    #
-    #     Arguments
-    #     ----------
-    #     * `x` (array): x-values at which to compute the densities.  If `unit` is
-    #         not None, the value of `x` are assumed to be in the original units
-    #         <<class>.unit>, not `unit`.
-    #     * `unit` (astropy.unit, optional, default=None): unit of the values
-    #         in `x`.  If None or not provided, will assume they're provided in
-    #         <<class>.unit>.
-    #     * `N` (int, optional, default=1000): see <Composite.to_histogram>
-    #     * `bins` (int, optional, default=10): see <Composite.to_histogram>
-    #
-    #     Returns
-    #     ---------
-    #     * array: array of density/y values.
-    #     """
-    #     raise NotImplementedError("distribution not implemented for Composite distributions")
-    #     return self.to_histogram(N=N, bins=bins).distribution(x, unit=unit)
-    #
-    # def logpdf(self, x, unit=None, N=1000, bins=10):
-    #     """
-    #     Give the log probability of the underlying distribution for a given value
-    #     x.
-    #
-    #     Under-the-hood, the <Composite> distribution is sampled and converted
-    #     to a <Histogram> distribution via <Composite.to_histogram> with `N` and
-    #     `bins` first.
-    #
-    #     See also:
-    #     * <Composite.distribution>
-    #
-    #     Arguments
-    #     ----------
-    #     * `x` (float or array array): x-values at which to compute the logps.
-    #         If `unit` is not None, the value of `x` are assumed to be in the
-    #         original units
-    #         <<class>.unit>, not `unit`.
-    #     * `unit` (astropy.unit, optional, default=None): unit of the values
-    #         in `x`.  If None or not provided, will assume they're provided in
-    #         <<class>.unit>.
-    #     * `N` (int, optional, default=1000): see <Composite.to_histogram>
-    #     * `bins` (int, optional, default=10): see <Composite.to_histogram>
-    #
-    #     Returns
-    #     ---------
-    #     * array: array of density/y values.
-    #     """
-    #     raise NotImplementedError("distribution not implemented for Composite distributions")
-    #     return self.to_histogram(N=N, bins=bins).logp(x, unit=unit)
-
-        # if self.dist2 is not None:
-            # return getattr(dist1.mean, math)(dist2.mean)
-        # else:
-            # return getattr(_np, math)(dist1.mean)
-
-
-
-    # @property
-    # def median(self):
-    #     """
-    #     Determine the median sampled value.
-    #
-    #     This is done under-the-hood by converting to a histogram via
-    #     <Composite.to_histogram>, sampling 10000 times with 100 bins and
-    #     calling <Histogram.median>.
-    #     """
-    #     return self.to_histogram(N=10000, bins=100).median()
-    #
-    # @property
-    # def mean(self):
-    #     """
-    #     Determine the mean sampled value.
-    #
-    #     This is done under-the-hood by converting to a histogram via
-    #     <Composite.to_histogram>, sampling 10000 times with 100 bins and
-    #     calling <Histogram.mean>.
-    #     """
-    #     return self.to_histogram(N=10000, bins=100).mean()
-    #
-    # @property
-    # def std(self):
-    #     """
-    #     Determine the standard deviations of the sampled values.
-    #
-    #     This is done under-the-hood by converting to a histogram via
-    #     <Composite.to_histogram>, sampling 10000 times with 100 bins and
-    #     calling <Histogram.std>.
-    #     """
-    #     return self.to_histogram(N=10000, bins=100).std()
 
     def to_gaussian(self, N=1000, bins=10, range=None):
         """
@@ -3133,7 +3035,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
             return corner.corner(self.sample(size=100000), labels=self.label, **kwargs)
 
-    def to_histogram(self, N=100000, bins=10, range=None, dimension=None):
+    def to_histogram(self, N=100000, bins=10, range=None, dimension=None, wrap_at=None):
         """
         Convert the <<class>> distribution to a <Histogram> distribution.
 
@@ -3152,6 +3054,9 @@ class BaseMultivariateDistribution(BaseDistribution):
             when flattening to the 1-D histogram distribution. If not proivded
             or None, will use value from <<class>.dimension>.  `dimension` is
             therefore REQUIRED if <<class>.dimension> is None.
+        * `wrap_at` (float or None, optional, default=None): value to set for
+            `wrap_at` of the returned <Histogram>.  If None or not provided,
+            will default to <<class>.wrap_at>.
 
         Returns
         --------
@@ -3171,7 +3076,8 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         unit = self.unit[dimension] if isinstance(self.unit, list) else self.unit
         label = self.label[dimension] if isinstance(self.label, list) else self.label
-        wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
+        if wrap_at is None:
+            wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
 
         return Histogram.from_data(self.sample(dimension=dimension, size=N, wrap_at=False),
                                    bins=bins, range=range,
