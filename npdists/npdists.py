@@ -1209,7 +1209,7 @@ class BaseUnivariateDistribution(BaseDistribution):
             _np.random.seed(seed)
 
 
-        return self._return_with_units(self.wrap(self.dist_constructor_object.rv(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+        return self._return_with_units(self.wrap(self.dist_constructor_object.rvs(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
 
         # qs = _np.random.random(size=size)
@@ -2174,6 +2174,32 @@ class Composite(BaseUnivariateDistribution):
     a <Uniform> or <Gaussian> distribution by a float will return another
     <Uniform> or <Gaussian> distribution, respectively.
 
+    Limitations and treatment "under-the-hood":
+
+    * &: the pdfs of the two underlying distributions are sampled over their
+        99.99\% intervals and multiplied to create a new pdf.  A spline is then
+        fit to the pdf and integrated to create the cdf (which is inverted to
+        create the ppf function).  Each of these are then linearly interpolated
+        to create the underlying scipy.stats object.  This object is then used
+        for sampling as well as accessing the <<class>.pdf>, <<class>.cdf>,
+        <<class>.ppf>, etc.  For this reason, the and operator does not support
+        retaining covariances at all.
+
+    * |: the pdfs and cdfs of the two underlying distributions are sampled over their
+        99.9\% intervals and added to create the new pdfs and cdfs, respectively
+        (and the cdf inverted to create the ppf function).  Each of these are then
+        linearly interpolated to create the underlying scipy.stats object.  This
+        object is then used for any call to the underlying call EXCEPT for sampling.
+        Sampling is handled by randomly choosing which child distribution to sample
+        from and then sampling from that distribution.  Or operators are therefore
+        able to retain covariances for <<class>.sample>, but not for any calls
+        to <<class>.pdf>, <<class>.cdf>, or <<class>.ppf>.
+
+    * all others: sampling is handled by sampling the underyling children and
+        therefore can retain covariances.  The pdfs, cdfs, and ppfs are
+        created by taking 1 million samples, converting to a <Histogram>,
+        and linearly interpolating between the bins, thereby losing all covariances.
+
     """
     def __init__(self, math, dist1, dist2=None, unit=None, label=None, wrap_at=None):
         """
@@ -2277,6 +2303,9 @@ class Composite(BaseUnivariateDistribution):
 
     @property
     def _pdf_cdf_ppf_callables(self):
+        # TODO: how do we need to handle units here... do we always need to
+        # convert to SI before doing anything?  Or keep quantities?  Or do math
+        # on units after?
 
         if self.math in ['__and__', '__or__']:
             dist1range = self.dist1.interval(0.9999, wrap_at=False)
@@ -2301,7 +2330,7 @@ class Composite(BaseUnivariateDistribution):
                 raise NotImplementedError()
 
             # make sure pdf is normalized correctly
-            pdf_integral = _np.sum(pdf[1:]*(x[1:]-x[:-1]))
+            pdf_integral = _np.sum(pdf[1:]*abs(x[1:]-x[:-1]))
             pdf /= pdf_integral
 
             pdf_call = _stats_custom.interpolate_callable(x, pdf)
@@ -2324,6 +2353,38 @@ class Composite(BaseUnivariateDistribution):
             cdf_call = _stats_custom.interpolate_callable(_np.append(x, _np.inf), _np.append(cdf, 1.0))
 
             return pdf_call, cdf_call, ppf_call
+
+        elif self.dist2 is not None:
+
+
+        # elif self.dist2 is None:
+        #     dist1range = self.dist1.interval(0.9999, wrap_at=False)
+        #     xorig = _np.linspace(dist1range[0]-0.1*(dist1range[1]-dist1range[0]),
+        #                          dist1range[1]+0.1*(dist1range[1]-dist1range[0]),
+        #                          int(1e4))
+        #
+        #     # TODO: handle angle units correctly! (if self.dist1.unit is degrees, convert to radians first!)
+        #     x = getattr(_np, self.math)(xorig)
+        #     sort = x.argsort()
+        #     x = x[sort]
+        #     pdf = self.dist1.pdf(xorig)[sort]
+        #     cdf = self.dist1.cdf(xorig)[sort]
+        #
+        #     # make sure pdf is normalized correctly
+        #     pdf_integral = _np.sum(pdf[1:]*abs(x[1:]-x[:-1]))
+        #     pdf /= pdf_integral
+        #
+        #     pdf_call = _stats_custom.interpolate_callable(x, pdf)
+        #
+        #     # make sure cdf is normalized correctly
+        #     cdf /= cdf[-1]
+        #
+        #     ppf_call = _stats_custom.interpolate_callable(cdf, x)
+        #
+        #     # make sure interpolation on the right always gives 1, not the fill_value of 0
+        #     cdf_call = _stats_custom.interpolate_callable(_np.append(x, _np.inf), _np.append(cdf, 1.0))
+        #
+        #     return pdf_call, cdf_call, ppf_call
 
         else:
             # TODO: how do we send reasonable defaults here to know how to bin?
@@ -2413,7 +2474,13 @@ class Composite(BaseUnivariateDistribution):
             # fallback on using the interpolated combined pdf/cdf/ppf
 
             # TODO: technically we could support sample_from_children with a
-            # while loop... but that is likely more expensive
+            # while loop... but that is likely more expensive:
+            # while True:
+            #     sampled_value = dist1.rvs()
+            #     chance = dist2.pdf(sampled_value)
+            #     q = _np.random.random()
+            #     if q <= chance:
+            #         return sample_value
             return super(Composite, self).sample(size=size, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at, seed=seed)
         else:
             # NOTE: even though in these cases we sample from the underlying children
@@ -2621,6 +2688,15 @@ class Histogram(BaseUnivariateDistribution):
     <npdists.histogram_from_bins> or <Histogram.__init__>.  To create a
     Histogram distribtuion from the data array itself, see
     <npdists.histogram_from_data> or <Histogram.from_data>.
+
+    Treatment under-the-hood:
+
+    The densities at each bin-midpoint are linearly interpolated to create
+    a pdf (which is normalized to an integral of 1).  A numerical integral
+    of the bins is then performed to create the cdf (again, normalized to 1)
+    and inverted to create the ppf.  Each of these are then interpolated
+    whenever accessing <<class>.pdf>, <<class>.cdf>, <<class>.ppf>, etc as
+    well as used when calling <<class>.sample>.
     """
     def __init__(self, bins, density, unit=None, label=None, wrap_at=None):
         """
@@ -3081,36 +3157,6 @@ class MVGaussian(BaseMultivariateDistribution):
         """
         return len(self.mean)
 
-    # @property
-    # def means(self):
-    #     """
-    #     Return the weighted mean values from `locs`.
-    #
-    #     See also:
-    #
-    #     * <MVGaussian.covariances>
-    #
-    #     Returns
-    #     -------
-    #     * list of floats: the mean value per dimension
-    #     """
-    #     return self.locs
-    #
-    # @property
-    # def covariances(self, N=1000):
-    #     """
-    #     Return the covariances from `cov`
-    #
-    #     See also:
-    #
-    #     * <MVGaussian.means>
-    #
-    #     Returns
-    #     ---------
-    #     * NxN square matrix of floats.
-    #     """
-    #     return self.cov
-
     def to_mvhistogram(self, N=1e6, bins=15, range=None):
         """
         Convert the <<class>> distribution to an <MVHistogram> distribution.
@@ -3139,6 +3185,22 @@ class MVGaussian(BaseMultivariateDistribution):
 
 class MVHistogram(BaseMultivariateDistribution):
     """
+
+    Treatment under-the-hood:
+
+    * When sampling, a random value between 0 and 1 is drawn.  The N-dimensional
+    bins are then unraveled and integrated to create a flattened cdf.  The
+    cdf is then linearly interpolated to find the index of the unraveled bins
+    in which to sample, as well as the relative location in the bin.  The selected
+    bin is then artificially subdivided by the same shape grid as the original
+    binning and linearly interpolated based on the remainder to return a single
+    value for <<class>.sample>.
+
+    * Means and covariances (see <<class>.calculate_means_covariances>,
+    <<class>.calculate_means>, <<class>.calculate_covariances>) are calculated
+    by sampling (with a default size of 1e5), and determining the mean and covariances
+    on that sample.
+
     """
     def __init__(self, bins, density, unit=None, label=None, wrap_at=None):
         """
