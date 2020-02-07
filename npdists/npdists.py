@@ -845,6 +845,15 @@ class BaseDistribution(object):
         """
         Expose the probability density function (pdf) at values of `x`.
 
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.pdf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        See also:
+        * <<class>.logpdf>
+        * <<class>.cdf>
+
         Arguments
         ----------
         * `x` (float or array): x-values at which to expose the pdf
@@ -871,6 +880,15 @@ class BaseDistribution(object):
     def logpdf(self, x, unit=None):
         """
         Expose the log-probability density function (log of pdf) at values of `x`.
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.logpdf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        See also:
+        * <<class>.pdf>
+        * <<class>.cdf>
 
         Arguments
         ----------
@@ -899,6 +917,15 @@ class BaseDistribution(object):
         """
         Expose the cummulative density function (cdf) at values of `x`.
 
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.cdf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        See also:
+        * <<class>.logcdf>
+        * <<class>.pdf>
+
         Arguments
         ----------
         * `x` (float or array): x-values at which to expose the cdf
@@ -925,6 +952,15 @@ class BaseDistribution(object):
     def logcdf(self, x, unit=None):
         """
         Expose the log-cummulative density function (log of cdf) at values of `x`.
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.logcdf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        See also:
+        * <<class>.cdf>
+        * <<class>.pdf>
 
         Arguments
         ----------
@@ -965,6 +1001,17 @@ class BaseUnivariateDistribution(BaseDistribution):
         Expose the percent point function (ppf; iverse of cdf - percentiles) at
         values of `q`.
 
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.ppf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> with unit-conversions, support for
+        quantity objects, and wrapping done on the returned result.
+
+        See also:
+        * <<class>.pdf>
+        * <<class>.cdf>
+        * <<class>.sample>
+
         Arguments
         ----------
         * `q` (float or array): percentiles at which to expose the ppf
@@ -991,9 +1038,207 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         return self._return_with_units(self.wrap(ppf, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
+    def sf(self, x, unit=None):
+        """
+        Expose the survival function (sf; also defined as 1 - cdf, but sf is
+        sometimes more accurate)
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.sf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        See also:
+
+        * <<class>.cdf>
+        * <<class>.logsf>
+        * <<class>.isf>
+
+        Arguments
+        ----------
+        * `x` (float or array): x-values at which to expose the sf
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * (float or array) sf values of the same type/shape as `x`
+        """
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+
+        try:
+            return self.dist_constructor_object.sf(x)
+        except AttributeError:
+            raise NotImplementedError("{} does not support sf".format(self.__class__.__name__))
+
+    def logsf(self, x, unit=None):
+        """
+        Expose the log of the survival function (logsf).
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.logsf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        See also:
+
+        * <<class>.sf>
+        * <<class>.cdf>
+        * <<class>.isf>
+
+        Arguments
+        ----------
+        * `x` (float or array): x-values at which to expose the logsf
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * (float or array) logsf values of the same type/shape as `x`
+        """
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+
+        try:
+            return self.dist_constructor_object.logsf(x)
+        except AttributeError:
+            raise NotImplementedError("{} does not support logsf".format(self.__class__.__name__))
+
+    def isf(self, x, unit=None):
+        """
+        Expose the inverse of the survival function (isf).
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.isf.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        See also:
+
+        * <<class>.sf>
+        * <<class>.cdf>
+        * <<class>.logsf>
+
+        Arguments
+        ----------
+        * `x` (float or array): x-values at which to expose the osf
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            in `x`.  If None or not provided, will assume they're provided in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * (float or array) osf values of the same type/shape as `x`
+        """
+        # x is assumed to be in the new units
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only convert units on Distributions with units set")
+            # convert to original units
+            x = (x * unit).to(self.unit).value
+
+        try:
+            return self.dist_constructor_object.isf(x)
+        except AttributeError:
+            raise NotImplementedError("{} does not support isf".format(self.__class__.__name__))
+
+    def moment(self, m):
+        """
+        Expose the non-central moment of order `m`.
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.moment.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object>.
+
+        Arguments
+        ----------
+        * `m` (int): order
+
+        Returns
+        ---------
+        * (float) non-central moment
+        """
+        try:
+            return self.dist_constructor_object.moment(m)
+        except AttributeError:
+            raise NotImplementedError("{} does not support moment".format(self.__class__.__name__))
+
+    def entropy(self):
+        """
+        Expose the (differental) entropy.
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.entropy.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        Returns
+        ---------
+        * (float) entropy
+        """
+        try:
+            return self.dist_constructor_object.entropy()
+        except AttributeError:
+            raise NotImplementedError("{} does not support entropy".format(self.__class__.__name__))
+
+    def expect(self, func, args=(), lb=None, ub=None, conditional=False, **kwargs):
+        """
+        Expose the expected value of a function (of one argument) with respect
+        to the distribution.
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.expect.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> after doing any requested unit-conversions.
+
+        Arguments
+        -----------
+        * `func` (callable): passed directly to scipy (see link above)
+        * `args` (tuple, optional): passed directly to scipy (see link above)
+        * `lb` (float, optional): passed directly to scipy (see link above)
+        * `ub` (float, optional): passed directly to scipy (see link above)
+        * `conditional` (bool, optional, default=False): passed directly to scipy (see link above)
+        * `**kwargs`: passed directly to scipy (see link above)
+
+        Returns
+        ---------
+        * the output from scipy (see link above)
+        """
+        try:
+            return self.dist_constructor_object.expect(func, args=args, lb=lb,
+                                                        ub=ub,
+                                                        conditional=conditional,
+                                                        **kwargs)
+        except AttributeError:
+            raise NotImplementedError("{} does not support entropy".format(self.__class__.__name__))
+
+
     def median(self, unit=None, as_quantity=False, wrap_at=None):
         """
         Expose the median of the distribution.
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.median.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> with unit-conversions, support for
+        quantity objects, and wrapping done on the returned result.
+
+        See also:
+        * <<class>.mean>
+        * <<class>.var>
+        * <<class>.std>
 
         Arguments
         ----------
@@ -1024,6 +1269,17 @@ class BaseUnivariateDistribution(BaseDistribution):
         """
         Expose the mean of the distribution.
 
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.mean.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> with unit-conversions, support for
+        quantity objects, and wrapping done on the returned result.
+
+        See also:
+        * <<class>.median>
+        * <<class>.var>
+        * <<class>.std>
+
         Arguments
         ----------
         * `unit` (astropy.unit, optional, default=None): unit of the values
@@ -1052,6 +1308,17 @@ class BaseUnivariateDistribution(BaseDistribution):
     def var(self, unit=None, as_quantity=False, wrap_at=None):
         """
         Expose the variance of the distribution.
+
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.var.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> with unit-conversions, support for
+        quantity objects, and wrapping done on the returned result.
+
+        See also:
+        * <<class>.median>
+        * <<class>.mean>
+        * <<class>.std>
 
         Arguments
         ----------
@@ -1082,6 +1349,17 @@ class BaseUnivariateDistribution(BaseDistribution):
         """
         Expose the standard deviation of the distribution.
 
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.std.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> with unit-conversions, support for
+        quantity objects, and wrapping done on the returned result.
+
+        See also:
+        * <<class>.median>
+        * <<class>.mean>
+        * <<class>.var>
+
         Arguments
         ----------
         * `unit` (astropy.unit, optional, default=None): unit of the values
@@ -1111,9 +1389,15 @@ class BaseUnivariateDistribution(BaseDistribution):
         """
         Expose the range that contains alpha percent of the distribution.
 
+        See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.interval.html)
+
+        This method is just a wrapper around the scipy.stats method on
+        <<class>.dist_constructor_object> with unit-conversions, support for
+        quantity objects, and wrapping done on the returned result.
+
         Arguments
         ----------
-        * `alpha` (float):
+        * `alpha` (float): passed directly to scipy (see link above)
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x` to expose.  If None or not provided, will assume they're in
             <<class>.unit>.
@@ -1138,35 +1422,6 @@ class BaseUnivariateDistribution(BaseDistribution):
         # we call np.asarray so that wrapping and units works on an array object instead of a tuple
         return self._return_with_units(self.wrap(_np.asarray(interval), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-    ### remaining (unimplemented) scipy.stats methods
-        # rvs(loc=0, scale=1, size=1, random_state=None)
-        # Random variates.
-        #
-        # sf(x, loc=0, scale=1)
-        # Survival function (also defined as 1 - cdf, but sf is sometimes more accurate).
-        #
-        # logsf(x, loc=0, scale=1)
-        # Log of the survival function.
-        #
-        # isf(q, loc=0, scale=1)
-        # Inverse survival function (inverse of sf).
-        #
-        # moment(n, loc=0, scale=1)
-        # Non-central moment of order n
-        #
-        # stats(loc=0, scale=1, moments=’mv’)
-        # Mean(‘m’), variance(‘v’), skew(‘s’), and/or kurtosis(‘k’).
-        #
-        # entropy(loc=0, scale=1)
-        # (Differential) entropy of the RV.
-        #
-        # fit(data, loc=0, scale=1)
-        # Parameter estimates for generic data.
-        #
-        # expect(func, args=(), loc=0, scale=1, lb=None, ub=None, conditional=False, **kwds)
-        # Expected value of a function (of one argument) with respect to the distribution.
-        #
-
     ### SAMPLING
 
     def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None):
@@ -1174,8 +1429,11 @@ class BaseUnivariateDistribution(BaseDistribution):
         Sample from the distribution.
 
         See also:
-
+        * <<class>.pdf>
+        * <<class>.cdf>
         * <<class>.ppf>
+        * <<class>.plot_sample>
+        * <<class>.plot>
 
         Arguments
         -----------
@@ -1237,6 +1495,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         * <<class>.plot_sample>
         * <<class>.plot_pdf>
+        * <<class>.plot_cdf>
         * <<class>.plot_gaussian>
 
         Arguments
@@ -1375,6 +1634,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         * <<class>.plot>
         * <<class>.plot_pdf>
+        * <<class>.plot_cdf>
         * <<class>.plot_gaussian>
 
         Arguments
@@ -1446,6 +1706,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         See also:
 
         * <<class>.plot>
+        * <<class>.plot_cdf>
         * <<class>.plot_sample>
         * <<class>.plot_gaussian>
 
@@ -1529,6 +1790,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         See also:
 
         * <<class>.plot>
+        * <<class>.plot_pdf>
         * <<class>.plot_sample>
         * <<class>.plot_gaussian>
 
@@ -1619,6 +1881,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         * <<class>.plot>
         * <<class>.plot_sample>
         * <<class>.plot_pdf>
+        * <<class>.plot_cdf>
 
         Arguments
         -----------
