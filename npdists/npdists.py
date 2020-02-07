@@ -271,7 +271,7 @@ class BaseDistribution(object):
         else:
             try:
                 return super(BaseDistribution, self).__setattr__(name, value)
-            except:
+            except AttributeError:
                 raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
 
     ### REPRESENTATIONS
