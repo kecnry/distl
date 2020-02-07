@@ -1,5 +1,5 @@
 ```python
-import npdists
+import distl
 import numpy as np
 ```
 
@@ -7,7 +7,7 @@ First we'll create a [multivariate gaussian](../api/MVGaussian.md) distribution 
 
 
 ```python
-mvg = npdists.mvgaussian([5,10, 12], 
+mvg = distl.mvgaussian([5,10, 12], 
                          np.array([[ 1., 1., -1.], [1, -1, 1], [-1., 1.,  1.]]),
                          label=['a', 'b', 'c'])
 ```
@@ -47,7 +47,7 @@ and plotting will now show a corner plot (if [corner](https://corner.readthedocs
 mvg.plot(show=True)
 ```
 
-    /home/kyle/.local/lib/python2.7/site-packages/npdists-0.1.0.dev0-py2.7.egg/npdists/npdists.py:952: RuntimeWarning: covariance is not positive-semidefinite.
+    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.py:952: RuntimeWarning: covariance is not positive-semidefinite.
 
 
 

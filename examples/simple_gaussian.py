@@ -1,9 +1,9 @@
 
-import npdists
+import distl
 
 plot = True
 
-gaussian = npdists.normal(80, 3)
+gaussian = distl.normal(80, 3)
 print(gaussian.sample(5))
 if plot: gaussian.plot(1000, show=True)
 

@@ -107,23 +107,25 @@ def api_docs(item, skip=[], prefix='', subclass_of=None, write=True, members=[py
 
 
 if __name__ == '__main__':
-    import npdists
+    import distl
 
-    print("CREATING API DOCS FOR NPDISTS VERSION: {}".format(npdists.__version__))
+    print("CREATING API DOCS FOR distl VERSION: {}".format(distl.__version__))
 
-    fms = api_docs(npdists, skip=[], members=[pydoc.inspect.isfunction])
+    fms = api_docs(distl, skip=[], members=[pydoc.inspect.isfunction])
 
     skip_methods = ['sin', 'cos', 'tan']
-    fms = api_docs(npdists._npdists.BaseDistribution, skip=skip_methods)
-    fms = api_docs(npdists._npdists.BaseMultivariateDistribution, skip=skip_methods)
+    fms = api_docs(distl._distl.BaseDistribution, skip=skip_methods)
+    fms = api_docs(distl._distl.BaseUnivariateDistribution, skip=skip_methods)
+    fms = api_docs(distl._distl.BaseMultivariateDistribution, skip=skip_methods)
 
-    fms = api_docs(npdists._npdists.Composite, skip=skip_methods)
-    fms = api_docs(npdists._npdists.Function, skip=skip_methods)
-    fms = api_docs(npdists._npdists.Histogram, skip=skip_methods)
+    fms = api_docs(distl._distl.Composite, skip=skip_methods)
+    fms = api_docs(distl._distl.DistributionCollection, skip=skip_methods)
 
-    fms = api_docs(npdists._npdists.Delta, skip=skip_methods)
-    fms = api_docs(npdists._npdists.Gaussian, skip=skip_methods)
-    fms = api_docs(npdists._npdists.Uniform, skip=skip_methods)
+    fms = api_docs(distl._distl.Histogram, skip=skip_methods)
 
-    fms = api_docs(npdists._npdists.MVGaussian, skip=skip_methods)
-    fms = api_docs(npdists._npdists.MVHistogram, skip=skip_methods)
+    fms = api_docs(distl._distl.Delta, skip=skip_methods)
+    fms = api_docs(distl._distl.Gaussian, skip=skip_methods)
+    fms = api_docs(distl._distl.Uniform, skip=skip_methods)
+
+    fms = api_docs(distl._distl.MVGaussian, skip=skip_methods)
+    fms = api_docs(distl._distl.MVHistogram, skip=skip_methods)

@@ -1,9 +1,9 @@
-### [npdists](npdists.md).mvgaussian (function)
+### [distl](distl.md).mvgaussian (function)
 
 
 ```py
 
-def mvgaussian(locs, cov, unit=None, label=None, wrap_at=None)
+def mvgaussian(mean, cov, allow_singular=False, unit=None, label=None, wrap_at=None)
 
 ```
 

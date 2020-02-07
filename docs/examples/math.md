@@ -1,5 +1,5 @@
 ```python
-import npdists
+import distl
 import numpy as np
 ```
 
@@ -7,7 +7,7 @@ import numpy as np
 
 
 ```python
-g = npdists.gaussian(10, 2)
+g = distl.gaussian(10, 2)
 ```
 
 
@@ -15,7 +15,7 @@ g = npdists.gaussian(10, 2)
 print(g)
 ```
 
-    <npdists.gaussian loc=10.0 scale=2.0>
+    <distl.gaussian loc=10.0 scale=2.0>
 
 
 
@@ -34,7 +34,7 @@ multiplying a [Gaussian distribution](../api/Gaussian.md) by a float or integer 
 print(2*g)
 ```
 
-    <npdists.gaussian loc=20.0 scale=4.0>
+    <distl.gaussian loc=20.0 scale=4.0>
 
 
 
@@ -42,7 +42,7 @@ print(2*g)
 print(g*2)
 ```
 
-    <npdists.gaussian loc=20.0 scale=4.0>
+    <distl.gaussian loc=20.0 scale=4.0>
 
 
 
@@ -58,7 +58,7 @@ Note that this gives us the same resulting distribution as if we defined a [Delt
 
 
 ```python
-d = npdists.delta(2)
+d = distl.delta(2)
 ```
 
 
@@ -66,7 +66,7 @@ d = npdists.delta(2)
 print(g*d)
 ```
 
-    <npdists.gaussian loc=20.0 scale=4.0>
+    <distl.gaussian loc=20.0 scale=4.0>
 
 
 
@@ -87,7 +87,7 @@ Do note, however that [Composite.plot_dist](../api/Composite.plot_dist.md) will 
 print(d*g)
 ```
 
-    <npdists.delta value=2.0>*<npdists.gaussian loc=10.0 scale=2.0>
+    <distl.delta value=2.0>*<distl.gaussian loc=10.0 scale=2.0>
 
 
 
@@ -106,7 +106,7 @@ Note that since the floats/integers are treated as distributions, `2*g` is **not
 print(g+g)
 ```
 
-    <npdists.gaussian loc=10.0 scale=2.0>+<npdists.gaussian loc=10.0 scale=2.0>
+    <distl.gaussian loc=10.0 scale=2.0>+<distl.gaussian loc=10.0 scale=2.0>
 
 
 
@@ -128,7 +128,7 @@ out = (g+g).plot(show=True)
 
 
 ```python
-g = npdists.gaussian(2*np.pi, np.pi/6)
+g = distl.gaussian(2*np.pi, np.pi/6)
 ```
 
 
@@ -136,7 +136,7 @@ g = npdists.gaussian(2*np.pi, np.pi/6)
 print(np.sin(g))
 ```
 
-    sin(<npdists.gaussian loc=6.28318530718 scale=0.523598775598>)
+    sin(<distl.gaussian loc=6.28318530718 scale=0.523598775598>)
 
 
 

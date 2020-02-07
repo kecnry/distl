@@ -1,22 +1,22 @@
-# npdists
+# distl
 
-**High-Level Wrappers for Probability Density Functions and Distributions using Numpy**
+**Simple Distributions: math operations, serializing, covariances**
 
-[![badge](https://img.shields.io/badge/github-kecnry%2Fnpdists-blue.svg)](https://github.com/kecnry/npdists)
-[![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/npdists/)
-[![badge](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/npdists/blob/master/LICENSE)
-[![badge](https://travis-ci.org/kecnry/npdists.svg?branch=master)](https://travis-ci.org/kecnry/npdists)
-[![badge](https://readthedocs.org/projects/npdists/badge/?version=latest)](https://npdists.readthedocs.io/en/latest/?badge=latest)
+[![badge](https://img.shields.io/badge/github-kecnry%2Fdistl-blue.svg)](https://github.com/kecnry/distl)
+[![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/distl/)
+[![badge](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/distl/blob/master/LICENSE)
+[![badge](https://travis-ci.org/kecnry/distl.svg?branch=master)](https://travis-ci.org/kecnry/distl)
+[![badge](https://readthedocs.org/projects/distl/badge/?version=latest)](https://distl.readthedocs.io/en/latest/?badge=latest)
 
-**IMPORTANT**: **npdists** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
+**IMPORTANT**: **distl** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
 
-Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./docs/index.md).
+Read the [latest documentation on readthedocs](https://distl.readthedocs.io) or [browse the current documentation](./docs/index.md).
 
 ## Getting Started
 
 ### Dependencies
 
-**npdists** requires the following dependencies:
+**distl** requires the following dependencies:
 
   - python 2.7+ or 3.6+
   - numpy 1.10+
@@ -29,9 +29,9 @@ and the following optional dependencies:
   - dill (required for saving/loading [Function Distributions](./api/Function.md))
 
 
-You can see the [Travis testing matrix](https://travis-ci.org/kecnry/npdists) for
+You can see the [Travis testing matrix](https://travis-ci.org/kecnry/distl) for
 details on what exact versions have been tested and ensured to work.  If you run
-into any issues with dependencies, please [submit an issue](https://github.com/kecnry/npdists/issues/new).
+into any issues with dependencies, please [submit an issue](https://github.com/kecnry/distl/issues/new).
 
 ### Installation
 
@@ -51,16 +51,16 @@ sudo python setup.py install
 
 ### Import
 
-Now from within python we can import the `npdists` package:
+Now from within python we can import the `distl` package:
 
 ```py
-import npdists
+import distl
 ```
 
 and then create, sample from, and plot our first distribution:
 
 ```py
-g = npdists.gaussian(10, 1)
+g = distl.gaussian(10, 1)
 print(g.sample())
 print(g.sample(10))
 g.plot(show=True)
@@ -68,7 +68,7 @@ g.plot(show=True)
 
 ## Documentation and API Docs
 
-Read the [latest documentation on readthedocs](https://npdists.readthedocs.io) or [browse the current documentation](./docs/index.md).
+Read the [latest documentation on readthedocs](https://distl.readthedocs.io) or [browse the current documentation](./docs/index.md).
 
 ## Contributors
 

@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).sample (method)
+### [Histogram](Histogram.md).sample (function)
 
 
 ```py
@@ -10,6 +10,13 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=Non
 
 
 Sample from the distribution.
+
+See also:
+* [Histogram.pdf](Histogram.pdf.md)
+* [Histogram.cdf](Histogram.cdf.md)
+* [Histogram.ppf](Histogram.ppf.md)
+* [Histogram.plot_sample](Histogram.plot_sample.md)
+* [Histogram.plot](Histogram.plot.md)
 
 Arguments
 -----------

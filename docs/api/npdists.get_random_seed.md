@@ -1,4 +1,4 @@
-### [npdists](npdists.md).get_random_seed (function)
+### [distl](distl.md).get_random_seed (function)
 
 
 ```py

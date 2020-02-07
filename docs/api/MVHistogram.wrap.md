@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).wrap (method)
+### [MVHistogram](MVHistogram.md).wrap (function)
 
 
 ```py

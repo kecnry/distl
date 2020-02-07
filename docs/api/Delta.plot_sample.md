@@ -1,4 +1,4 @@
-### [Delta](Delta.md).plot_sample (method)
+### [Delta](Delta.md).plot_sample (function)
 
 
 ```py
@@ -15,7 +15,8 @@ matplotlib to be installed.
 See also:
 
 * [Delta.plot](Delta.plot.md)
-* [Delta.plot_dist](Delta.plot_dist.md)
+* [Delta.plot_pdf](Delta.plot_pdf.md)
+* [Delta.plot_cdf](Delta.plot_cdf.md)
 * [Delta.plot_gaussian](Delta.plot_gaussian.md)
 
 Arguments

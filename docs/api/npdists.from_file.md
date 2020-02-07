@@ -1,4 +1,4 @@
-### [npdists](npdists.md).from_file (function)
+### [distl](distl.md).from_file (function)
 
 
 ```py
@@ -9,17 +9,17 @@ def from_file(filename)
 
 
 
-Load an npdists object from a json filename.
+Load an distl object from a json filename.
 
 See also:
 
-* [npdists.from_dict](npdists.from_dict.md)
-* [npdists.from_json](npdists.from_json.md)
+* [distl.from_dict](distl.from_dict.md)
+* [distl.from_json](distl.from_json.md)
 
 Arguments
 -------------
 * `s` (string): the filename pointing to a json formatted file representing
-    an npdists object.
+    an distl object.
 
 Returns
 ----------

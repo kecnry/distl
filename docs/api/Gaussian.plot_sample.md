@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).plot_sample (method)
+### [Gaussian](Gaussian.md).plot_sample (function)
 
 
 ```py
@@ -15,7 +15,8 @@ matplotlib to be installed.
 See also:
 
 * [Gaussian.plot](Gaussian.plot.md)
-* [Gaussian.plot_dist](Gaussian.plot_dist.md)
+* [Gaussian.plot_pdf](Gaussian.plot_pdf.md)
+* [Gaussian.plot_cdf](Gaussian.plot_cdf.md)
 * [Gaussian.plot_gaussian](Gaussian.plot_gaussian.md)
 
 Arguments

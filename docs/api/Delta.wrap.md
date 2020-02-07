@@ -1,4 +1,4 @@
-### [Delta](Delta.md).wrap (method)
+### [Delta](Delta.md).wrap (function)
 
 
 ```py

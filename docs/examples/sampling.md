@@ -1,10 +1,10 @@
 ```python
-import npdists
+import distl
 ```
 
 
 ```python
-g = npdists.gaussian(10, 2)
+g = distl.gaussian(10, 2)
 ```
 
 # Single Value

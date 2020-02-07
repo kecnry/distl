@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).take_dimension (method)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).take_dimension (function)
 
 
 ```py

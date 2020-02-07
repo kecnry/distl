@@ -1,12 +1,12 @@
 ```python
-import npdists
+import distl
 import numpy as np
 ```
 
 
 ```python
-u = npdists.uniform(3, 7)
-gh = npdists.gaussian(5, 1.5).to_histogram()
+u = distl.uniform(3, 7)
+gh = distl.gaussian(5, 1.5).to_histogram()
 ```
 
 # plot_sample

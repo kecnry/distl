@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to (method)
+### [Uniform](Uniform.md).to (function)
 
 
 ```py

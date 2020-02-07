@@ -1,9 +1,9 @@
-### [MVGaussian](MVGaussian.md).__init__ (method)
+### [MVGaussian](MVGaussian.md).__init__ (function)
 
 
 ```py
 
-def __init__(self, locs=0.0, cov=1.0, unit=None, label=None, wrap_at=None)
+def __init__(self, mean=0.0, cov=1.0, allow_singular=False, unit=None, label=None, wrap_at=None)
 
 ```
 
@@ -13,11 +13,11 @@ Create a [MVGaussian](MVGaussian.md) distribution.
 
 This can also be created from a function at the top-level as:
 
-* [npdists.mvgaussian](npdists.mvgaussian.md)
+* [distl.mvgaussian](distl.mvgaussian.md)
 
 Arguments
 --------------
-* `locs` (float or int, default=0.0): the central value of the gaussian distribution.
+* `mean` (float or int, default=0.0): the central value of the gaussian distribution.
 * `cov` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
 * `unit` (astropy.units object, optional): the units of the provided values.
 * `label` (string, optional): a label for the distribution.  This is used

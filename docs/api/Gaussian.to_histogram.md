@@ -1,9 +1,9 @@
-### [Gaussian](Gaussian.md).to_histogram (method)
+### [Gaussian](Gaussian.md).to_histogram (function)
 
 
 ```py
 
-def to_histogram(self, N=1000, bins=10, range=None)
+def to_histogram(self, N=100000, bins=10, range=None, wrap_at=None)
 
 ```
 
@@ -17,11 +17,14 @@ to [Histogram.from_data](Histogram.from_data.md).
 
 Arguments
 -----------
-* `N` (int, optional, default=1000): number of samples to use for
+* `N` (int, optional, default=100000): number of samples to use for
     the histogram.
 * `bins` (int, optional, default=10): number of bins to use for the
     histogram.
 * `range` (tuple or None): range to use for the histogram.
+* `wrap_at` (float or None, optional, default=None): value to set for
+    `wrap_at` of the returned [Histogram](Histogram.md).  If None or not provided,
+    will default to [Gaussian.wrap_at](Gaussian.wrap_at.md).
 
 Returns
 --------

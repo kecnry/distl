@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).get_dimension_by_label (method)
+### [MVHistogram](MVHistogram.md).get_dimension_by_label (function)
 
 
 ```py

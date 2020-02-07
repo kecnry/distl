@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).sample (method)
+### [Gaussian](Gaussian.md).sample (function)
 
 
 ```py
@@ -10,6 +10,13 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=Non
 
 
 Sample from the distribution.
+
+See also:
+* [Gaussian.pdf](Gaussian.pdf.md)
+* [Gaussian.cdf](Gaussian.cdf.md)
+* [Gaussian.ppf](Gaussian.ppf.md)
+* [Gaussian.plot_sample](Gaussian.plot_sample.md)
+* [Gaussian.plot](Gaussian.plot.md)
 
 Arguments
 -----------

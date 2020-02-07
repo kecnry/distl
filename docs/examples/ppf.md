@@ -1,11 +1,11 @@
 ```python
-import npdists
+import distl
 import numpy as np
 ```
 
 
 ```python
-g = npdists.gaussian(5,2)
+g = distl.gaussian(5,2)
 ```
 
 
@@ -111,7 +111,7 @@ h.sample_ppf([0.25, 0.5, 0.75])
 
 
 ```python
-npdists.uniform(0,10).sample_ppf(0.5)
+distl.uniform(0,10).sample_ppf(0.5)
 ```
 
 
@@ -123,7 +123,7 @@ npdists.uniform(0,10).sample_ppf(0.5)
 
 
 ```python
-npdists.delta(0.2).sample_ppf(0.5)
+distl.delta(0.2).sample_ppf(0.5)
 ```
 
 
@@ -147,7 +147,7 @@ h.logp(4.6)
     ----> 1 h.logp(4.6)
     
 
-    /home/kyle/.local/lib/python2.7/site-packages/npdists-0.1.0.dev0-py2.7.egg/npdists/npdists.pyc in logp(self, x, unit)
+    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.pyc in logp(self, x, unit)
        1067         * array: array of density/y values.
        1068         """
     -> 1069         densities = self.distribution(x=x, unit=unit)
@@ -155,7 +155,7 @@ h.logp(4.6)
        1071 
 
 
-    /home/kyle/.local/lib/python2.7/site-packages/npdists-0.1.0.dev0-py2.7.egg/npdists/npdists.pyc in distribution(self, x, unit)
+    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.pyc in distribution(self, x, unit)
        1046 
        1047         # print "*** x passed to dist_func", x.min(), x.max()
     -> 1048         return self.dist_func(x, *self.dist_args)
@@ -163,7 +163,7 @@ h.logp(4.6)
        1050     def logp(self, x, unit=None):
 
 
-    /home/kyle/.local/lib/python2.7/site-packages/npdists-0.1.0.dev0-py2.7.egg/npdists/npdists.pyc in histogram(x, bins, density)
+    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.pyc in histogram(x, bins, density)
         367     out = _np.zeros_like(x)
         368     filter_in_range = (x >= bins.min()) & (x < bins.max())
     --> 369     out[filter_in_range] = density[_np.digitize(x[filter_in_range], bins)-1]

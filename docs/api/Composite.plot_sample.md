@@ -1,4 +1,4 @@
-### [Composite](Composite.md).plot_sample (method)
+### [Composite](Composite.md).plot_sample (function)
 
 
 ```py
@@ -15,7 +15,8 @@ matplotlib to be installed.
 See also:
 
 * [Composite.plot](Composite.plot.md)
-* [Composite.plot_dist](Composite.plot_dist.md)
+* [Composite.plot_pdf](Composite.plot_pdf.md)
+* [Composite.plot_cdf](Composite.plot_cdf.md)
 * [Composite.plot_gaussian](Composite.plot_gaussian.md)
 
 Arguments

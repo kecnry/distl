@@ -1,26 +1,26 @@
-## npdists (module)
+## distl (module)
 
 Top-Level Functions for Acting on Distributions
 
-* [sample_from_dists](api/npdists.sample_from_dists.md)
-* [sample_ppf_from_dists](api/npdists.sample_ppf_from_dists.md)
-* [logp_from_dists](api/npdists.logp_from_dists.md)
-* [sample_func_from_dists](api/npdists.sample_func_from_dists.md)
-* [plot_func_from_dists](api/npdists.plot_func_from_dists.md)
+* [sample_from_dists](api/distl.sample_from_dists.md)
+* [sample_ppf_from_dists](api/distl.sample_ppf_from_dists.md)
+* [logp_from_dists](api/distl.logp_from_dists.md)
+* [sample_func_from_dists](api/distl.sample_func_from_dists.md)
+* [plot_func_from_dists](api/distl.plot_func_from_dists.md)
 
 Top-Level Convenience Functions to Create Distributions:
 
-* [boxcar](api/npdists.boxcar.md)
-* [delta](api/npdists.delta.md)
-* [from_dict](api/npdists.from_dict.md)
-* [from_file](api/npdists.from_file.md)
-* [from_json](api/npdists.from_json.md)
-* [function](api/npdists.function.md)
-* [gaussian](api/npdists.gaussian.md)
-* [histogram_from_bins](api/npdists.histogram_from_bins.md)
-* [histogram_from_data](api/npdists.histogram_from_data.md)
-* [normal](api/npdists.normal.md)
-* [uniform](api/npdists.uniform.md)
+* [boxcar](api/distl.boxcar.md)
+* [delta](api/distl.delta.md)
+* [from_dict](api/distl.from_dict.md)
+* [from_file](api/distl.from_file.md)
+* [from_json](api/distl.from_json.md)
+* [function](api/distl.function.md)
+* [gaussian](api/distl.gaussian.md)
+* [histogram_from_bins](api/distl.histogram_from_bins.md)
+* [histogram_from_data](api/distl.histogram_from_data.md)
+* [normal](api/distl.normal.md)
+* [uniform](api/distl.uniform.md)
 
 
 Distribution Classes:

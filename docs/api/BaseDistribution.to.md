@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).to (method)
+### [BaseDistribution](BaseDistribution.md).to (function)
 
 
 ```py

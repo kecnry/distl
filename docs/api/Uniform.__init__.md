@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).__init__ (method)
+### [Uniform](Uniform.md).__init__ (function)
 
 
 ```py
@@ -13,7 +13,7 @@ Create a [Uniform](Uniform.md) distribution.
 
 This can also be created from a function at the top-level as:
 
-* [npdists.uniform](npdists.uniform.md)
+* [distl.uniform](distl.uniform.md)
 
 Arguments
 --------------

@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).take_dimension (method)
+### [MVGaussian](MVGaussian.md).take_dimension (function)
 
 
 ```py

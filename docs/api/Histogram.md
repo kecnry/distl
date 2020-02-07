@@ -5,32 +5,51 @@ A Histogram distribution stores a discrete PDF and allows sampling from
 that binned density distribution.
 
 To create a Histogram distribution from already binned data, see
-[npdists.histogram_from_bins](npdists.histogram_from_bins.md) or [Histogram.__init__](Histogram.__init__.md).  To create a
+[distl.histogram_from_bins](distl.histogram_from_bins.md) or [Histogram.__init__](Histogram.__init__.md).  To create a
 Histogram distribtuion from the data array itself, see
-[npdists.histogram_from_data](npdists.histogram_from_data.md) or [Histogram.from_data](Histogram.from_data.md).
+[distl.histogram_from_data](distl.histogram_from_data.md) or [Histogram.from_data](Histogram.from_data.md).
+
+Treatment under-the-hood:
+
+The densities at each bin-midpoint are linearly interpolated to create
+a pdf (which is normalized to an integral of 1).  A numerical integral
+of the bins is then performed to create the cdf (again, normalized to 1)
+and inverted to create the ppf.  Each of these are then interpolated
+whenever accessing &lt;[class](class.md).pdf&gt;, &lt;[class](class.md).cdf&gt;, &lt;[class](class.md).ppf&gt;, etc as
+well as used when calling &lt;[class](class.md).sample&gt;.
 
 
 
 * [__init__](Histogram.__init__.md)
+* [cdf](Histogram.cdf.md)
 * [copy](Histogram.copy.md)
-* [dist_args](Histogram.dist_args.md)
-* [dist_func](Histogram.dist_func.md)
-* [distribution](Histogram.distribution.md)
+* [dist_constructor_argnames](Histogram.dist_constructor_argnames.md)
+* [dist_constructor_args](Histogram.dist_constructor_args.md)
+* [dist_constructor_func](Histogram.dist_constructor_func.md)
+* [dist_constructor_object](Histogram.dist_constructor_object.md)
+* [entropy](Histogram.entropy.md)
+* [expect](Histogram.expect.md)
 * [from_data](Histogram.from_data.md)
 * [get_wrap_at](Histogram.get_wrap_at.md)
 * [hash](Histogram.hash.md)
+* [interval](Histogram.interval.md)
+* [isf](Histogram.isf.md)
 * [label](Histogram.label.md)
-* [logp](Histogram.logp.md)
+* [logcdf](Histogram.logcdf.md)
+* [logpdf](Histogram.logpdf.md)
+* [logsf](Histogram.logsf.md)
 * [mean](Histogram.mean.md)
+* [median](Histogram.median.md)
+* [moment](Histogram.moment.md)
+* [pdf](Histogram.pdf.md)
 * [plot](Histogram.plot.md)
-* [plot_dist](Histogram.plot_dist.md)
+* [plot_cdf](Histogram.plot_cdf.md)
 * [plot_gaussian](Histogram.plot_gaussian.md)
+* [plot_pdf](Histogram.plot_pdf.md)
 * [plot_sample](Histogram.plot_sample.md)
+* [ppf](Histogram.ppf.md)
 * [sample](Histogram.sample.md)
-* [sample_args](Histogram.sample_args.md)
-* [sample_func](Histogram.sample_func.md)
-* [sample_ppf](Histogram.sample_ppf.md)
-* [sample_ppf_func](Histogram.sample_ppf_func.md)
+* [sf](Histogram.sf.md)
 * [std](Histogram.std.md)
 * [to](Histogram.to.md)
 * [to_dict](Histogram.to_dict.md)
@@ -38,7 +57,10 @@ Histogram distribtuion from the data array itself, see
 * [to_gaussian](Histogram.to_gaussian.md)
 * [to_histogram](Histogram.to_histogram.md)
 * [to_json](Histogram.to_json.md)
+* [to_si](Histogram.to_si.md)
+* [to_solar](Histogram.to_solar.md)
 * [to_uniform](Histogram.to_uniform.md)
 * [unit](Histogram.unit.md)
+* [var](Histogram.var.md)
 * [wrap](Histogram.wrap.md)
 * [wrap_at](Histogram.wrap_at.md)

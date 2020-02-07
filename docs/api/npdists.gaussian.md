@@ -1,4 +1,4 @@
-### [npdists](npdists.md).gaussian (function)
+### [distl](distl.md).gaussian (function)
 
 
 ```py

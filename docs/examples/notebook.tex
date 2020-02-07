@@ -281,7 +281,7 @@
 
     
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}1}]:} \PY{k+kn}{import} \PY{n+nn}{npdists}
+{\color{incolor}In [{\color{incolor}1}]:} \PY{k+kn}{import} \PY{n+nn}{distl}
         \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k+kn}{as} \PY{n+nn}{np}
         \PY{k+kn}{import} \PY{n+nn}{matplotlib.pyplot} \PY{k+kn}{as} \PY{n+nn}{plt}
         \PY{k+kn}{import} \PY{n+nn}{emcee}
@@ -301,7 +301,7 @@
 
     Read \href{https://emcee.readthedocs.io/en/latest/tutorials/line/}{this
 emcee tutorial} first. We'll reproduce that exact same example, but
-making use of \texttt{npdists} for prior and posterior distributions.
+making use of \texttt{distl} for prior and posterior distributions.
 
 Note that we'll use the emcee 3.0 release candidate to make use of some
 nice upcoming convenience functionality in emcee - although the same
@@ -344,7 +344,7 @@ tutorial.
     \end{center}
     { \hspace*{\fill} \\}
     
-    Without \texttt{npdists}, the emcee tutorial defines the likelihoods and
+    Without \texttt{distl}, the emcee tutorial defines the likelihoods and
 probabilities as follows:
 
     \begin{Verbatim}[commandchars=\\\{\}]
@@ -374,7 +374,7 @@ probabilities as follows:
 \end{Verbatim}
 
 
-    Using \texttt{npdists}, we can "simplify" some of this logic:
+    Using \texttt{distl}, we can "simplify" some of this logic:
 
     \begin{Verbatim}[commandchars=\\\{\}]
 {\color{incolor}In [{\color{incolor}9}]:} \PY{k}{def} \PY{n+nf}{lnlike}\PY{p}{(}\PY{n}{values}\PY{p}{,} \PY{n}{x}\PY{p}{,} \PY{n}{y}\PY{p}{,} \PY{n}{yerr}\PY{p}{)}\PY{p}{:}
@@ -386,9 +386,9 @@ probabilities as follows:
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}10}]:} \PY{n}{m\PYZus{}prior} \PY{o}{=} \PY{n}{npdists}\PY{o}{.}\PY{n}{uniform}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{5}\PY{p}{,} \PY{l+m+mi}{5}\PY{p}{)}
-         \PY{n}{b\PYZus{}prior} \PY{o}{=} \PY{n}{npdists}\PY{o}{.}\PY{n}{uniform}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{10}\PY{p}{)}
-         \PY{n}{lnf\PYZus{}prior} \PY{o}{=} \PY{n}{npdists}\PY{o}{.}\PY{n}{uniform}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{10}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}10}]:} \PY{n}{m\PYZus{}prior} \PY{o}{=} \PY{n}{distl}\PY{o}{.}\PY{n}{uniform}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{5}\PY{p}{,} \PY{l+m+mi}{5}\PY{p}{)}
+         \PY{n}{b\PYZus{}prior} \PY{o}{=} \PY{n}{distl}\PY{o}{.}\PY{n}{uniform}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+m+mi}{10}\PY{p}{)}
+         \PY{n}{lnf\PYZus{}prior} \PY{o}{=} \PY{n}{distl}\PY{o}{.}\PY{n}{uniform}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{10}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{)}
 \end{Verbatim}
 
 
@@ -488,7 +488,7 @@ posteriors.
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-/home/kyle/.local/lib/python2.7/site-packages/npdists-0.1.0.dev0-py2.7.egg/npdists/npdists.py:729: RuntimeWarning: divide by zero encountered in log
+/home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.py:729: RuntimeWarning: divide by zero encountered in log
 
     \end{Verbatim}
 
@@ -584,13 +584,13 @@ minimum, so we'll discard the first 9000 iterations from here on out.
     \end{center}
     { \hspace*{\fill} \\}
     
-    Now we can load the samples into \texttt{npdists.Histogram}
+    Now we can load the samples into \texttt{distl.Histogram}
 distributions.
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}35}]:} \PY{n}{m\PYZus{}post} \PY{o}{=} \PY{n}{npdists}\PY{o}{.}\PY{n}{histogram\PYZus{}from\PYZus{}data}\PY{p}{(}\PY{n}{sampler}\PY{o}{.}\PY{n}{get\PYZus{}chain}\PY{p}{(}\PY{n}{discard}\PY{o}{=}\PY{l+m+mi}{9000}\PY{p}{,} \PY{n}{flat}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{m}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{b\PYZus{}post} \PY{o}{=} \PY{n}{npdists}\PY{o}{.}\PY{n}{histogram\PYZus{}from\PYZus{}data}\PY{p}{(}\PY{n}{sampler}\PY{o}{.}\PY{n}{get\PYZus{}chain}\PY{p}{(}\PY{n}{discard}\PY{o}{=}\PY{l+m+mi}{9000}\PY{p}{,} \PY{n}{flat}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{b}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{lnf\PYZus{}post} \PY{o}{=} \PY{n}{npdists}\PY{o}{.}\PY{n}{histogram\PYZus{}from\PYZus{}data}\PY{p}{(}\PY{n}{sampler}\PY{o}{.}\PY{n}{get\PYZus{}chain}\PY{p}{(}\PY{n}{discard}\PY{o}{=}\PY{l+m+mi}{9000}\PY{p}{,} \PY{n}{flat}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{lnf}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}35}]:} \PY{n}{m\PYZus{}post} \PY{o}{=} \PY{n}{distl}\PY{o}{.}\PY{n}{histogram\PYZus{}from\PYZus{}data}\PY{p}{(}\PY{n}{sampler}\PY{o}{.}\PY{n}{get\PYZus{}chain}\PY{p}{(}\PY{n}{discard}\PY{o}{=}\PY{l+m+mi}{9000}\PY{p}{,} \PY{n}{flat}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{m}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{b\PYZus{}post} \PY{o}{=} \PY{n}{distl}\PY{o}{.}\PY{n}{histogram\PYZus{}from\PYZus{}data}\PY{p}{(}\PY{n}{sampler}\PY{o}{.}\PY{n}{get\PYZus{}chain}\PY{p}{(}\PY{n}{discard}\PY{o}{=}\PY{l+m+mi}{9000}\PY{p}{,} \PY{n}{flat}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{b}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{lnf\PYZus{}post} \PY{o}{=} \PY{n}{distl}\PY{o}{.}\PY{n}{histogram\PYZus{}from\PYZus{}data}\PY{p}{(}\PY{n}{sampler}\PY{o}{.}\PY{n}{get\PYZus{}chain}\PY{p}{(}\PY{n}{discard}\PY{o}{=}\PY{l+m+mi}{9000}\PY{p}{,} \PY{n}{flat}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}\PY{p}{[}\PY{p}{:}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{]}\PY{p}{,} \PY{n}{label}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{lnf}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
 \end{Verbatim}
 
 

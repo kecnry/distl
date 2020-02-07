@@ -1,16 +1,13 @@
-### [MVHistogram](MVHistogram.md).sample (method)
+### [MVHistogram](MVHistogram.md).sample (function)
 
 
 ```py
 
-def sample(self, *args, **kwargs)
+def sample(self, size=None, dimension=None)
 
 ```
 
 
 
-* `dimension`: (int, optional): dimension of the multivariate distribution
-    to sample.  If not provided or None, will default to [MVHistogram.dimension](MVHistogram.dimension.md).
-* `*args`, `**kwargs`: all additional arguments and keyword arguments
-    are passed on to [BaseDistribution.sample](BaseDistribution.sample.md).
+        
 

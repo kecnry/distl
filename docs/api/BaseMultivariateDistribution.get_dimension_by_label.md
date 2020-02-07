@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).get_dimension_by_label (method)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).get_dimension_by_label (function)
 
 
 ```py

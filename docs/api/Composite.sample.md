@@ -1,4 +1,4 @@
-### [Composite](Composite.md).sample (method)
+### [Composite](Composite.md).sample (function)
 
 
 ```py

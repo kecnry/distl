@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).get_wrap_at (method)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).get_wrap_at (function)
 
 
 ```py

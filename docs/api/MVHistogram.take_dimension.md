@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).take_dimension (method)
+### [MVHistogram](MVHistogram.md).take_dimension (function)
 
 
 ```py

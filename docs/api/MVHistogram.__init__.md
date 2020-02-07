@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).__init__ (method)
+### [MVHistogram](MVHistogram.md).__init__ (function)
 
 
 ```py

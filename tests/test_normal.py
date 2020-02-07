@@ -1,6 +1,6 @@
 from nose.tools import assert_raises
 
-import npdists as npd
+import distl as npd
 
 def test_create():
     g = npd.gaussian(5, 10)

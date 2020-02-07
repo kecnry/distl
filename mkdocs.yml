@@ -1,11 +1,11 @@
-site_name: npdists
+site_name: distl
 theme:
     name: readthedocs
     highlightjs: true
     hljs_languages:
         - python
 repo_name: GitHub
-repo_url: https://github.com/kecnry/npdists/
+repo_url: https://github.com/kecnry/distl/
 edit_uri: blob/master/docs/
 extra_css: [extra.css]
 nav:
@@ -21,7 +21,7 @@ nav:
         - multivariate: examples/multivariate.md
         # - fitting with EMCEE: examples/fitting_emcee.md
     - API:
-        - npdists: api.md
+        - distl: api.md
         - Delta: api/Delta.md
         - Gaussian: api/Gaussian.md
         - Uniform: api/Uniform.md

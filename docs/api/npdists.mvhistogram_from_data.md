@@ -1,4 +1,4 @@
-### [npdists](npdists.md).mvhistogram_from_data (function)
+### [distl](distl.md).mvhistogram_from_data (function)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [npdists](npdists.md).delta (function)
+### [distl](distl.md).delta (function)
 
 
 ```py

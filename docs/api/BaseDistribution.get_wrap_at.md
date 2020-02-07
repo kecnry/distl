@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).get_wrap_at (method)
+### [BaseDistribution](BaseDistribution.md).get_wrap_at (function)
 
 
 ```py

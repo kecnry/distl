@@ -1,4 +1,4 @@
-### [npdists](npdists.md).histogram_from_data (function)
+### [distl](distl.md).histogram_from_data (function)
 
 
 ```py
@@ -13,7 +13,7 @@ Create a [Histogram](Histogram.md) distribution from data.
 
 See also:
 
-* [npdists.histogram_from_bins](npdists.histogram_from_bins.md)
+* [distl.histogram_from_bins](distl.histogram_from_bins.md)
 
 Arguments
 --------------

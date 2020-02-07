@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).plot_sample (method)
+### [Uniform](Uniform.md).plot_sample (function)
 
 
 ```py
@@ -15,7 +15,8 @@ matplotlib to be installed.
 See also:
 
 * [Uniform.plot](Uniform.plot.md)
-* [Uniform.plot_dist](Uniform.plot_dist.md)
+* [Uniform.plot_pdf](Uniform.plot_pdf.md)
+* [Uniform.plot_cdf](Uniform.plot_cdf.md)
 * [Uniform.plot_gaussian](Uniform.plot_gaussian.md)
 
 Arguments

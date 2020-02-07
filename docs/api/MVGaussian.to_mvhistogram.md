@@ -1,9 +1,9 @@
-### [MVGaussian](MVGaussian.md).to_mvhistogram (method)
+### [MVGaussian](MVGaussian.md).to_mvhistogram (function)
 
 
 ```py
 
-def to_mvhistogram(self, N=1000, bins=10, range=None)
+def to_mvhistogram(self, N=1000000.0, bins=15, range=None)
 
 ```
 
@@ -17,9 +17,9 @@ to [MVHistogram.from_data](MVHistogram.from_data.md).
 
 Arguments
 -----------
-* `N` (int, optional, default=1000): number of samples to use for
+* `N` (int, optional, default=1e6): number of samples to use for
     the histogram.
-* `bins` (int, optional, default=10): number of bins to use for the
+* `bins` (int, optional, default=15): number of bins to use for the
     histogram.
 * `range` (tuple or None): range to use for the histogram.
 

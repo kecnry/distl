@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).plot_sample (method)
+### [Histogram](Histogram.md).plot_sample (function)
 
 
 ```py
@@ -15,7 +15,8 @@ matplotlib to be installed.
 See also:
 
 * [Histogram.plot](Histogram.plot.md)
-* [Histogram.plot_dist](Histogram.plot_dist.md)
+* [Histogram.plot_pdf](Histogram.plot_pdf.md)
+* [Histogram.plot_cdf](Histogram.plot_cdf.md)
 * [Histogram.plot_gaussian](Histogram.plot_gaussian.md)
 
 Arguments

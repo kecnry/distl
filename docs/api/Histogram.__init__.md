@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).__init__ (method)
+### [Histogram](Histogram.md).__init__ (function)
 
 
 ```py
@@ -13,12 +13,12 @@ Create a [Histogram](Histogram.md) distribution from bins and density.
 
 This can also be created from a function at the top-level as:
 
-* [npdists.histogram_from_bins](npdists.histogram_from_bins.md)
+* [distl.histogram_from_bins](distl.histogram_from_bins.md)
 
 See also:
 
 * [Histogram.from_data](Histogram.from_data.md)
-* [npdists.histogram_from_data](npdists.histogram_from_data.md)
+* [distl.histogram_from_data](distl.histogram_from_data.md)
 
 Arguments
 --------------

@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).wrap (method)
+### [MVGaussian](MVGaussian.md).wrap (function)
 
 
 ```py

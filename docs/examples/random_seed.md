@@ -1,14 +1,14 @@
 ```python
-import npdists
+import distl
 import numpy as np
 ```
 
 
 ```python
-g = npdists.gaussian(10, 2)
+g = distl.gaussian(10, 2)
 ```
 
-npdists obeys the seed set in `np.random.seed`.
+distl obeys the seed set in `np.random.seed`.
 
 
 ```python
@@ -105,11 +105,11 @@ h.sample(seed=1234)
 
 
 
-If you want a random seed to be used to multiple calls in the same execution, you can access a random array of integers via [get_random_seed](../api/npdists.get_random_seed.md) which can then be passed on to either np.random.seed or sample.
+If you want a random seed to be used to multiple calls in the same execution, you can access a random array of integers via [get_random_seed](../api/distl.get_random_seed.md) which can then be passed on to either np.random.seed or sample.
 
 
 ```python
-seed = npdists.get_random_seed()
+seed = distl.get_random_seed()
 ```
 
 
@@ -138,7 +138,7 @@ g.sample(seed=seed)
 
 
 ```python
-g.sample(seed=npdists.get_random_seed())
+g.sample(seed=distl.get_random_seed())
 ```
 
 

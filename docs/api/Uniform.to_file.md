@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to_file (method)
+### [Uniform](Uniform.md).to_file (function)
 
 
 ```py
@@ -12,7 +12,7 @@ def to_file(self, filename, **kwargs)
 Save the json representation of the distribution object to a file.
 
 The resulting file can be restored to the original object
-via [npdists.from_file](npdists.from_file.md).
+via [distl.from_file](distl.from_file.md).
 
 See also:
 

@@ -1,4 +1,4 @@
-### [Delta](Delta.md).sample (method)
+### [Delta](Delta.md).sample (function)
 
 
 ```py
@@ -10,6 +10,13 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=Non
 
 
 Sample from the distribution.
+
+See also:
+* [Delta.pdf](Delta.pdf.md)
+* [Delta.cdf](Delta.cdf.md)
+* [Delta.ppf](Delta.ppf.md)
+* [Delta.plot_sample](Delta.plot_sample.md)
+* [Delta.plot](Delta.plot.md)
 
 Arguments
 -----------

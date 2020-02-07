@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).wrap (method)
+### [BaseDistribution](BaseDistribution.md).wrap (function)
 
 
 ```py

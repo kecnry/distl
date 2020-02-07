@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).sample (method)
+### [Uniform](Uniform.md).sample (function)
 
 
 ```py
@@ -10,6 +10,13 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=Non
 
 
 Sample from the distribution.
+
+See also:
+* [Uniform.pdf](Uniform.pdf.md)
+* [Uniform.cdf](Uniform.cdf.md)
+* [Uniform.ppf](Uniform.ppf.md)
+* [Uniform.plot_sample](Uniform.plot_sample.md)
+* [Uniform.plot](Uniform.plot.md)
 
 Arguments
 -----------

@@ -1,5 +1,5 @@
 ```python
-import npdists
+import distl
 import astropy.units as u
 ```
 
@@ -9,12 +9,12 @@ Units can be attached to a distribution either by passing `unit` to the creation
 
 
 ```python
-g = npdists.gaussian(10, 2, unit=u.km)
+g = distl.gaussian(10, 2, unit=u.km)
 ```
 
 
 ```python
-g = npdists.gaussian(10, 2) * u.km
+g = distl.gaussian(10, 2) * u.km
 ```
 
 
@@ -25,7 +25,7 @@ g
 
 
 
-    <npdists.gaussian loc=10.0 scale=2.0 unit=km>
+    <distl.gaussian loc=10.0 scale=2.0 unit=km>
 
 
 
@@ -76,7 +76,7 @@ g_meters
 
 
 
-    <npdists.gaussian loc=10000.0 scale=2000.0 unit=m>
+    <distl.gaussian loc=10000.0 scale=2000.0 unit=m>
 
 
 

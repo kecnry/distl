@@ -1,4 +1,4 @@
-### [npdists](npdists.md).uniform (function)
+### [distl](distl.md).uniform (function)
 
 
 ```py

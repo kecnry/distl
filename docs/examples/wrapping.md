@@ -1,15 +1,15 @@
 ```python
-import npdists
+import distl
 import astropy.units as u
 ```
 
 # Example 1: Gaussian with Custom `wrap_at`
 
-Let's create a [Gaussian distribution](../api/Gaussian.md) centered around 10, and tell `npdists` to wrap the distribution at 12.  Whenever we call sample, values that extend beyone 10 will be wrapped onto the range `[0-10]`.
+Let's create a [Gaussian distribution](../api/Gaussian.md) centered around 10, and tell `distl` to wrap the distribution at 12.  Whenever we call sample, values that extend beyone 10 will be wrapped onto the range `[0-10]`.
 
 
 ```python
-g = npdists.gaussian(10, 2, wrap_at=12)
+g = distl.gaussian(10, 2, wrap_at=12)
 out = g.plot(show=True)
 ```
 
@@ -68,7 +68,7 @@ out = gh.plot(show=True, plot_gaussian=True)
 
 
 ```python
-i = npdists.gaussian(10, 5)*u.deg
+i = distl.gaussian(10, 5)*u.deg
 out = i.plot(show=True, bins=200)
 ```
 
@@ -122,7 +122,7 @@ out = i.plot(show=True, bins=200, unit=u.rad, plot_sample=True, plot_dist=True)
 
 
 ```python
-p = npdists.gaussian(0.9, 0.2)*u.cycle
+p = distl.gaussian(0.9, 0.2)*u.cycle
 out = p.plot(show=True, bins=20)
 ```
 
@@ -137,7 +137,7 @@ out = p.plot(show=True, bins=20)
 
 
 ```python
-b = npdists.uniform(340, 20)*u.deg
+b = distl.uniform(340, 20)*u.deg
 out = b.plot(show=True, bins=200)
 ```
 
