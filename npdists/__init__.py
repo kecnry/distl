@@ -160,35 +160,6 @@ def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, labe
                                         wrap_at=wrap_at)
 
 
-def function(func, unit, label, wrap_at, *args):
-    """
-    Create a <Function> distribution from some callable function and
-    any number of arguments, including distribution objects.
-
-
-    Arguments
-    ----------
-    * `func` (callable function): the callable function to be called to
-        sample the distribution.
-    * `unit` (astropy.units object or None): the units of the provided values.
-    * `label` (string or None): a label for the distribution.  This is used
-        for the x-label while plotting the distribution, as well as a shorthand
-        notation when creating a <Composite> distribution.
-    * `wrap_at` (float or False or None): value to wrap all
-        sampled values.  If None, will default to 0-2pi if `unit` is angular
-        (0-360 for degrees), or 0-1 if `unit` is cycles.  If False, will not wrap.
-        See <Function.wrap_at> and <Function.wrap> for more details.
-    * `*args`: all additional positional arguments will be passed on to
-        `func` when sampling.  These can be, but are not limited to,
-        other distribution objects.
-
-    Returns
-    ---------
-    * a <Function> object.
-    """
-    return _npdists.Function(func, unit, label, wrap_at, *args)
-
-
 #### MULTIVARIATE DISTRIBUTJIONS ####
 
 def mvgaussian(mean, cov, allow_singular=False, unit=None, label=None, wrap_at=None):
@@ -203,8 +174,6 @@ def mvhistogram_from_data(data, bins=10, range=None, weights=None, unit=None, la
     """
     """
     return _npdists.MVHistogram.from_data(data, bins=bins, range=range, weights=weights, unit=unit, label=label, wrap_at=wrap_at)
-
-
 
 def from_dict(d):
     """

@@ -1211,18 +1211,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         return self._return_with_units(self.wrap(self.dist_constructor_object.rvs(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-
-        # qs = _np.random.random(size=size)
-        # return self._return_with_units(self.wrap(self.ppf(q=qs, wrap_at=False), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
-
     ### PLOTTING
-
-    # def plot_func(self, show=False, **kwargs):
-    #     ret = _plt.hist(self.sample(size), **kwargs)
-    #     if show:
-    #         _plt.show()
-    #
-    #     return ret
 
     def _xlabel(self, unit=None, label=None):
         label = label if label is not None else self.label
@@ -1743,23 +1732,6 @@ class BaseMultivariateDistribution(BaseDistribution):
             raise TypeError("label must be of type list")
 
         self._label = label
-    #
-    # @property
-    # def dist_args(self):
-    #     """
-    #     Return the arguments sent to the distribution function.
-    #
-    #     See also:
-    #
-    #     * <<class>.dist_func>
-    #     * <<class>.distribution>
-    #
-    #     Returns
-    #     --------
-    #     * tuple
-    #     """
-    #
-    #     return tuple([getattr(self, k) for k in self._dist_args]+[self.dimension])
 
     @property
     def dimensions(self):
@@ -2536,147 +2508,6 @@ class Composite(BaseUnivariateDistribution):
         * a <Uniform> object
         """
         return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
-
-# class Function(BaseUnivariateDistribution):
-#     """
-#     A Function distribution allows for any python callable to be stored that
-#     utilizes distributions under-the-hood.  When calling <Function.sample>,
-#     any argument passed to the function that is a <BaseDistribution> object
-#     will be sampled prior to being passed to the callable function.
-#
-#     In order to save or load these distributions, it is necessary to have
-#     the `dill` package installed.  Note that you should not load from untrusted
-#     sources, as any executable could be contained in the callable function.
-#
-#     See:
-#
-#     * <Function.to_dict>
-#     * <Function.to_json>
-#     * <Function.to_file>
-#
-#     for documentation on loading and saving Function distributions.
-#     """
-#     def __init__(self, func, func_ppf, unit, label, wrap_at, *args):
-#         """
-#         Create a <Function> distribution from some callable function and
-#         any number of arguments, including distribution objects.
-#
-#         This can also be created from a function at the top-level as:
-#
-#         * <npdists.function>
-#
-#         Arguments
-#         ----------
-#         * `func` (callable function, or None): the callable function to be called to
-#             sample the distribution.  If None, <<class>.sample> will raise a
-#             TypeError.
-#         * `func_ppf` (callable function, or None): the callable function to be
-#             called when sampling from a ppf.  If None, <<class>.sample_ppf> will
-#             raise a TypeError.
-#         * `unit` (astropy.units object or None): the units of the provided values.
-#         * `label` (string or None): a label for the distribution.  This is used
-#             for the x-label while plotting the distribution, as well as a shorthand
-#             notation when creating a <Composite> distribution.
-#         * `wrap_at` (float, None, or False, optional, default=None): value to
-#             use for wrapping.  If None and `unit` are angles, will default to
-#             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
-#             to 1.0.
-#         * `*args`: all additional positional arguments will be passed on to
-#             `func` when sampling.  These can be, but are not limited to,
-#             other distribution objects.
-#
-#         Returns
-#         ---------
-#         * a <Function> object.
-#         """
-#         super(Function, self).__init__(unit, label, wrap_at,
-#                                        None, None,
-#                                        self._sample_from_function, self._sample_ppf_from_function, ('func', 'args'),
-#                                        ('func', func, is_callable_or_none), ('func_ppf', func_ppf, is_callable_or_none), ('args', args, is_iterable))
-#
-#     def _sample_from_function(self, func, args, size=None):
-#         if func is None:
-#             raise TypeError("cannot sample from function when set to None")
-#         args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
-#         return func(*args)
-#
-#     def _sample_pff_from_function(self, func_ppf, args, ppf):
-#         if func_ppf is None:
-#             raise TypeError("cannot sample from ppf function when set to None")
-#         # TODO: not sure this is still what we want here...
-#         args = (a.sample(size=size) if isinstance(a, BaseDistribution) else a for a in args)
-#         return func_ppf(ppf, *args)
-#
-#
-#     @property
-#     def mean(self):
-#         """
-#         Determine the mean sampled value.
-#
-#         This is done under-the-hood by converting to a histogram via
-#         <Function.to_histogram>, sampling 10000 times with 100 bins and
-#         calling <Histogram.mean>.
-#         """
-#         return self.to_histogram(N=10000, bins=100).mean
-#
-#     @property
-#     def std(self):
-#         """
-#         Determine the standard deviations of the sampled values.
-#
-#         This is done under-the-hood by converting to a histogram via
-#         <Function.to_histogram>, sampling 10000 times with 100 bins and
-#         calling <Histogram.std>.
-#         """
-#         return self.to_histogram(N=10000, bins=100).std
-#
-#     def to_gaussian(self, N=1000, bins=10, range=None):
-#         """
-#         Convert the <Function> distribution to a <Gaussian> distribution via
-#         a <Histogram> distribution.
-#
-#         Under-the-hood, this calls <Function.to_histogram> with the requested
-#         values of `N`, `bins`, and `range` and then calls <Histogram.to_gaussian>.
-#
-#         Arguments
-#         -----------
-#         * `N` (int, optional, default=1000): number of samples to use for
-#             the histogram.
-#         * `bins` (int, optional, default=10): number of bins to use for the
-#             histogram.
-#         * `range` (tuple or None): range to use for the histogram.
-#
-#         Returns
-#         --------
-#         * a <Gaussian> object
-#         """
-#         return self.to_histogram(N=N, bins=bins, range=range).to_gaussian()
-#
-#     def to_uniform(self, sigma=1.0, N=1000, bins=10, range=None):
-#         """
-#         Convert the <Function> distribution to a <Uniform> distribution via
-#         a <Histogram> distribution.
-#
-#         Under-the-hood, this calls <Function.to_histogram> with the requested
-#         values of `N`, `bins`, and `range` and then calls <Histogram.to_uniform>
-#         with the requested value of `sigma` (which in turn is calling
-#         <Histogram.to_gaussian> first).
-#
-#         Arguments
-#         -----------
-#         * `sigma` (float, optional, default=1.0): the number of standard deviations
-#             to adopt as the lower and upper bounds of the uniform distribution.
-#         * `N` (int, optional, default=1000): number of samples to use for
-#             the histogram.
-#         * `bins` (int, optional, default=10): number of bins to use for the
-#             histogram.
-#         * `range` (tuple or None): range to use for the histogram.
-#
-#         Returns
-#         --------
-#         * a <Uniform> object
-#         """
-#         return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
 
 class Histogram(BaseUnivariateDistribution):
