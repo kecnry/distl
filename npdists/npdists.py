@@ -28,12 +28,6 @@ except ImportError:
 else:
     _has_astropy = True
 
-try:
-    import dill as _dill
-except ImportError:
-    _has_dill = False
-else:
-    _has_dill = True
 
 _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/', '__and__': '&', '__or__': '|'}
 
