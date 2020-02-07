@@ -2589,7 +2589,7 @@ class Composite(BaseUnivariateDistribution):
 
             return pdf_call, cdf_call, ppf_call
 
-        elif self.dist2 is not None:
+        # elif self.dist2 is not None:
 
 
         # elif self.dist2 is None:
