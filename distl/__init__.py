@@ -1,5 +1,6 @@
 from . import distl as _distl
-from .distl import get_random_seed, _has_astropy, _units# , sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists,
+from .io import *
+from .distl import DistributionCollection, get_random_seed, _has_astropy, _units# , sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists,
 import numpy as _np
 from .distl import BaseDistribution # for isinstance checking
 import json as _json
@@ -162,112 +163,18 @@ def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, labe
 
 #### MULTIVARIATE DISTRIBUTJIONS ####
 
-def mvgaussian(mean, cov, allow_singular=False, unit=None, label=None, wrap_at=None):
+def mvgaussian(mean, cov, allow_singular=False,
+               units=None, labels=None, wrap_ats=None):
     """
     Create a <MVGaussian> distribution.
 
     """
     return _distl.MVGaussian(mean, cov, allow_singular=allow_singular,
-                               unit=unit, label=label, wrap_at=wrap_at)
+                             units=units, labels=labels, wrap_ats=wrap_ats)
 
-def mvhistogram_from_data(data, bins=10, range=None, weights=None, unit=None, label=None, wrap_at=None):
+def mvhistogram_from_data(data, bins=10, range=None, weights=None,
+                          units=None, labels=None, wrap_ats=None):
     """
     """
-    return _distl.MVHistogram.from_data(data, bins=bins, range=range, weights=weights, unit=unit, label=label, wrap_at=wrap_at)
-
-def from_dict(d):
-    """
-    Load an distl object from a dictionary.
-
-    See also:
-
-    * <distl.from_json>
-    * <distl.from_file>
-
-    Arguments
-    -------------
-    * `d` (string or dict): dictionary (or json string of a dictionary)
-        representing the distl object.
-
-    Returns
-    ----------
-    * The appropriate distribution object.
-    """
-    if isinstance(d, str):
-        return from_json(d)
-
-    if not isinstance(d, dict):
-        raise TypeError("argument must be of type dict")
-    if 'distl' not in d.keys():
-        raise ValueError("input dictionary missing 'nparray' entry")
-
-    classname = d.get('distl').title()
-    unit = d.pop('unit', None)
-    # instead of popping distl (which would happen in memory and make that json
-    # unloadable again), we'll do a dictionary comprehension.  If this causes
-    # performance issues, we could instead accept and ignore distl as
-    # a keyword argument to __init__
-    dist = getattr(_distl, classname)(**{k:v for k,v in d.items() if k!='distl'})
-    if unit is not None and _has_astropy:
-        dist *= _units.Unit(unit)
-    return dist
-
-def from_json(j):
-    """
-    Load an distl object from a json-formatted string.
-
-    See also:
-
-    * <distl.from_dict>
-    * <distl.from_file>
-
-    Arguments
-    -------------
-    * `s` (string or dict): json formatted dictionary representing the distl
-        object.
-
-    Returns
-    ----------
-    * The appropriate distribution object.
-    """
-    if isinstance(j, dict):
-        return from_dict(j)
-
-    if not (isinstance(j, str) or isinstance(j, unicode)):
-        raise TypeError("argument must be of type str")
-
-    return from_dict(_json.loads(j))
-
-def from_file(filename):
-    """
-    Load an distl object from a json filename.
-
-    See also:
-
-    * <distl.from_dict>
-    * <distl.from_json>
-
-    Arguments
-    -------------
-    * `s` (string): the filename pointing to a json formatted file representing
-        an distl object.
-
-    Returns
-    ----------
-    * The appropriate distribution object.
-    """
-    f = open(filename, 'r')
-    try:
-        j = _json.load(f)
-    except:
-        f.close()
-        if _has_dill:
-            f = open(filename, 'rb')
-            d = _dill.load(f)
-            f.close()
-            return d
-        else:
-            raise ImportError("file requires 'dill' package to load")
-    else:
-        f.close()
-        return from_dict(j)
+    return _distl.MVHistogram.from_data(data, bins=bins, range=range, weights=weights,
+                                        units=units, labels=labels, wrap_ats=wrap_ats)

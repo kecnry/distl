@@ -1,3 +1,5 @@
+from .io import from_dict as _from_dict
+
 import numpy as _np
 from scipy import stats as _stats
 from scipy import interpolate as _interpolate
@@ -69,6 +71,24 @@ def get_random_seed():
     """
     return _np.random.get_state()[1]
 
+def to_unit(unit):
+    """
+    Convert a string to an astropy unit object
+    """
+    if isinstance(unit, str):
+        unit = _units.Unit(unit)
+
+def _json_safe(v):
+    if isinstance(v, _np.ndarray):
+        return v.tolist()
+    elif isinstance(v, list) or isinstance(v, tuple):
+        return [_json_safe(li) for li in v]
+    elif isinstance(v, BaseDistribution):
+        return v.to_dict()
+    # elif is_unit(v)[0]:
+    #     return v.to_string()
+    else:
+        return v
 
 ################## VALIDATORS ###################
 
@@ -78,9 +98,8 @@ def get_random_seed():
 def is_distribution(value):
     """must be an distl Distribution object"""
     if isinstance(value, dict) and 'distl' in value.keys():
-        # TODO: from_dict probably not available since its in __init__.py
-        return True, from_dict(value)
-    return isinstance(value, BaseDistribution), value
+        return True, _from_dict(value)
+    return isinstance(value, BaseDistribution) or isinstance(value, MultivariateSlice), value
 
 def is_distribution_or_none(value):
     """must be an distl Distribution object or None"""
@@ -191,8 +210,7 @@ class BaseDistribution(object):
 
     * <BaseDistribution.__init__>
     """
-    def __init__(self, unit, label, wrap_at,
-                 dist_constructor_func, dist_constructor_argnames,
+    def __init__(self, dist_constructor_func, dist_constructor_argnames,
                  *args):
         """
         BaseDistribution is the parent class for all distributions and should
@@ -220,10 +238,6 @@ class BaseDistribution(object):
         self._dist_constructor_object_cache = None
         self._parents_with_cache = []
 
-        self.label = label
-        self.unit = unit
-        self.wrap_at = wrap_at
-
         for item in args:
             if item[0] in _builtin_attrs:
                 raise KeyError("{} is a protected attribute.".format(item[0]))
@@ -245,7 +259,7 @@ class BaseDistribution(object):
         else:
             try:
                 return super(BaseDistribution, self).__getattr__(name)
-            except:
+            except AttributeError:
                 raise AttributeError("{} does not have attribute {}".format(self.__class__.__name__.lower(), name))
 
     def __setattr__(self, name, value):
@@ -269,24 +283,6 @@ class BaseDistribution(object):
                 raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
 
     ### REPRESENTATIONS
-
-    def __repr__(self):
-        descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
-        if self.unit is not None:
-            descriptors += " unit={}".format(self.unit)
-        if self.wrap_at is not None:
-            descriptors += " wrap_at={}".format(self.wrap_at)
-        if hasattr(self, 'dimension'):
-            descriptors += " dimension={}".format(self.dimension)
-        if self.label is not None:
-            descriptors += " label={}".format(self.label)
-        return "<distl.{} {}>".format(self.__class__.__name__.lower(), descriptors)
-
-    def __str__(self):
-        if self.label is not None:
-            return "{"+self.label+"}"
-        else:
-            return self.__repr__()
 
     def __float__(self):
         """
@@ -321,51 +317,7 @@ class BaseDistribution(object):
         """
         """
         # return hash(frozenset({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
-        return hash(str({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
-
-    def to_dict(self):
-        """
-        Return the dictionary representation of the distribution object.
-
-        The resulting dictionary can be restored to the original object
-        via <distl.from_dict>.
-
-        See also:
-
-        * <<class>.to_json>
-        * <<class>.to_file>
-
-        Returns
-        --------
-        * dictionary
-        """
-        def _json_safe(v):
-            if isinstance(v, _np.ndarray):
-                return v.tolist()
-            elif isinstance(v, list) or isinstance(v, tuple):
-                return [_json_safe(li) for li in v]
-            elif isinstance(v, BaseDistribution):
-                return v.to_dict()
-            elif hasattr(v, 'func_name'):
-                if _has_dill:
-                    return _dill.dumps(v)
-                else:
-                    raise ImportError("'dill' package required to export functions to dictionary")
-            # elif is_unit(v)[0]:
-            #     return v.to_string()
-            else:
-                return v
-        d = {k:_json_safe(v) for k,v in self._descriptors.items()}
-        d['distl'] = self.__class__.__name__.lower()
-        if self.unit is not None:
-            d['unit'] = str(self.unit.to_string())
-        if self.label is not None:
-            d['label'] = self.label
-        if self.wrap_at is not None:
-            d['wrap_at'] = self.wrap_at
-        if hasattr(self, 'dimension') and self.dimension is not None:
-            d['dimension'] = self.dimension
-        return d
+        return hash(str({k:v for k,v in self.to_dict().items()}))
 
     def to_json(self, **kwargs):
         """
@@ -531,239 +483,6 @@ class BaseDistribution(object):
 
         return Composite("tan", dist, label="tan({})".format(self.label) if self.label is not None else None)
 
-    ### LABEL
-
-    @property
-    def label(self):
-        """
-        The label of the distribution object.  When not None, this is used for
-        the x-label when plotting (see <<class>.plot>) and for the
-        string representation for any math in a <Composite> or <Function>
-        distribution.
-        """
-        return self._label
-
-    @label.setter
-    def label(self, label):
-        if not (label is None or isinstance(label, str)):
-            raise TypeError("label must be of type str")
-
-        self._label = label
-
-    ### UNITS AND UNIT CONVERSIONS
-
-    @property
-    def unit(self):
-        """
-        The units of the distribution.  Astropy is required in order to set
-        and/or use distributions with units.
-
-        See also:
-
-        * <<class>.to>
-        """
-        return self._unit
-
-    @unit.setter
-    def unit(self, unit):
-        if isinstance(unit, str):
-            unit = _units.Unit(unit)
-
-        if not (unit is None or isinstance(unit, _units.Unit) or isinstance(unit, _units.CompositeUnit) or isinstance(unit, _units.IrreducibleUnit)):
-            raise TypeError("unit must be of type astropy.units.Unit, got {} (type: {})".format(unit, type(unit)))
-
-        self._unit = unit
-
-    def to(self, unit):
-        """
-        Convert to different units.  This creates a copy and returns the
-        new distribution with the new units.  Astropy is required in order to
-        set and/or use units.
-
-        See also:
-
-        * <<class>.unit>
-
-        Arguments
-        ------------
-        * `unit` (astropy.unit object): unit to use in the new distribution.
-            The current units (see <<class>.unit>) must be able to
-            convert to the requested units.
-
-        Returns
-        ------------
-        * the new distribution object
-
-        Raises
-        -----------
-        * ImportError: if astropy dependency is not met.
-        """
-        if not _has_astropy:
-            raise ImportError("astropy required to handle units")
-
-        if self.unit is None:
-            raise ValueError("distribution object does not have a unit")
-
-        factor = self.unit.to(unit)
-
-        new_dist = self.copy()
-        new_dist.unit = unit
-        if new_dist.wrap_at is not None and new_dist.wrap_at is not False:
-            new_dist.wrap_at *= factor
-        new_dist *= factor
-        return new_dist
-
-    def to_si(self):
-        """
-        """
-        physical_type = self.unit.physical_type
-
-        if physical_type not in _physical_types_to_si.keys():
-            raise NotImplementedError("cannot convert object with physical_type={} to SI units".format(physical_type))
-
-        return self.to(_units.Unit(_physical_types_to_si.get(physical_type)))
-
-    def to_solar(self):
-        """
-        """
-        physical_type = self.unit.physical_type
-
-        if physical_type not in _physical_types_to_solar.keys():
-            raise NotImplementedError("cannot convert object with physical_type={} to solar units".format(physical_type))
-
-        return self.to(_units.Unit(_physical_types_to_solar.get(physical_type)))
-
-    ### CONVENIENCE METHODS FOR SAMPLING/WRAPPING/PLOTTING
-
-    @property
-    def wrap_at(self):
-        """
-        Value at which to wrap all sampled values.  If <<class>.unit> is not None,
-        then the value of `wrap_at` is the same as the set units.
-
-        If `False`: will not wrap
-        If `None`: will wrap on range 0-2pi (0-360 deg) if <<class>.unit> are angular
-            or 0-1 if <<class>.unit> are cycles.
-        If float: will wrap on range 0-`wrap_at`.
-
-        See also:
-
-        * <<class>.get_wrap_at>
-        * <<class>.wrap>
-
-        Returns
-        ---------
-        * (float or None)
-        """
-        return self._wrap_at
-
-    @wrap_at.setter
-    def wrap_at(self, wrap_at):
-        if wrap_at is None or wrap_at is False:
-            self._wrap_at = wrap_at
-
-        elif not (isinstance(wrap_at, float) or isinstance(wrap_at, int)):
-            raise TypeError("wrap_at={} must be of type float, int, False, or None".format(wrap_at))
-
-        else:
-            self._wrap_at = wrap_at
-
-    def get_wrap_at(self, wrap_at=None):
-        """
-        Get the computed value used for wrapping, given `wrap_at` as an optional
-        override to the attribute <<class>.wrap_at>.
-
-        See also:
-
-        * <<class>.wrap_at>
-        * <<class>.wrap>
-
-        Arguments
-        ------------
-        * `wrap_at` (float or False or None, optional, default=None): override
-            the value of <<class>.wrap_at>.
-
-        Returns
-        ----------
-        * The computed wrapping value, accounting for <<class>.unit> if `wrap_at`
-            is None.
-        """
-
-        if wrap_at is None:
-            wrap_at = self.wrap_at
-
-        if wrap_at is None:
-            if _has_astropy and self.unit is not None:
-                if self.unit.physical_type == 'angle':
-                    if self.unit.to_string() == 'deg':
-                        wrap_at = 360
-                    elif self.unit.to_string() == 'cycle':
-                        wrap_at = 1
-                    elif self.unit.to_string() == 'rad':
-                        wrap_at = 2 * _np.pi
-                    else:
-                        raise NotImplementedError("wrapping for angle unit {} not implemented.".format(self.unit.to_string()))
-            else:
-                wrap_at = False
-
-        return wrap_at
-
-    def wrap(self, value, wrap_at=None):
-        """
-        Wrap values via modulo:
-
-        ```py
-        value % wrap_at
-        ```
-
-        See also:
-
-        * <<class>.wrap_at>
-        * <<class>.get_wrap_at>
-
-        Arguments
-        ------------
-        * `value` (float or array): values to wrap
-        * `wrap_at` (float, optional, default=None): value to use for the upper-limit.
-            If not provided or None, will use <<class>.wrap_at>.  If False,
-            will return `value` unwrapped.
-
-        Returns
-        ----------
-        * (float or array): same shape/type as input `value`.
-        """
-        wrap_at = self.get_wrap_at(wrap_at)
-
-        if wrap_at is False or wrap_at is None:
-            return value
-
-        return value % wrap_at
-
-
-    def _return_with_units(self, value, unit=None, as_quantity=False):
-        if (as_quantity or unit) and not _has_astropy:
-            raise ImportError("astropy required to return quantity objects")
-
-        if unit is None and not as_quantity:
-            return value
-
-        if self.unit is not None:
-            value *= self.unit
-
-        if unit is not None:
-            if self.unit is None:
-                raise ValueError("can only return unit if unit is set for distribution")
-
-            if not _has_astropy:
-                raise ImportError("astropy must be installed for unit support")
-
-            value = value.to(unit)
-
-
-        if as_quantity:
-            return value
-        else:
-            return value.value
 
     ### PROPERTIES/METHODS THAT EXPOSE UNDERLYING SCIPY.STATS FUNCTIONALITY
 
@@ -983,12 +702,794 @@ class BaseDistribution(object):
         # must be implemented by any subclasses
         raise NotImplementedError("sample not implemented for {}".format(self.__class__.__name__))
 
-    def plot(self, *args, **kwargs):
-        # must be implemented by any subclasses
-        raise NotImplementedError("plot not implemented for {}".format(self.__class__.__name__))
+    ### PLOTTING
+
+    def _xlabel(self, unit=None, label=None):
+        label = label if label is not None else self.label
+        l = 'value' if label is None else label
+        if _has_astropy and self.unit is not None and self.unit not in [_units.dimensionless_unscaled]:
+            l += ' ({})'.format(unit if unit is not None else self.unit)
+
+        return l
+
+
+    def plot(self, size=1e5, unit=None,
+             wrap_at=None, seed=None,
+             samples=None,
+             plot_sample=True, plot_sample_kwargs={'color': 'gray'},
+             plot_pdf=True, plot_pdf_kwargs={'color': 'red'},
+             plot_cdf=False, plot_cdf_kwargs={'color': 'green'},
+             plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
+             label=None, xlabel=None, show=False, **kwargs):
+        """
+        Plot both the analytic distribution function as well as a sampled
+        histogram from the distribution.  Requires matplotlib to be installed.
+
+        See also:
+
+        * <<class>.plot_sample>
+        * <<class>.plot_pdf>
+        * <<class>.plot_cdf>
+        * <<class>.plot_gaussian>
+
+        Arguments
+        -----------
+        * `size` (int, optional, default=1e5): number of points to sample for
+            the histogram.  See also <<class>.sample>.  Will be ignored
+            if `samples` is provided.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.  If `samples` is provided,
+            the passed values will be assumed to be in the correct units.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.  Will be ignored if
+            `samples` is provided.
+        * `seed` (int, optional): seed to use when sampling.  See also
+            <<class>.sample>.  Will be ignored if `samples` is provided.
+        * `samples` (array, optional, default=None): plot specific sampled
+            values instead of calling <<class>.sample> internally.  Will override
+            `size`.
+        * `plot_sample` (bool, optional, default=True): whether to plot the
+            histogram from sampling.  See also <<class>.plot_sample>.
+        * `plot_sample_kwargs` (dict, optional, default={'color': 'gray'}):
+            keyword arguments to send to <<class>.plot_sample>.
+        * `plot_pdf` (bool, optional, default=True): whether to plot the
+            analytic form of the underlying distribution, if applicable.
+            See also <<class>.plot_pdf>.
+        * `plot_pdf_kwargs` (dict, optional, default={'color': 'red'}):
+            keyword arguments to send to <<class>.plot_pdf>.
+        * `plot_cdf` (bool, optional, default=True): whether to plot the
+            analytic form of the cdf, if applicable.
+            See also <<class>.plot_cdf>.
+        * `plot_cdf_kwargs` (dict, optional, default={'color': 'green'}):
+            keyword arguments to send to <<class>.plot_cdf>.
+        * `plot_gaussian` (bool, optional, default=False): whether to plot
+            a guassian distribution fit to the sample.  Only supported for
+            distributions that have <<class>.to_gaussian> methods.
+        * `plot_gaussian_kwargs` (dict, optional, default={'color': 'blue'}):
+            keyword arguments to send to <<class>.plot_gaussian>.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.  Unit will automatically be appended.
+            Will be ignored if `xlabel` is provided.
+        * `xlabel` (string, optional, default=None): override the label on the
+            x-axis without appending the unit.  Will override `label`.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments (except for `bins`) will be passed
+            on to <<class>.plot_pdf> and <<class>.plot_gaussian> and all
+            keyword arguments will be passed on to <<class>.plot_sample>.
+            Keyword arguments defined in `plot_sample_kwargs`,
+            `plot_pdf_kwargs`, and `plot_gaussian_kwargs`
+            will override the values sent in `kwargs`.
+
+        Returns
+        --------
+        * tuple: the return values from <<class>.plot_sample> (or None if
+            `plot_sample=False`), <<class>.plot_pdf> (or None if `plot_pdf=False`),
+            <<class>.plot_cdf> (or None if `plot_cdf=False`),
+            and <Gaussian.plot_pdf> (or None if `plot_gaussian=False`).
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        ret = []
+
+        if plot_sample:
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_sample_kwargs = plot_sample_kwargs.copy()
+            for k,v in kwargs.items():
+                plot_sample_kwargs.setdefault(k,v)
+            ret_sample = self.plot_sample(size=int(size), samples=samples, unit=unit, wrap_at=wrap_at, seed=seed, show=False, **plot_sample_kwargs)
+        else:
+            ret_sample = None
+
+        if plot_gaussian or plot_pdf or plot_cdf:
+            # we need to know the original x-range, before wrapping
+            # sample = self.sample(size=size, unit=unit, wrap_at=False)
+            # xmin = _np.min(sample)
+            # xmax = _np.max(sample)
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
+
+        if plot_gaussian:
+            if not hasattr(self, 'to_gaussian'):
+                raise NotImplementedError("{} cannot plot with `plot_gaussian=True`".format(self.__class__.__name__))
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_gaussian_kwargs = plot_gaussian_kwargs.copy()
+            for k,v in kwargs.items():
+                if k in ['bins']:
+                    continue
+                plot_gaussian_kwargs.setdefault(k,v)
+            ret_gauss = self.plot_gaussian(x, unit=unit, wrap_at=wrap_at, show=False, **plot_gaussian_kwargs)
+
+        else:
+            ret_gauss = None
+
+        if plot_pdf:
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_pdf_kwargs = plot_pdf_kwargs.copy()
+            for k,v in kwargs.items():
+                if k in ['bins']:
+                    continue
+                plot_pdf_kwargs.setdefault(k,v)
+            ret_pdf = self.plot_pdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_pdf_kwargs)
+        else:
+            ret_pdf = None
+
+        if plot_cdf:
+            # we have to make a copy here, otherwise setdefault will change the
+            # defaults in the function declaration for successive calls
+            plot_cdf_kwargs = plot_cdf_kwargs.copy()
+            for k,v in kwargs.items():
+                if k in ['bins']:
+                    continue
+                plot_cdf_kwargs.setdefault(k,v)
+            ret_cdf = self.plot_cdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_cdf_kwargs)
+        else:
+            ret_cdf = None
+
+        if show:
+            _plt.xlabel(self._xlabel(unit, label=label))
+            _plt.ylabel('density')
+            _plt.show()
+
+        return (ret_sample, ret_pdf, ret_cdf, ret_gauss)
+
+
+    def plot_sample(self, size=100000, unit=None,
+                    wrap_at=None, seed=None,
+                    samples=None,
+                    label=None, xlabel=None, show=False, **kwargs):
+        """
+        Plot both a sampled histogram from the distribution.  Requires
+        matplotlib to be installed.
+
+        See also:
+
+        * <<class>.plot>
+        * <<class>.plot_pdf>
+        * <<class>.plot_cdf>
+        * <<class>.plot_gaussian>
+
+        Arguments
+        -----------
+        * `size` (int, optional, default=1e5): number of points to sample for
+            the histogram.  See also <<class>.sample>.  Will be ignored
+            if `samples` is provided.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.  If `samples` is provided,
+            the passed values will be assumed to be in the correct units.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.  Will be ignored
+            if `samples` is provided.
+        * `seed` (int, optional): seed to use when sampling.  See also
+            <<class>.sample>.  Will be ignored if `samples` is provided.
+        * `samples` (array, optional, default=None): plot specific sampled
+            values instead of calling <<class>.sample> internally.  Will override
+            `size`.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.  Unit will automatically be appended.
+            Will be ignored if `xlabel` is provided.
+        * `xlabel` (string, optional, default=None): override the label on the
+            x-axis without appending the unit.  Will override `label`.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments will be passed on to plt.hist.  If
+            not provided, `bins` will default to the stored bins for <Histogram>
+            distributions, otherwise will default to 25.
+
+        Returns
+        --------
+        * the return from plt.hist
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        if hasattr(self, 'bins'):
+            # let's default to the stored bins (probably only the case for
+            # histogram distributions)
+            if wrap_at or self.wrap_at:
+                kwargs.setdefault('bins', len(self.bins))
+            else:
+                kwargs.setdefault('bins', self.bins)
+        else:
+            kwargs.setdefault('bins', 25)
+
+        # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
+        # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
+        # appropriate bins
+        if samples is None:
+            samples = self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed)
+
+        try:
+            ret = _plt.hist(samples, density=True, **kwargs)
+        except AttributeError:
+            # TODO: determine which version of matplotlib
+            # TODO: this still doesn't handle the same
+            ret = _plt.hist(samples, normed=True, **kwargs)
+
+        if show:
+            _plt.xlabel(xlabel if xlabel is not None else self._xlabel(unit, label=label))
+            _plt.ylabel('density')
+            _plt.show()
+
+        return ret
+
+    def plot_pdf(self, x=None, unit=None, wrap_at=None,
+                  label=None, xlabel=None, show=False, **kwargs):
+        """
+        Plot the pdf function.  Requires matplotlib to be installed.
+
+        See also:
+
+        * <<class>.plot>
+        * <<class>.plot_cdf>
+        * <<class>.plot_sample>
+        * <<class>.plot_gaussian>
+
+        Arguments
+        -----------
+        * `x` (array, optional, default=None): the numpy array at which to
+            sample the value on the x-axis.  If `unit` is not None, the value
+            of `x` are assumed to be in the original units <<class>.unit>,
+            not `unit`.  If not provided or None, `x` will be based to cover
+            the 99.9% of all distributions (see <<class>.interval>) with 1000
+            points and 10% padding.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.  Unit will automatically be appended.
+            Will be ignored if `xlabel` is provided.
+        * `xlabel` (string, optional, default=None): override the label on the
+            x-axis without appending the unit.  Will override `label`.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments will be passed on to plt.plot.  Note:
+            if wrapping is enabled, either via `wrap_at` or <<class>.wrap_at>,
+            the resulting line will break when wrapping, resulting in using multiple
+            colors.  Sending `color` as a keyword argument will prevent this
+            matplotlib behavior.  Calling this through <<class>.plot> with
+            `plot_gaussian=True` defaults to sending `color='blue'` through
+            the `plot_gaussian_kwargs` argument.
+
+        Returns
+        --------
+        * the return from plt.plot
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        if x is None:
+            # TODO: test how this plays with units
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
+
+        # x is assumed to be in new units
+        if hasattr(self, 'pdf'):
+            y = self.pdf(x, unit=unit)
+            x = self.wrap(x, wrap_at=wrap_at)
+
+            # if unit is not None:
+                # print "*** converting from {} to {}".format(self.unit, unit)
+                # print "*** before convert", x.min(), x.max()
+                # x = (x*self.unit).to(unit).value
+                # print "*** after convert", x.min(), x.max()
+
+            # handle wrapping by making multiple calls to plot whenever the sign
+            # changes direction
+            split_inds = _np.where(x[1:]-x[:-1] < 0)[0]
+            xs, ys = _np.split(x, split_inds+1), _np.split(y, split_inds+1)
+            for x,y in zip(xs, ys):
+                ret = _plt.plot(x, y, **kwargs)
+        else:
+            return None
+
+
+        if show:
+            _plt.xlabel(xlabel if xlabel is not None else self._xlabel(unit, label=label))
+            _plt.ylabel('density')
+            _plt.show()
+
+        return ret
+
+    def plot_cdf(self, x=None, unit=None, wrap_at=None,
+                  label=None, xlabel=None, show=False, **kwargs):
+        """
+        Plot the pdf function.  Requires matplotlib to be installed.
+
+        See also:
+
+        * <<class>.plot>
+        * <<class>.plot_pdf>
+        * <<class>.plot_sample>
+        * <<class>.plot_gaussian>
+
+        Arguments
+        -----------
+        * `x` (array, optional, default=None): the numpy array at which to
+            sample the value on the x-axis.  If `unit` is not None, the value
+            of `x` are assumed to be in the original units <<class>.unit>,
+            not `unit`.  If not provided or None, `x` will be based to cover
+            the 99.9% of all distributions (see <<class>.interval>) with 1000
+            points and 10% padding.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.  Unit will automatically be appended.
+            Will be ignored if `xlabel` is provided.
+        * `xlabel` (string, optional, default=None): override the label on the
+            x-axis without appending the unit.  Will override `label`.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: all keyword arguments will be passed on to plt.plot.  Note:
+            if wrapping is enabled, either via `wrap_at` or <<class>.wrap_at>,
+            the resulting line will break when wrapping, resulting in using multiple
+            colors.  Sending `color` as a keyword argument will prevent this
+            matplotlib behavior.  Calling this through <<class>.plot> with
+            `plot_gaussian=True` defaults to sending `color='blue'` through
+            the `plot_gaussian_kwargs` argument.
+
+        Returns
+        --------
+        * the return from plt.plot
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        if x is None:
+            # TODO: test how this plays with units
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
+
+        # x is assumed to be in new units
+        if hasattr(self, 'cdf'):
+            y = self.cdf(x, unit=unit)
+            x = self.wrap(x, wrap_at=wrap_at)
+
+            # if unit is not None:
+                # print "*** converting from {} to {}".format(self.unit, unit)
+                # print "*** before convert", x.min(), x.max()
+                # x = (x*self.unit).to(unit).value
+                # print "*** after convert", x.min(), x.max()
+
+            # handle wrapping by making multiple calls to plot whenever the sign
+            # changes direction
+            split_inds = _np.where(x[1:]-x[:-1] < 0)[0]
+            xs, ys = _np.split(x, split_inds+1), _np.split(y, split_inds+1)
+            for x,y in zip(xs, ys):
+                ret = _plt.plot(x, y, **kwargs)
+        else:
+            return None
+
+
+        if show:
+            _plt.xlabel(xlabel if xlabel is not None else self._xlabel(unit, label=label))
+            _plt.ylabel('cummulative density')
+            _plt.show()
+
+        return ret
+
+    def plot_gaussian(self, x=None, unit=None, wrap_at=None,
+                      label=None, xlabel=None, show=False, **kwargs):
+        """
+        Plot the gaussian distribution that would result from calling
+        <<class>.to_gaussian> with the same arguments.
+
+        Note that for distributions in which <<class>.to_gaussian> calls
+        <<class>.to_histogram> under-the-hood, this could result in slightly
+        different distributions for each call.
+
+        See also:
+
+        * <<class>.plot>
+        * <<class>.plot_sample>
+        * <<class>.plot_pdf>
+        * <<class>.plot_cdf>
+
+        Arguments
+        -----------
+        * `x` (array, optional, default=None): the numpy array at which to
+            sample the value on the x-axis.  If `unit` is not None, the value
+            of `x` are assumed to be in the original units <<class>.unit>,
+            not `unit`.  If not provided or None, `x` will be based to cover
+            the 99.9% of all distributions (see <<class>.interval>) with 1000
+            points and 10% padding.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.  Unit will automatically be appended.
+            Will be ignored if `xlabel` is provided.
+        * `xlabel` (string, optional, default=None): override the label on the
+            x-axis without appending the unit.  Will override `label`.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: keyword arguments for `sigma`, `N`, `bins`, `range` will
+            be passed on to <<class>.to_gaussian> (must be accepted by the
+            given distribution type).  All other keyword arguments will be passed
+            on to <Gaussian.plot_pdf> on the resulting distribution.
+
+        Returns
+        --------
+        * the return from plt.plot
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        if x is None:
+            # TODO: test how this plays with units
+            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
+            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
+
+        to_gauss_keys = ['sigma', 'N', 'bins', 'range']
+        g = self.to_gaussian(**{k:v for k,v in kwargs.items() if k in to_gauss_keys})
+
+        if unit is not None:
+            g = g.to(unit)
+            if wrap_at is not None and wrap_at is not False:
+                wrap_at = (wrap_at * self.unit).to(unit).value
+
+        # TODO: this time wrap_at is assumed to be in the plotted units, not the original... do we need to convert?
+        ret = g.plot_pdf(x, wrap_at=wrap_at, **{k:v for k,v in kwargs.items() if k not in to_gauss_keys})
+
+        if show:
+            _plt.xlabel(xlabel if xlabel is not None else self._xlabel(unit, label=label))
+            _plt.ylabel('density')
+            _plt.show()
+        return ret
+
 
 
 class BaseUnivariateDistribution(BaseDistribution):
+    def __init__(self, unit, label, wrap_at, *args, **kwargs):
+        super(BaseUnivariateDistribution, self).__init__(*args, **kwargs)
+        self.unit = unit
+        self.label = label
+        self.wrap_at = wrap_at
+
+    def __repr__(self):
+        descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
+        if self.unit is not None:
+            descriptors += " unit={}".format(self.unit)
+        if self.wrap_at is not None:
+            descriptors += " wrap_at={}".format(self.wrap_at)
+        if self.label is not None:
+            descriptors += " label={}".format(self.label)
+        return "<distl.{} {}>".format(self.__class__.__name__.lower(), descriptors)
+
+    def __str__(self):
+        if self.label is not None:
+            return "{"+self.label+"}"
+        else:
+            return self.__repr__()
+
+    def to_dict(self):
+        """
+        Return the dictionary representation of the distribution object.
+
+        The resulting dictionary can be restored to the original object
+        via <distl.from_dict>.
+
+        See also:
+
+        * <<class>.to_json>
+        * <<class>.to_file>
+
+        Returns
+        --------
+        * dictionary
+        """
+        d = {k:_json_safe(v) for k,v in self._descriptors.items()}
+        d['distl'] = self.__class__.__name__
+        if self.unit is not None:
+            d['unit'] = str(self.unit.to_string())
+        if self.label is not None:
+            d['label'] = self.label
+        if self.wrap_at is not None:
+            d['wrap_at'] = self.wrap_at
+        return d
+
+    ### LABEL
+
+    @property
+    def label(self):
+        """
+        The label of the distribution object.  When not None, this is used for
+        the x-label when plotting (see <<class>.plot>) and for the
+        string representation for any math in a <Composite> or <Function>
+        distribution.
+        """
+        return self._label
+
+    @label.setter
+    def label(self, label):
+        if not (label is None or isinstance(label, str)):
+            raise TypeError("label must be of type str")
+
+        self._label = label
+
+    ### UNITS AND UNIT CONVERSIONS
+
+    @property
+    def unit(self):
+        """
+        The units of the distribution.  Astropy is required in order to set
+        and/or use distributions with units.
+
+        See also:
+
+        * <<class>.to>
+        """
+        return self._unit
+
+    @unit.setter
+    def unit(self, unit):
+        if isinstance(unit, str):
+            unit = _units.Unit(unit)
+
+        if not (unit is None or isinstance(unit, _units.Unit) or isinstance(unit, _units.CompositeUnit) or isinstance(unit, _units.IrreducibleUnit)):
+            raise TypeError("unit must be of type astropy.units.Unit, got {} (type: {})".format(unit, type(unit)))
+
+        self._unit = unit
+
+    def _return_with_units(self, value, unit=None, as_quantity=False):
+        if (as_quantity or unit) and not _has_astropy:
+            raise ImportError("astropy required to return quantity objects")
+
+        if unit is None and not as_quantity:
+            return value
+
+        if self.unit is not None:
+            value *= self.unit
+
+        if unit is not None:
+            if self.unit is None:
+                raise ValueError("can only return unit if unit is set for distribution")
+
+            if not _has_astropy:
+                raise ImportError("astropy must be installed for unit support")
+
+            value = value.to(unit)
+
+
+        if as_quantity:
+            return value
+        else:
+            return value.value
+
+    def to(self, unit):
+        """
+        Convert to different units.  This creates a copy and returns the
+        new distribution with the new units.  Astropy is required in order to
+        set and/or use units.
+
+        See also:
+
+        * <<class>.unit>
+
+        Arguments
+        ------------
+        * `unit` (astropy.unit object): unit to use in the new distribution.
+            The current units (see <<class>.unit>) must be able to
+            convert to the requested units.
+
+        Returns
+        ------------
+        * the new distribution object
+
+        Raises
+        -----------
+        * ImportError: if astropy dependency is not met.
+        """
+        if not _has_astropy:
+            raise ImportError("astropy required to handle units")
+
+        if self.unit is None:
+            raise ValueError("distribution object does not have a unit")
+
+        factor = self.unit.to(unit)
+
+        new_dist = self.copy()
+        new_dist.unit = unit
+        if new_dist.wrap_at is not None and new_dist.wrap_at is not False:
+            new_dist.wrap_at *= factor
+        new_dist *= factor
+        return new_dist
+
+    def to_si(self):
+        """
+        """
+        physical_type = self.unit.physical_type
+
+        if physical_type not in _physical_types_to_si.keys():
+            raise NotImplementedError("cannot convert object with physical_type={} to SI units".format(physical_type))
+
+        return self.to(_units.Unit(_physical_types_to_si.get(physical_type)))
+
+    def to_solar(self):
+        """
+        """
+        physical_type = self.unit.physical_type
+
+        if physical_type not in _physical_types_to_solar.keys():
+            raise NotImplementedError("cannot convert object with physical_type={} to solar units".format(physical_type))
+
+        return self.to(_units.Unit(_physical_types_to_solar.get(physical_type)))
+
+    ### CONVENIENCE METHODS FOR SAMPLING/WRAPPING/PLOTTING
+
+    @property
+    def wrap_at(self):
+        """
+        Value at which to wrap all sampled values.  If <<class>.unit> is not None,
+        then the value of `wrap_at` is the same as the set units.
+
+        If `False`: will not wrap
+        If `None`: will wrap on range 0-2pi (0-360 deg) if <<class>.unit> are angular
+            or 0-1 if <<class>.unit> are cycles.
+        If float: will wrap on range 0-`wrap_at`.
+
+        See also:
+
+        * <<class>.get_wrap_at>
+        * <<class>.wrap>
+
+        Returns
+        ---------
+        * (float or None)
+        """
+        return self._wrap_at
+
+    @wrap_at.setter
+    def wrap_at(self, wrap_at):
+        if wrap_at is None or wrap_at is False:
+            self._wrap_at = wrap_at
+
+        elif not (isinstance(wrap_at, float) or isinstance(wrap_at, int)):
+            raise TypeError("wrap_at={} must be of type float, int, False, or None".format(wrap_at))
+
+        else:
+            self._wrap_at = wrap_at
+
+    def get_wrap_at(self, wrap_at=None):
+        """
+        Get the computed value used for wrapping, given `wrap_at` as an optional
+        override to the attribute <<class>.wrap_at>.
+
+        See also:
+
+        * <<class>.wrap_at>
+        * <<class>.wrap>
+
+        Arguments
+        ------------
+        * `wrap_at` (float or False or None, optional, default=None): override
+            the value of <<class>.wrap_at>.
+
+        Returns
+        ----------
+        * The computed wrapping value, accounting for <<class>.unit> if `wrap_at`
+            is None.
+        """
+
+        if wrap_at is None:
+            wrap_at = self.wrap_at
+
+        if wrap_at is None:
+            if _has_astropy and self.unit is not None:
+                if self.unit.physical_type == 'angle':
+                    if self.unit.to_string() == 'deg':
+                        wrap_at = 360
+                    elif self.unit.to_string() == 'cycle':
+                        wrap_at = 1
+                    elif self.unit.to_string() == 'rad':
+                        wrap_at = 2 * _np.pi
+                    else:
+                        raise NotImplementedError("wrapping for angle unit {} not implemented.".format(self.unit.to_string()))
+            else:
+                wrap_at = False
+
+        return wrap_at
+
+    def wrap(self, value, wrap_at=None):
+        """
+        Wrap values via modulo:
+
+        ```py
+        value % wrap_at
+        ```
+
+        See also:
+
+        * <<class>.wrap_at>
+        * <<class>.get_wrap_at>
+
+        Arguments
+        ------------
+        * `value` (float or array): values to wrap
+        * `wrap_at` (float, optional, default=None): value to use for the upper-limit.
+            If not provided or None, will use <<class>.wrap_at>.  If False,
+            will return `value` unwrapped.
+
+        Returns
+        ----------
+        * (float or array): same shape/type as input `value`.
+        """
+        wrap_at = self.get_wrap_at(wrap_at)
+
+        if wrap_at is False or wrap_at is None:
+            return value
+
+        return value % wrap_at
+
+    ### expose underlying scipy.stats functionality for rv_continuous (univariate only methods)
 
     def ppf(self, q, unit=None, as_quantity=False, wrap_at=None):
         """
@@ -1463,477 +1964,6 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         return self._return_with_units(self.wrap(self.dist_constructor_object.rvs(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-    ### PLOTTING
-
-    def _xlabel(self, unit=None, label=None):
-        label = label if label is not None else self.label
-        l = 'value' if label is None else label
-        if _has_astropy and self.unit is not None and self.unit not in [_units.dimensionless_unscaled]:
-            l += ' ({})'.format(unit if unit is not None else self.unit)
-
-        return l
-
-
-    def plot(self, size=1e5, unit=None,
-             wrap_at=None, seed=None,
-             plot_sample=True, plot_sample_kwargs={'color': 'gray'},
-             plot_pdf=True, plot_pdf_kwargs={'color': 'red'},
-             plot_cdf=False, plot_cdf_kwargs={'color': 'green'},
-             plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
-             label=None, show=False, **kwargs):
-        """
-        Plot both the analytic distribution function as well as a sampled
-        histogram from the distribution.  Requires matplotlib to be installed.
-
-        See also:
-
-        * <<class>.plot_sample>
-        * <<class>.plot_pdf>
-        * <<class>.plot_cdf>
-        * <<class>.plot_gaussian>
-
-        Arguments
-        -----------
-        * `size` (int, optional, default=1e5): number of points to sample for
-            the histogram.  See also <<class>.sample>.
-        * `unit` (astropy.unit, optional, default=None): units to use along
-            the x-axis.  Astropy must be installed.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
-            use for wrapping.  See <<class>.wrap>.  If not provided or None,
-            will use the value from <<class>.wrap_at>.  Note: wrapping is
-            computed before changing units, so `wrap_at` must be provided
-            according to <<class>.unit> not `unit`.
-        * `seed` (int, optional): seed to use when sampling.  See also
-            <<class>.sample>.
-        * `plot_sample` (bool, optional, default=True): whether to plot the
-            histogram from sampling.  See also <<class>.plot_sample>.
-        * `plot_sample_kwargs` (dict, optional, default={'color': 'gray'}):
-            keyword arguments to send to <<class>.plot_sample>.
-        * `plot_pdf` (bool, optional, default=True): whether to plot the
-            analytic form of the underlying distribution, if applicable.
-            See also <<class>.plot_pdf>.
-        * `plot_pdf_kwargs` (dict, optional, default={'color': 'red'}):
-            keyword arguments to send to <<class>.plot_pdf>.
-        * `plot_cdf` (bool, optional, default=True): whether to plot the
-            analytic form of the cdf, if applicable.
-            See also <<class>.plot_cdf>.
-        * `plot_cdf_kwargs` (dict, optional, default={'color': 'green'}):
-            keyword arguments to send to <<class>.plot_cdf>.
-        * `plot_gaussian` (bool, optional, default=False): whether to plot
-            a guassian distribution fit to the sample.  Only supported for
-            distributions that have <<class>.to_gaussian> methods.
-        * `plot_gaussian_kwargs` (dict, optional, default={'color': 'blue'}):
-            keyword arguments to send to <<class>.plot_gaussian>.
-        * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <<class>.label>.  Will
-            only be used if `show=True`.
-        * `show` (bool, optional, default=True): whether to show the resulting
-            matplotlib figure.
-        * `**kwargs`: all keyword arguments (except for `bins`) will be passed
-            on to <<class>.plot_pdf> and <<class>.plot_gaussian> and all
-            keyword arguments will be passed on to <<class>.plot_sample>.
-            Keyword arguments defined in `plot_sample_kwargs`,
-            `plot_pdf_kwargs`, and `plot_gaussian_kwargs`
-            will override the values sent in `kwargs`.
-
-        Returns
-        --------
-        * tuple: the return values from <<class>.plot_sample> (or None if
-            `plot_sample=False`), <<class>.plot_pdf> (or None if `plot_pdf=False`),
-            <<class>.plot_cdf> (or None if `plot_cdf=False`),
-            and <Gaussian.plot_pdf> (or None if `plot_gaussian=False`).
-
-        Raises
-        --------
-        * ImportError: if matplotlib dependency is not met.
-        """
-        if not _has_mpl:
-            raise ImportError("matplotlib required for plotting")
-
-        ret = []
-
-        if plot_sample:
-            # we have to make a copy here, otherwise setdefault will change the
-            # defaults in the function declaration for successive calls
-            plot_sample_kwargs = plot_sample_kwargs.copy()
-            for k,v in kwargs.items():
-                plot_sample_kwargs.setdefault(k,v)
-            ret_sample = self.plot_sample(size=int(size), unit=unit, wrap_at=wrap_at, seed=seed, show=False, **plot_sample_kwargs)
-        else:
-            ret_sample = None
-
-        if plot_gaussian or plot_pdf or plot_cdf:
-            # we need to know the original x-range, before wrapping
-            # sample = self.sample(size=size, unit=unit, wrap_at=False)
-            # xmin = _np.min(sample)
-            # xmax = _np.max(sample)
-            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
-            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
-
-        if plot_gaussian:
-            if not hasattr(self, 'to_gaussian'):
-                raise NotImplementedError("{} cannot plot with `plot_gaussian=True`".format(self.__class__.__name__))
-            # we have to make a copy here, otherwise setdefault will change the
-            # defaults in the function declaration for successive calls
-            plot_gaussian_kwargs = plot_gaussian_kwargs.copy()
-            for k,v in kwargs.items():
-                if k in ['bins']:
-                    continue
-                plot_gaussian_kwargs.setdefault(k,v)
-            ret_gauss = self.plot_gaussian(x, unit=unit, wrap_at=wrap_at, show=False, **plot_gaussian_kwargs)
-
-        else:
-            ret_gauss = None
-
-        if plot_pdf:
-            # we have to make a copy here, otherwise setdefault will change the
-            # defaults in the function declaration for successive calls
-            plot_pdf_kwargs = plot_pdf_kwargs.copy()
-            for k,v in kwargs.items():
-                if k in ['bins']:
-                    continue
-                plot_pdf_kwargs.setdefault(k,v)
-            ret_pdf = self.plot_pdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_pdf_kwargs)
-        else:
-            ret_pdf = None
-
-        if plot_cdf:
-            # we have to make a copy here, otherwise setdefault will change the
-            # defaults in the function declaration for successive calls
-            plot_cdf_kwargs = plot_cdf_kwargs.copy()
-            for k,v in kwargs.items():
-                if k in ['bins']:
-                    continue
-                plot_cdf_kwargs.setdefault(k,v)
-            ret_cdf = self.plot_cdf(x, unit=unit, wrap_at=wrap_at, show=False, **plot_cdf_kwargs)
-        else:
-            ret_cdf = None
-
-        if show:
-            _plt.xlabel(self._xlabel(unit, label=label))
-            _plt.ylabel('density')
-            _plt.show()
-
-        return (ret_sample, ret_pdf, ret_cdf, ret_gauss)
-
-
-    def plot_sample(self, size=100000, unit=None,
-                    wrap_at=None, seed=None,
-                    label=None, show=False, **kwargs):
-        """
-        Plot both a sampled histogram from the distribution.  Requires
-        matplotlib to be installed.
-
-        See also:
-
-        * <<class>.plot>
-        * <<class>.plot_pdf>
-        * <<class>.plot_cdf>
-        * <<class>.plot_gaussian>
-
-        Arguments
-        -----------
-        * `size` (int, optional, default=100000): number of points to sample for
-            the histogram.  See also <<class>.sample>.
-        * `unit` (astropy.unit, optional, default=None): units to use along
-            the x-axis.  Astropy must be installed.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
-            use for wrapping.  See <<class>.wrap>.  If not provided or None,
-            will use the value from <<class>.wrap_at>.  Note: wrapping is
-            computed before changing units, so `wrap_at` must be provided
-            according to <<class>.unit> not `unit`.
-        * `seed` (int, optional): seed to use when sampling.  See also
-            <<class>.sample>.
-        * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <<class>.label>.  Will
-            only be used if `show=True`.
-        * `show` (bool, optional, default=True): whether to show the resulting
-            matplotlib figure.
-        * `**kwargs`: all keyword arguments will be passed on to plt.hist.  If
-            not provided, `bins` will default to the stored bins for <Histogram>
-            distributions, otherwise will default to 25.
-
-        Returns
-        --------
-        * the return from plt.hist
-
-        Raises
-        --------
-        * ImportError: if matplotlib dependency is not met.
-        """
-        if not _has_mpl:
-            raise ImportError("matplotlib required for plotting")
-
-        if hasattr(self, 'bins'):
-            # let's default to the stored bins (probably only the case for
-            # histogram distributions)
-            if wrap_at or self.wrap_at:
-                kwargs.setdefault('bins', len(self.bins))
-            else:
-                kwargs.setdefault('bins', self.bins)
-        else:
-            kwargs.setdefault('bins', 25)
-
-        # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
-        # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
-        # appropriate bins
-        samples = self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed)
-        try:
-            ret = _plt.hist(samples, density=True, **kwargs)
-        except AttributeError:
-            # TODO: determine which version of matplotlib
-            # TODO: this still doesn't handle the same
-            ret = _plt.hist(samples, normed=True, **kwargs)
-
-        if show:
-            _plt.xlabel(self._xlabel(unit, label=label))
-            _plt.ylabel('density')
-            _plt.show()
-
-        return ret
-
-    def plot_pdf(self, x=None, unit=None, wrap_at=None,
-                  label=None, show=False, **kwargs):
-        """
-        Plot the pdf function.  Requires matplotlib to be installed.
-
-        See also:
-
-        * <<class>.plot>
-        * <<class>.plot_cdf>
-        * <<class>.plot_sample>
-        * <<class>.plot_gaussian>
-
-        Arguments
-        -----------
-        * `x` (array, optional, default=None): the numpy array at which to
-            sample the value on the x-axis.  If `unit` is not None, the value
-            of `x` are assumed to be in the original units <<class>.unit>,
-            not `unit`.  If not provided or None, `x` will be based to cover
-            the 99.9% of all distributions (see <<class>.interval>) with 1000
-            points and 10% padding.
-        * `unit` (astropy.unit, optional, default=None): units to use along
-            the x-axis.  Astropy must be installed.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
-            use for wrapping.  See <<class>.wrap>.  If not provided or None,
-            will use the value from <<class>.wrap_at>.  Note: wrapping is
-            computed before changing units, so `wrap_at` must be provided
-            according to <<class>.unit> not `unit`.
-        * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <<class>.label>.  Will
-            only be used if `show=True`.
-        * `show` (bool, optional, default=True): whether to show the resulting
-            matplotlib figure.
-        * `**kwargs`: all keyword arguments will be passed on to plt.plot.  Note:
-            if wrapping is enabled, either via `wrap_at` or <<class>.wrap_at>,
-            the resulting line will break when wrapping, resulting in using multiple
-            colors.  Sending `color` as a keyword argument will prevent this
-            matplotlib behavior.  Calling this through <<class>.plot> with
-            `plot_gaussian=True` defaults to sending `color='blue'` through
-            the `plot_gaussian_kwargs` argument.
-
-        Returns
-        --------
-        * the return from plt.plot
-
-        Raises
-        --------
-        * ImportError: if matplotlib dependency is not met.
-        """
-        if not _has_mpl:
-            raise ImportError("matplotlib required for plotting")
-
-        if x is None:
-            # TODO: test how this plays with units
-            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
-            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
-
-        # x is assumed to be in new units
-        if hasattr(self, 'pdf'):
-            y = self.pdf(x, unit=unit)
-            x = self.wrap(x, wrap_at=wrap_at)
-
-            # if unit is not None:
-                # print "*** converting from {} to {}".format(self.unit, unit)
-                # print "*** before convert", x.min(), x.max()
-                # x = (x*self.unit).to(unit).value
-                # print "*** after convert", x.min(), x.max()
-
-            # handle wrapping by making multiple calls to plot whenever the sign
-            # changes direction
-            split_inds = _np.where(x[1:]-x[:-1] < 0)[0]
-            xs, ys = _np.split(x, split_inds+1), _np.split(y, split_inds+1)
-            for x,y in zip(xs, ys):
-                ret = _plt.plot(x, y, **kwargs)
-        else:
-            return None
-
-
-        if show:
-            _plt.xlabel(self._xlabel(unit, label=label))
-            _plt.ylabel('density')
-            _plt.show()
-
-        return ret
-
-    def plot_cdf(self, x=None, unit=None, wrap_at=None,
-                  label=None, show=False, **kwargs):
-        """
-        Plot the pdf function.  Requires matplotlib to be installed.
-
-        See also:
-
-        * <<class>.plot>
-        * <<class>.plot_pdf>
-        * <<class>.plot_sample>
-        * <<class>.plot_gaussian>
-
-        Arguments
-        -----------
-        * `x` (array, optional, default=None): the numpy array at which to
-            sample the value on the x-axis.  If `unit` is not None, the value
-            of `x` are assumed to be in the original units <<class>.unit>,
-            not `unit`.  If not provided or None, `x` will be based to cover
-            the 99.9% of all distributions (see <<class>.interval>) with 1000
-            points and 10% padding.
-        * `unit` (astropy.unit, optional, default=None): units to use along
-            the x-axis.  Astropy must be installed.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
-            use for wrapping.  See <<class>.wrap>.  If not provided or None,
-            will use the value from <<class>.wrap_at>.  Note: wrapping is
-            computed before changing units, so `wrap_at` must be provided
-            according to <<class>.unit> not `unit`.
-        * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <<class>.label>.  Will
-            only be used if `show=True`.
-        * `show` (bool, optional, default=True): whether to show the resulting
-            matplotlib figure.
-        * `**kwargs`: all keyword arguments will be passed on to plt.plot.  Note:
-            if wrapping is enabled, either via `wrap_at` or <<class>.wrap_at>,
-            the resulting line will break when wrapping, resulting in using multiple
-            colors.  Sending `color` as a keyword argument will prevent this
-            matplotlib behavior.  Calling this through <<class>.plot> with
-            `plot_gaussian=True` defaults to sending `color='blue'` through
-            the `plot_gaussian_kwargs` argument.
-
-        Returns
-        --------
-        * the return from plt.plot
-
-        Raises
-        --------
-        * ImportError: if matplotlib dependency is not met.
-        """
-        if not _has_mpl:
-            raise ImportError("matplotlib required for plotting")
-
-        if x is None:
-            # TODO: test how this plays with units
-            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
-            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
-
-        # x is assumed to be in new units
-        if hasattr(self, 'cdf'):
-            y = self.cdf(x, unit=unit)
-            x = self.wrap(x, wrap_at=wrap_at)
-
-            # if unit is not None:
-                # print "*** converting from {} to {}".format(self.unit, unit)
-                # print "*** before convert", x.min(), x.max()
-                # x = (x*self.unit).to(unit).value
-                # print "*** after convert", x.min(), x.max()
-
-            # handle wrapping by making multiple calls to plot whenever the sign
-            # changes direction
-            split_inds = _np.where(x[1:]-x[:-1] < 0)[0]
-            xs, ys = _np.split(x, split_inds+1), _np.split(y, split_inds+1)
-            for x,y in zip(xs, ys):
-                ret = _plt.plot(x, y, **kwargs)
-        else:
-            return None
-
-
-        if show:
-            _plt.xlabel(self._xlabel(unit, label=label))
-            _plt.ylabel('cummulative density')
-            _plt.show()
-
-        return ret
-
-    def plot_gaussian(self, x=None, unit=None, wrap_at=None,
-                      label=None, show=False, **kwargs):
-        """
-        Plot the gaussian distribution that would result from calling
-        <<class>.to_gaussian> with the same arguments.
-
-        Note that for distributions in which <<class>.to_gaussian> calls
-        <<class>.to_histogram> under-the-hood, this could result in slightly
-        different distributions for each call.
-
-        See also:
-
-        * <<class>.plot>
-        * <<class>.plot_sample>
-        * <<class>.plot_pdf>
-        * <<class>.plot_cdf>
-
-        Arguments
-        -----------
-        * `x` (array, optional, default=None): the numpy array at which to
-            sample the value on the x-axis.  If `unit` is not None, the value
-            of `x` are assumed to be in the original units <<class>.unit>,
-            not `unit`.  If not provided or None, `x` will be based to cover
-            the 99.9% of all distributions (see <<class>.interval>) with 1000
-            points and 10% padding.
-        * `unit` (astropy.unit, optional, default=None): units to use along
-            the x-axis.  Astropy must be installed.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
-            use for wrapping.  See <<class>.wrap>.  If not provided or None,
-            will use the value from <<class>.wrap_at>.  Note: wrapping is
-            computed before changing units, so `wrap_at` must be provided
-            according to <<class>.unit> not `unit`.
-        * `label` (string, optional, default=None): override the label on the
-            x-axis.  If not provided or None, will use <<class>.label>.  Will
-            only be used if `show=True`.
-        * `show` (bool, optional, default=True): whether to show the resulting
-            matplotlib figure.
-        * `**kwargs`: keyword arguments for `sigma`, `N`, `bins`, `range` will
-            be passed on to <<class>.to_gaussian> (must be accepted by the
-            given distribution type).  All other keyword arguments will be passed
-            on to <Gaussian.plot_pdf> on the resulting distribution.
-
-        Returns
-        --------
-        * the return from plt.plot
-
-        Raises
-        --------
-        * ImportError: if matplotlib dependency is not met.
-        """
-        if not _has_mpl:
-            raise ImportError("matplotlib required for plotting")
-
-        if x is None:
-            # TODO: test how this plays with units
-            xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
-            x = _np.linspace(xmin-(xmax-xmin)*0.1, xmax+(xmax-xmin)*0.1, 1000)
-
-        to_gauss_keys = ['sigma', 'N', 'bins', 'range']
-        g = self.to_gaussian(**{k:v for k,v in kwargs.items() if k in to_gauss_keys})
-
-        if unit is not None:
-            g = g.to(unit)
-            if wrap_at is not None and wrap_at is not False:
-                wrap_at = (wrap_at * self.unit).to(unit).value
-
-        # TODO: this time wrap_at is assumed to be in the plotted units, not the original... do we need to convert?
-        ret = g.plot_pdf(x, wrap_at=wrap_at, **{k:v for k,v in kwargs.items() if k not in to_gauss_keys})
-
-        if show:
-            _plt.xlabel(self._xlabel(unit, label=label))
-            _plt.ylabel('density')
-            _plt.show()
-        return ret
 
     ### CONVERSION TO OTHER DISTRIBUTION TYPES
 
@@ -1966,107 +1996,279 @@ class BaseUnivariateDistribution(BaseDistribution):
 
 
 class BaseMultivariateDistribution(BaseDistribution):
-    def __init__(self, *args, **kwargs):
-        # TODO: handle units, labels, wrap_ats
-        dimension = kwargs.pop('dimension', None)
-
+    def __init__(self, units=None, labels=None, wrap_ats=None, *args, **kwargs):
         super(BaseMultivariateDistribution, self).__init__(*args, **kwargs)
+        self.units = units
+        self.labels = labels
+        self.wrap_ats = wrap_ats
 
-        self.dimension = dimension
+    def __repr__(self):
+        descriptors = " ".join(["{}={}".format(k,v) for k,v in self._descriptors.items()])
+        if self.units is not None:
+            descriptors += " units={}".format(self.units)
+        if self.wrap_ats is not None:
+            descriptors += " wrap_ats={}".format(self.wrap_ats)
+        if self.labels is not None:
+            descriptors += " labels={}".format(self.labels)
+        return "<distl.{} {}>".format(self.__class__.__name__.lower(), descriptors)
 
-    @property
-    def label(self):
-        """
-        """
-        if self.dimension is None:
-            return self._label
+    def __str__(self):
+        if self.labels is not None:
+            return "{"+self.labels+"}"
         else:
-            return self._label[self.dimension]
+            return self.__repr__()
 
-    @label.setter
-    def label(self, label):
-        if not (label is None or isinstance(label, list)):
-            raise TypeError("label must be of type list")
+    def to_dict(self):
+        """
+        Return the dictionary representation of the distribution object.
 
-        self._label = label
+        The resulting dictionary can be restored to the original object
+        via <distl.from_dict>.
 
-    @property
-    def dimensions(self):
-        """
-        """
-        return range(self.ndimensions)
-
-    def get_dimension_by_label(self, dimension):
-        """
-        """
-        if isinstance(dimension, str) and dimension in self.label:
-            dimension = self.label.index(dimension)
-        return dimension
-
-    @property
-    def dimension(self):
-        """
         See also:
 
-        * <<class>.sample>
+        * <<class>.to_json>
+        * <<class>.to_file>
 
         Returns
-        ---------
-        * (int or None): dimension of the multivariate distribution to sample.
-            If None, will return an array of values for all available parameters.
+        --------
+        * dictionary
         """
-        return self._dimension
 
-    @dimension.setter
-    def dimension(self, dimension):
-        dimension = self.get_dimension_by_label(dimension)
+        d = {k:_json_safe(v) for k,v in self._descriptors.items()}
+        d['distl'] = self.__class__.__name__
+        if self.units is not None:
+            d['units'] = str(self.units.to_string())
+        if self.labels is not None:
+            d['labels'] = self.labels
+        if self.wrap_ats is not None:
+            d['wrap_ats'] = self.wrap_ats
+        return d
 
-        if not (isinstance(dimension, int) or dimension is None):
-            raise TypeError("dimension must be of type int")
-
-        # TODO: check to make sure within valid range?  Then we'll probably have to set after super
-
-        self._dimension = dimension
-
-    def take_dimension(self, dimension=None):
+    def slice(self, dimension):
         """
+        Take a single dimension from the multivariate distribution while
+        retaining the covariances.  This just wraps the multivariate distribution
+        inside a <MultivariateSlice> object to act similarly to a univariate
+        distribution.  To actually "collapse" to a univariate distribution,
+        convert to the correct type of univariate distribution.
+
+        See also:
+        * <<class>.to_histogram>
+        * <<class>.to_gaussian>
+        * <MultivariateSlice.dimension>
 
         Arguments
         ----------
-        * `dimension` (int, list of ints, or None, optional, default=None)
-        """
-        if dimension is None:
-            dimension = self.dimensions
-        if not isinstance(dimension, str) and hasattr(dimension, '__iter__'):
-            return [self.take_dimension(d) for d in dimension]
+        * `dimension` (int or string): the label or index of the dimension to
+            take.
 
-        d = self.copy()
-        d.dimension = dimension
-        return d
+        Returns
+        ------------
+        * <MultivariateSlice> object
+        """
+        return MultivariateSlice(self, dimension)
+
+    @property
+    def labels(self):
+        """
+        The labels of each dimension in the multivariate distribution.
+
+        See also:
+        * <<class>.all_labels>
+        * <<class>.dimensions>
+
+        Returns
+        ---------
+        * (list): list of labels
+        """
+        return self._labels #[self.dimension_indices]
+
+    @labels.setter
+    def labels(self, labels):
+        if isinstance(labels, str):
+            raise NotImplementedError()
+            # labels = [label for _ in range(self._ndimensions_available)]
+
+        if not (labels is None or isinstance(labels, list)):
+            raise TypeError("labels must be of type list")
+
+        self._labels = labels
+
+    ### UNITS AND UNIT CONVERSIONS
+
+    # @property
+    # def all_units(self):
+    #     """
+    #
+    #     See also:
+    #     * <<class>.units>
+    #     * <<class>.dimensions>
+    #     """
+    #     return self._units
+    #
+    # @all_units.setter
+    # def all_units(self, units):
+    #     if not isinstance(units, list):
+    #         units = [units]
+    #
+    #     units = [to_unit(u) for u in units]
+
+    @property
+    def units(self):
+        """
+        The units of each dimension in the distribution.  Astropy is required in
+        order to set and/or use distributions with units.
+
+        See also:
+        * <<class>.all_units>
+        * <<class>.dimensions>
+
+        """
+        return self._units #[self.dimension_indices]
+
+    @units.setter
+    def units(self, units):
+        if units is None:
+            self._units = units
+            return
+
+        if not isinstance(units, list):
+            units = [units]
+
+        units = [to_unit(u) for u in units]
+
+
+        if not np.all([unit is None or isinstance(unit, _units.Unit) or isinstance(unit, _units.CompositeUnit) or isinstance(unit, _units.IrreducibleUnit) for unit in units]):
+            raise TypeError("units must be a list of type astropy.units.Unit")
+
+        self._units = units
+
+
+    ### CONVENIENCE METHODS FOR SAMPLING/WRAPPING/PLOTTING
+
+    # @property
+    # def all_wrap_ats(self):
+    #     """
+    #
+    #     See also:
+    #     * <<class>.wrap_ats>
+    #     * <<class>.dimensions>
+    #     """
+    #     return self._wrap_ats
+    #
+    # @all_wrap_ats.setter
+    # def all_wrap_ats(self, wrap_ats):
+
+    @property
+    def wrap_ats(self):
+        """
+        Value at which to wrap all sampled values.  If <<class>.unit> is not None,
+        then the value of `wrap_at` is the same as the set units.
+
+        If `False`: will not wrap
+        If `None`: will wrap on range 0-2pi (0-360 deg) if <<class>.unit> are angular
+            or 0-1 if <<class>.unit> are cycles.
+        If float: will wrap on range 0-`wrap_at`.
+
+        See also:
+
+        * <<class>.all_wrap_ats>
+        * <<class>.dimensions>
+        * <<class>.get_wrap_at>
+        * <<class>.wrap>
+
+        Returns
+        ---------
+        * (float or None)
+        """
+        return self._wrap_ats
+
+    @wrap_ats.setter
+    def wrap_ats(self, wrap_ats):
+        if wrap_ats is None or wrap_ats is False:
+            self._wrap_ats = wrap_ats
+            return
+
+        if isinstance(wrap_ats, float) or isinstance(wrap_ats, int):
+            raise NotImplementedError()
+            # wrap_ats = [wrap_ats for _ in self.]
+
+        if not isinstance(wrap_ats, list):
+            raise TypeError("wrap_ats must be a list of floats")
+
+        if not np.all([isinstance(w, int) or isinstance(w, float) for w in wrap_ats]):
+            raise ValueError("wrap_ats must be a list of floats")
+
+        self._wrap_ats = wrap_ats
+
+
+    def get_wrap_at(self, wrap_at=None):
+        """
+        Get the computed value used for wrapping, given `wrap_at` as an optional
+        override to the attribute <<class>.wrap_at>.
+
+        See also:
+
+        * <<class>.wrap_at>
+        * <<class>.wrap>
+
+        Arguments
+        ------------
+        * `wrap_at` (float or False or None, optional, default=None): override
+            the value of <<class>.wrap_at>.
+
+        Returns
+        ----------
+        * The computed wrapping value, accounting for <<class>.unit> if `wrap_at`
+            is None.
+        """
+
+        if wrap_at is None:
+            wrap_at = self.wrap_at
+
+        if wrap_at is None:
+            if _has_astropy and self.unit is not None:
+                if self.unit.physical_type == 'angle':
+                    if self.unit.to_string() == 'deg':
+                        wrap_at = 360
+                    elif self.unit.to_string() == 'cycle':
+                        wrap_at = 1
+                    elif self.unit.to_string() == 'rad':
+                        wrap_at = 2 * _np.pi
+                    else:
+                        raise NotImplementedError("wrapping for angle unit {} not implemented.".format(self.unit.to_string()))
+            else:
+                wrap_at = False
+
+        return wrap_at
 
     def pdf(self, x):
+        # TODO: this won't work probably, because the underlying calls will
+        # require len self._ndimensions_available not those set - this would
+        # require flattening in the other dimensions somehow
         if hasattr(x, '__iter__'):
-            raise TypeError('x must an array with length ndimensions')
+            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
 
-        return super(BaseMultivariateDistribution, self).pdf(x)
+        return super(BaseMultivariateDistribution, self).pdf(x) #[self.dimension_indices]
 
     def logpdf(self, x):
         if hasattr(x, '__iter__'):
-            raise TypeError('x must an array with length ndimensions')
+            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
 
-        return super(BaseMultivariateDistribution, self).logpdf(x)
+        return super(BaseMultivariateDistribution, self).logpdf(x) #[self.dimension_indices]
 
     def cdf(self, x):
         if hasattr(x, '__iter__'):
-            raise TypeError('x must an array with length ndimensions')
+            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
 
-        return super(BaseMultivariateDistribution, self).cdf(x)
+        return super(BaseMultivariateDistribution, self).cdf(x) #[self._dimension_indices]
 
     def logcdf(self, x):
         if hasattr(x, '__iter__'):
-            raise TypeError('x must an array with length ndimensions')
+            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
 
-        return super(BaseMultivariateDistribution, self).logcdf(x)
+        return super(BaseMultivariateDistribution, self).logcdf(x) #[self._dimension_indices]
 
 
     def sample(self, size=None, dimension=None):
@@ -2077,8 +2279,9 @@ class BaseMultivariateDistribution(BaseDistribution):
         -----------
         * `size` (int or tuple or None, optional, default=None): size/shape of the
             resulting array.
-        * `dimension`: (int, optional): dimension of the multivariate distribution
-            to sample.  If not provided or None, will default to <<class>.dimension>.
+        * `dimension`: (int or list of ints, optional, default=None): dimension(s)
+            of the multivariate distribution to sample.  If not provided or
+            None, will return all dimensions.
 
         Returns
         ---------
@@ -2088,7 +2291,6 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         # TODO: add support for per-dimension unit, wrap_at, as_quantity (and pass in to_mvhistogram)
 
-        dimension = self.get_dimension_by_label(dimension if dimension is not None else self.dimension)
         sample = self.dist_constructor_object.rvs(size=size)
 
         if dimension is not None:
@@ -2099,68 +2301,249 @@ class BaseMultivariateDistribution(BaseDistribution):
         else:
             return sample
 
-    def plot(self, *args, **kwargs):
+    def _xlabel(self, dimension, unit=None, label=None):
+        label = label if label is not None else self.labels[dimension]
+        l = 'value' if label is None else label
+        if _has_astropy and self.units is not None and self.units[dimension] is not None and self.units[dimension] not in [_units.dimensionless_unscaled]:
+            l += ' ({})'.format(unit if unit is not None else self.units[dimension])
+
+        return l
+
+    def plot(self, **kwargs):
         """
         """
-        dimension = self.get_dimension_by_label(kwargs.pop('dimension', None))
+        dimension = kwargs.pop('dimension', None)
+
         if dimension is not None:
-            return self.take_dimension(dimension).plot(*args, **kwargs)
-        elif self.dimension is not None:
-            return super(BaseMultivariateDistribution, self).plot(*args, **kwargs)
+            # TODO: include all univariate stuffs
+
+            # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
+            # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
+            # appropriate bins
+            label = kwargs.get('label', self.labels[dimension] if self.labels is not None else None)
+            unit = kwargs.get('unit', self.units[dimension] if self.units is not None else None)
+            wrap_at = kwargs.get('wrap_at', self.wrap_ats[dimension] if self.wrap_ats is not None else None)
+
+            samples = self.sample(dimension=dimension, size=int(1e5)) #, unit=unit, wrap_at=wrap_at)
+            return super(BaseMultivariateDistribution, self).plot_sample(samples=samples, label=label, unit=unit, wrap_at=wrap_at, xlabel=self._xlabel(dimension, unit=unit, label=label), **kwargs)
+
         else:
             # then we need to do a corner plot
             if not _has_corner:
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
-            return corner.corner(self.sample(size=int(1e5)), labels=self.label, **kwargs)
+            return corner.corner(self.sample(size=int(1e5)), labels=self.labels, **kwargs)
 
-    def to_histogram(self, N=100000, bins=10, range=None, dimension=None, wrap_at=None):
+    # def to_histogram(self, N=100000, bins=10, range=None, dimension=None, wrap_at=None):
+    #     """
+    #     Convert the <<class>> distribution to a <Histogram> distribution.
+    #
+    #     Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
+    #     and passes the resulting array as well as the requested `bins` and `range`
+    #     to <Histogram.from_data>.
+    #
+    #     Arguments
+    #     -----------
+    #     * `N` (int, optional, default=100000): number of samples to use for
+    #         the histogram.
+    #     * `bins` (int, optional, default=10): number of bins to use for the
+    #         histogram.
+    #     * `range` (tuple or None): range to use for the histogram.
+    #     * `dimension` (int or string, default=None): dimension to use
+    #         when flattening to the 1-D histogram distribution. If not proivded
+    #         or None, will use value from <<class>.dimension>.  `dimension` is
+    #         therefore REQUIRED if <<class>.dimension> is None.
+    #     * `wrap_at` (float or None, optional, default=None): value to set for
+    #         `wrap_at` of the returned <Histogram>.  If None or not provided,
+    #         will default to <<class>.wrap_at>.
+    #
+    #     Returns
+    #     --------
+    #     * a <Histogram> object
+    #
+    #     Raises
+    #     ---------
+    #     * ValueError: if `dimension` and <<class>.dimension> are both None.
+    #     """
+    #     if dimension is None:
+    #         dimension = self.dimension
+    #
+    #     dimension = self.get_dimension_by_label(dimension)
+    #
+    #     if dimension is None:
+    #         raise ValueError("must provide dimension.")
+    #
+    #     unit = self.unit[dimension] if isinstance(self.unit, list) else self.unit
+    #     label = self.label[dimension] if isinstance(self.label, list) else self.label
+    #     if wrap_at is None:
+    #         wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
+    #
+    #     return Histogram.from_data(self.sample(dimension=dimension, size=N, wrap_at=False),
+    #                                bins=bins, range=range,
+    #                                unit=unit, label=label, wrap_at=wrap_at)
+
+class MultivariateSlice(object):
+    def __init__(self, multivariate, dimension):
+        if isinstance(multivariate, dict):
+            multivariate = _from_dict(multivariate)
+
+        if not isinstance(multivariate, BaseMultivariateDistribution):
+            raise TypeError("multivariate must be of type BaseMultivariateDistribution")
+
+        self._multivariate = multivariate
+        self.dimension = dimension
+
+    def __repr__(self):
+        descriptors = " ".join(["{}={}".format(k,v) for k,v in self.multivariate._descriptors.items()])
+        if self.unit is not None:
+            descriptors += " unit={}".format(self.unit)
+        if self.wrap_at is not None:
+            descriptors += " wrap_at={}".format(self.wrap_at)
+        if self.label is not None:
+            descriptors += " label={}".format(self.label)
+        return "<MultivariateSlice(dimension={} distl.{} {})>".format(self.multivariate.__class__.__name__.lower(), self.dimension, descriptors)
+
+    def __str__(self):
+        if self.label is not None:
+            return "{"+self.label+"}"
+        else:
+            return self.__repr__()
+
+    def to_dict(self):
         """
-        Convert the <<class>> distribution to a <Histogram> distribution.
+        Return the dictionary representation of the distribution object.
 
-        Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
-        and passes the resulting array as well as the requested `bins` and `range`
-        to <Histogram.from_data>.
+        The resulting dictionary can be restored to the original object
+        via <distl.from_dict>.
 
-        Arguments
-        -----------
-        * `N` (int, optional, default=100000): number of samples to use for
-            the histogram.
-        * `bins` (int, optional, default=10): number of bins to use for the
-            histogram.
-        * `range` (tuple or None): range to use for the histogram.
-        * `dimension` (int or string, default=None): dimension to use
-            when flattening to the 1-D histogram distribution. If not proivded
-            or None, will use value from <<class>.dimension>.  `dimension` is
-            therefore REQUIRED if <<class>.dimension> is None.
-        * `wrap_at` (float or None, optional, default=None): value to set for
-            `wrap_at` of the returned <Histogram>.  If None or not provided,
-            will default to <<class>.wrap_at>.
+        See also:
+
+        * <<class>.to_json>
+        * <<class>.to_file>
 
         Returns
         --------
-        * a <Histogram> object
-
-        Raises
-        ---------
-        * ValueError: if `dimension` and <<class>.dimension> are both None.
+        * dictionary
         """
-        if dimension is None:
-            dimension = self.dimension
 
-        dimension = self.get_dimension_by_label(dimension)
+        d = {}
+        d['distl'] = self.__class__.__name__
+        d['multivariate'] = self.multivariate.to_dict()
+        d['dimension'] = self.dimension
+        return d
 
-        if dimension is None:
-            raise ValueError("must provide dimension.")
+    @property
+    def multivariate(self):
+        """
+        Access the full multivariate distribution
 
-        unit = self.unit[dimension] if isinstance(self.unit, list) else self.unit
-        label = self.label[dimension] if isinstance(self.label, list) else self.label
-        if wrap_at is None:
-            wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
+        Returns
+        ----------
+        * <BaseMultivariateDistribution> object
+        """
+        return self._multivariate
 
-        return Histogram.from_data(self.sample(dimension=dimension, size=N, wrap_at=False),
-                                   bins=bins, range=range,
-                                   unit=unit, label=label, wrap_at=wrap_at)
+    @property
+    def hash(self):
+        return self.multivariate.hash
+
+    @property
+    def unit(self):
+        """
+        Access the unit of the multivariate distribution corresponsing to the
+        sliced dimension
+
+        See also:
+        * <<class>.multivariate>
+        * <<class>.dimension>
+
+        Returns
+        ---------
+        * Unit or None
+        """
+        return self.multivariate.units[self.dimension] if self.multivariate.units is not None else None
+
+    @property
+    def label(self):
+        """
+        Access the label of the multivariate distribution corresponsing to the
+        sliced dimension
+
+        See also:
+        * <<class>.multivariate>
+        * <<class>.dimension>
+
+        Returns
+        -------------
+        * string or None
+        """
+        return self.multivariate.labels[self.dimension] if self.multivariate.labels is not None else None
+
+    @property
+    def wrap_at(self):
+        """
+        Access the wrap_at of the multivariate distribution corresponsing to the
+        sliced dimension
+
+        See also:
+        * <<class>.multivariate>
+        * <<class>.dimension>
+
+        Returns
+        ---------
+        * float or None
+        """
+        return self.multivariate.wrap_ats[self.dimension] if self.multivariate.wrap_ats is not None else None
+
+    @property
+    def dimension(self):
+        """
+        Access the index of the sliced dimension.
+
+        See also:
+        * <<class>.change_sliced_dimension>
+        * <<class>.label>
+
+        Returns
+        ---------
+        * integer
+        """
+        return self._dimension
+
+    def change_slice_dimension(self, dimension):
+        """
+        Change the sliced dimension of the underlying <<class>.multivariate> distribution.
+
+        See also:
+        * <<class>.dimension>
+        """
+        self.dimension = dimension
+
+    @dimension.setter
+    def dimension(self, dimension):
+        if isinstance(dimension, str):
+            if dimension not in self.multivariate.labels:
+                raise ValueError("dimension must be one of {}".format(self.multivariate.labels))
+
+            dimension = self.multivariate.labels.index(dimension)
+
+        if isinstance(dimension, int):
+            ndimensions = self.multivariate.ndimensions
+            if dimension < 0 or dimension > ndimensions-1:
+                raise ValueError("dimension must be between 0 and {}".format(ndimensions-1))
+            self._dimension = dimension
+        else:
+            raise TypeError("dimension must be of type int or str")
+
+    def sample(self, size=None):
+        """
+        Sample the underlying <<class>.multivariate> distribution in the dimension
+        defined in <<class>.dimension>.
+        """
+        return self.multivariate.sample(size=size, dimension=self.dimension)
+
+    def plot(self, *args, **kwargs):
+        return self.multivariate.plot(*args, dimension=self.dimension, **kwargs)
 
 
 class DistributionCollection(object):
@@ -2168,20 +2551,48 @@ class DistributionCollection(object):
     <DistributionCollection> allows sampling from multiple distribution objects
     simultaneously, respecting all underlying covariances whenever possible.
     """
-    def __init__(self, *distributions):
-        # if isinstance(distributions, BaseDistribution):
-            # distributions = [distributions]
+    def __init__(self, *args, distributions=[]):
+        self.distributions = list(args) + distributions
 
-        # if not (isinstance(distributions, list) or isinstance(distributions, tuple)):
-            # raise TypeError("distributions must be a list or tuple of distribution objects")
-        if not _np.all(isinstance(dist, BaseDistribution) for dist in distributions):
-            raise ValueError("all items in distributions must be of type BaseDistribution")
+    def to_dict(self):
+        """
+        Return the dictionary representation of the distribution object.
 
-        self._dists = distributions
+        The resulting dictionary can be restored to the original object
+        via <distl.from_dict>.
+
+        See also:
+
+        * <<class>.to_json>
+        * <<class>.to_file>
+
+        Returns
+        --------
+        * dictionary
+        """
+
+        d = {}
+        d['distl'] = self.__class__.__name__
+        d['distributions'] = [distribution.to_dict() for distribution in self.distributions]
+        return d
 
     @property
     def distributions(self):
         return self._dists
+
+    @distributions.setter
+    def distributions(self, distributions):
+        # TODO: OPTIMIZE simplify this logic
+        if is_distribution(distributions)[0]:
+            distributions = [distributions]
+
+        if not (isinstance(distributions, list) or isinstance(distributions, tuple)):
+            raise TypeError('distributions must be a list of distribution objects')
+
+        if not _np.all([is_distribution(distribution)[0] for distribution in distributions]):
+            raise TypeError('distributions must be a list of distribution objects')
+
+        self._dists = [is_distribution(distribution)[1] for distribution in distributions]
 
     @property
     def distributions_unpacked(self):
@@ -3210,7 +3621,8 @@ class Uniform(BaseUnivariateDistribution):
 ######################### MULTIVARIATE DISTRIBUTIONS ###########################
 
 class MVGaussian(BaseMultivariateDistribution):
-    def __init__(self, mean=0.0, cov=1.0, allow_singular=False, unit=None, label=None, wrap_at=None):
+    def __init__(self, mean=0.0, cov=1.0, allow_singular=False,
+                 units=None, labels=None, wrap_ats=None):
         """
         Create a <MVGaussian> distribution.
 
@@ -3222,11 +3634,12 @@ class MVGaussian(BaseMultivariateDistribution):
         --------------
         * `mean` (float or int, default=0.0): the central value of the gaussian distribution.
         * `cov` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
-        * `unit` (astropy.units object, optional): the units of the provided values.
-        * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
+        * `units` (list of astropy.units objects, optional): the units of the provided values.
+        * `labels` (list of strings, optional): labels for each dimension in the
+            distribution.  This is used
+            for the x-labels while plotting the distribution, as well as a shorthand
             notation when creating a <Composite> distribution.
-        * `wrap_at` (float, None, or False, optional, default=None): value to
+        * `wrap_ats` (list of floats, None, or False, optional, default=None): values to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
             to 1.0.
@@ -3235,7 +3648,7 @@ class MVGaussian(BaseMultivariateDistribution):
         --------
         * a <MVGaussian> object
         """
-        super(MVGaussian, self).__init__(unit, label, wrap_at,
+        super(MVGaussian, self).__init__(units, labels, wrap_ats,
                                          _stats.multivariate_normal, ('mean', 'cov', 'allow_singular'),
                                          ('mean', mean, is_iterable), ('cov', cov, is_square_matrix), ('allow_singular', allow_singular, is_bool))
 
@@ -3268,7 +3681,10 @@ class MVGaussian(BaseMultivariateDistribution):
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
         return MVHistogram.from_data(self.sample(size=int(N)),
                                      bins=bins, range=range,
-                                     unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+                                     units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+
+    # def to_gaussian(self, dimension)
+    # def to_histogram(self, dimension, bins)
 
 
 class MVHistogram(BaseMultivariateDistribution):
@@ -3290,16 +3706,16 @@ class MVHistogram(BaseMultivariateDistribution):
     on that sample.
 
     """
-    def __init__(self, bins, density, unit=None, label=None, wrap_at=None):
+    def __init__(self, bins, density, units=None, labels=None, wrap_ats=None):
         """
         """
-        super(MVHistogram, self).__init__(unit, label, wrap_at,
+        super(MVHistogram, self).__init__(units, labels, wrap_ats,
                                           None, None,
                                           ('bins', bins, is_iterable), ('density', density, is_iterable))
 
     @classmethod
     def from_data(cls, data, bins=10, range=None, weights=None,
-                  label=None, unit=None, wrap_at=None):
+                  units=None, labels=None, wrap_ats=None):
         """
         """
         # TODO:  what version of numpy introduced density?  Do we need a try/except or to check the version?
@@ -3309,7 +3725,7 @@ class MVHistogram(BaseMultivariateDistribution):
             hist, bin_edges = _np.histogramdd(data, bins=bins, range=range, weights=weights, normed=True)
 
 
-        return cls(_np.asarray(bin_edges), hist, label=label, unit=unit, wrap_at=wrap_at)
+        return cls(_np.asarray(bin_edges), hist, units=units, labels=labels, wrap_ats=wrap_ats)
 
     def pdf(self, x):
         # TODO: N-dimension interpolation of (self.bins, self.density)
@@ -3388,7 +3804,9 @@ class MVHistogram(BaseMultivariateDistribution):
     def sample(self, size=None, dimension=None):
         """
         """
-        dimension = self.get_dimension_by_label(dimension if dimension is not None else self.dimension)
+        if dimension is not None:
+            raise NotImplementedError()
+        # dimension = self.get_dimension_by_label(dimension if dimension is not None else self.dimension)
         if dimension is not None:
             bins = self.bins[dimension]
             density = self.density[dimension]
@@ -3404,7 +3822,10 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         # TODO: add plot_mvgaussian or plot_gaussian options to overplot the MVGaussian pdfs/contours
 
-        dimension = self.get_dimension_by_label(kwargs.get('dimension', None))
+        dimension = kwargs.pop('dimension', None)
+        if dimension is not None:
+            raise NotImplementedError()
+        # dimension = self.get_dimension_by_label(kwargs.get('dimension', None))
         if dimension is not None:
             kwargs.setdefault('bins', self.bins[dimension])
 
@@ -3502,4 +3923,8 @@ class MVHistogram(BaseMultivariateDistribution):
         * an <MVGaussian> object
         """
         mean, cov = self.calculate_means_covariances(N)
-        return MVGaussian(mean, cov, allow_singular=allow_singular, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+        return MVGaussian(mean, cov, allow_singular=allow_singular,
+                          units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+
+    # def to_gaussian(self, dimension)
+    # def to_histogram(self, dimension, bins)
