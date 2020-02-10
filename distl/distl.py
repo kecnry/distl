@@ -164,7 +164,14 @@ def is_bool(value):
 
 def is_float(value):
     """must be a float"""
-    return isinstance(value, float) or isinstance(value, int) or isinstance(value, _np.float64), float(value)
+    try:
+        value = float(value)
+    except:
+        return False, value
+    else:
+        return True, value
+
+    # return isinstance(value, float) or isinstance(value, int) or isinstance(value, _np.float64), float(value)
 
 def is_int(value):
     """must be an integer"""
@@ -198,6 +205,23 @@ def is_square_matrix(value):
     """must be a square 2D matrix"""
     return isinstance(value, _np.ndarray) and len(value.shape)==2 and value.shape[0]==value.shape[1], value
 
+
+################################################################################
+
+def _hist_pdf_cdf_ppf_callables(bins, density):
+    bincenters = _np.mean(_np.vstack([bins[0:-1], bins[1:]]), axis=0)
+    pdf_call = _stats_custom.interpolate_callable(bincenters, density)
+
+    bincenters = _np.mean(_np.vstack([bins[0:-1], bins[1:]]), axis=0)
+    cdf = _np.cumsum(density)
+    cdf = cdf / float(cdf[-1])
+
+    ppf_call = _stats_custom.interpolate_callable(cdf, bincenters)
+
+    # make sure interpolation on the right always gives 1, not the fill_value of 0
+    cdf_call = _stats_custom.interpolate_callable( _np.append(bincenters, _np.inf), _np.append(cdf, 1.0))
+
+    return pdf_call, cdf_call, ppf_call
 
 ######################## DISTRIBUTION ABSTRACT CLASS ###########################
 
@@ -246,7 +270,7 @@ class BaseDistribution(object):
             if valid:
                 self._descriptors[item[0]] = validated_value
             else:
-                raise ValueError("{} {}, got {}".format(item[0], item[2].__doc__, item[1]))
+                raise ValueError("{} {}, got {} ({})".format(item[0], item[2].__doc__, item[1], type(item[1])))
             self._validators[item[0]] = item[2]
 
     def __getattr__(self, name):
@@ -926,7 +950,7 @@ class BaseDistribution(object):
         if hasattr(self, 'bins'):
             # let's default to the stored bins (probably only the case for
             # histogram distributions)
-            if wrap_at or self.wrap_at:
+            if wrap_at or (hasattr(self, 'wrap_at') and self.wrap_at):
                 kwargs.setdefault('bins', len(self.bins))
             else:
                 kwargs.setdefault('bins', self.bins)
@@ -2045,29 +2069,21 @@ class BaseMultivariateDistribution(BaseDistribution):
             d['wrap_ats'] = self.wrap_ats
         return d
 
-    def slice(self, dimension):
-        """
-        Take a single dimension from the multivariate distribution while
-        retaining the covariances.  This just wraps the multivariate distribution
-        inside a <MultivariateSlice> object to act similarly to a univariate
-        distribution.  To actually "collapse" to a univariate distribution,
-        convert to the correct type of univariate distribution.
+    def _get_dimension_index(self, dimension):
+        if isinstance(dimension, str):
+            if dimension not in self.labels:
+                raise ValueError("dimension must be one of {}".format(self.labels))
 
-        See also:
-        * <<class>.to_histogram>
-        * <<class>.to_gaussian>
-        * <MultivariateSlice.dimension>
+            dimension = self.labels.index(dimension)
 
-        Arguments
-        ----------
-        * `dimension` (int or string): the label or index of the dimension to
-            take.
+        if isinstance(dimension, int):
+            ndimensions = self.ndimensions
+            if dimension < 0 or dimension > ndimensions-1:
+                raise ValueError("dimension must be between 0 and {}".format(ndimensions-1))
+        else:
+            raise TypeError("dimension must be of type int or str")
 
-        Returns
-        ------------
-        * <MultivariateSlice> object
-        """
-        return MultivariateSlice(self, dimension)
+        return dimension
 
     @property
     def labels(self):
@@ -2309,9 +2325,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         return l
 
-    def plot(self, **kwargs):
-        """
-        """
+    def plot_sample(self, **kwargs):
         dimension = kwargs.pop('dimension', None)
 
         if dimension is not None:
@@ -2320,70 +2334,47 @@ class BaseMultivariateDistribution(BaseDistribution):
             # TODO: wrapping can sometimes cause annoying things with bins due to a large datagap.
             # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
             # appropriate bins
-            label = kwargs.get('label', self.labels[dimension] if self.labels is not None else None)
-            unit = kwargs.get('unit', self.units[dimension] if self.units is not None else None)
-            wrap_at = kwargs.get('wrap_at', self.wrap_ats[dimension] if self.wrap_ats is not None else None)
+            label = kwargs.pop('label', self.labels[dimension] if self.labels is not None else None)
+            unit = kwargs.pop('unit', self.units[dimension] if self.units is not None else None)
+            wrap_at = kwargs.pop('wrap_at', self.wrap_ats[dimension] if self.wrap_ats is not None else None)
+            xlabel = kwargs.pop('xlabel', self._xlabel(dimension, unit=unit, label=label))
 
-            samples = self.sample(dimension=dimension, size=int(1e5)) #, unit=unit, wrap_at=wrap_at)
-            return super(BaseMultivariateDistribution, self).plot_sample(samples=samples, label=label, unit=unit, wrap_at=wrap_at, xlabel=self._xlabel(dimension, unit=unit, label=label), **kwargs)
-
+            samples = kwargs.pop('samples', None)
+            if samples is None:
+                samples = self.sample(size=int(1e5), dimension=dimension) #, unit=unit, wrap_at=wrap_at)
+            return super(BaseMultivariateDistribution, self).plot_sample(samples=samples, label=label, unit=unit, wrap_at=wrap_at, xlabel=xlabel, **kwargs)
         else:
             # then we need to do a corner plot
             if not _has_corner:
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
+
             return corner.corner(self.sample(size=int(1e5)), labels=self.labels, **kwargs)
 
-    # def to_histogram(self, N=100000, bins=10, range=None, dimension=None, wrap_at=None):
-    #     """
-    #     Convert the <<class>> distribution to a <Histogram> distribution.
-    #
-    #     Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
-    #     and passes the resulting array as well as the requested `bins` and `range`
-    #     to <Histogram.from_data>.
-    #
-    #     Arguments
-    #     -----------
-    #     * `N` (int, optional, default=100000): number of samples to use for
-    #         the histogram.
-    #     * `bins` (int, optional, default=10): number of bins to use for the
-    #         histogram.
-    #     * `range` (tuple or None): range to use for the histogram.
-    #     * `dimension` (int or string, default=None): dimension to use
-    #         when flattening to the 1-D histogram distribution. If not proivded
-    #         or None, will use value from <<class>.dimension>.  `dimension` is
-    #         therefore REQUIRED if <<class>.dimension> is None.
-    #     * `wrap_at` (float or None, optional, default=None): value to set for
-    #         `wrap_at` of the returned <Histogram>.  If None or not provided,
-    #         will default to <<class>.wrap_at>.
-    #
-    #     Returns
-    #     --------
-    #     * a <Histogram> object
-    #
-    #     Raises
-    #     ---------
-    #     * ValueError: if `dimension` and <<class>.dimension> are both None.
-    #     """
-    #     if dimension is None:
-    #         dimension = self.dimension
-    #
-    #     dimension = self.get_dimension_by_label(dimension)
-    #
-    #     if dimension is None:
-    #         raise ValueError("must provide dimension.")
-    #
-    #     unit = self.unit[dimension] if isinstance(self.unit, list) else self.unit
-    #     label = self.label[dimension] if isinstance(self.label, list) else self.label
-    #     if wrap_at is None:
-    #         wrap_at = self.wrap_at[dimension] if isinstance(self.wrap_at, list) else self.wrap_at
-    #
-    #     return Histogram.from_data(self.sample(dimension=dimension, size=N, wrap_at=False),
-    #                                bins=bins, range=range,
-    #                                unit=unit, label=label, wrap_at=wrap_at)
+    def plot(self, **kwargs):
+        """
+        """
+        dimension = kwargs.pop('dimension', None)
 
-class MultivariateSlice(object):
+        if dimension is not None:
+            return self.slice(dimension).plot(**kwargs)
+        else:
+            return self.plot_sample(**kwargs)
+
+    def to_univariate(self, *args, **kwargs):
+        raise NotImplementedError("to_univariate not implemented by {}".format(self.__class__.__name__))
+
+
+class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
     def __init__(self, multivariate, dimension):
+        # we don't have any descriptors (since we'll handle dimension manually)
+        # but since we're subclassing BaseUnivariateDistribution, we need
+        # to have an empty dictionary so that __getattr__ and __setattr__ work.
+        self._descriptors = {}
+
+        self._dist_constructor_object_cache = None
+        self._parents_with_cache = []
+
         if isinstance(multivariate, dict):
             multivariate = _from_dict(multivariate)
 
@@ -2393,6 +2384,8 @@ class MultivariateSlice(object):
         self._multivariate = multivariate
         self.dimension = dimension
 
+
+
     def __repr__(self):
         descriptors = " ".join(["{}={}".format(k,v) for k,v in self.multivariate._descriptors.items()])
         if self.unit is not None:
@@ -2401,7 +2394,7 @@ class MultivariateSlice(object):
             descriptors += " wrap_at={}".format(self.wrap_at)
         if self.label is not None:
             descriptors += " label={}".format(self.label)
-        return "<MultivariateSlice(dimension={} distl.{} {})>".format(self.multivariate.__class__.__name__.lower(), self.dimension, descriptors)
+        return "<distl.{} dimension={} {})>".format(self.__class__.__name__.lower(), self.dimension, descriptors)
 
     def __str__(self):
         if self.label is not None:
@@ -2521,29 +2514,30 @@ class MultivariateSlice(object):
 
     @dimension.setter
     def dimension(self, dimension):
-        if isinstance(dimension, str):
-            if dimension not in self.multivariate.labels:
-                raise ValueError("dimension must be one of {}".format(self.multivariate.labels))
+        dimension = self.multivariate._get_dimension_index(dimension)
+        self._dimension = dimension
 
-            dimension = self.multivariate.labels.index(dimension)
 
-        if isinstance(dimension, int):
-            ndimensions = self.multivariate.ndimensions
-            if dimension < 0 or dimension > ndimensions-1:
-                raise ValueError("dimension must be between 0 and {}".format(ndimensions-1))
-            self._dimension = dimension
-        else:
-            raise TypeError("dimension must be of type int or str")
+    def ppf(self, q):
+        raise NotImplementedError("ppf not supported for multivariate slices ({}).  Translate to a univariate via to_univariate() first.".format(self.__class__.__name__))
 
     def sample(self, size=None):
         """
         Sample the underlying <<class>.multivariate> distribution in the dimension
         defined in <<class>.dimension>.
         """
+
+        # TODO: support unit, wrap_at, as_quantity
         return self.multivariate.sample(size=size, dimension=self.dimension)
 
-    def plot(self, *args, **kwargs):
-        return self.multivariate.plot(*args, dimension=self.dimension, **kwargs)
+    def plot_sample(self, *args, **kwargs):
+        return self.multivariate.plot_sample(*args, dimension=self.dimension, **kwargs)
+
+    def to_univariate(self):
+        """
+
+        """
+        return self.multivariate.to_univariate(dimension=self.dimension)
 
 
 class DistributionCollection(object):
@@ -3276,20 +3270,7 @@ class Histogram(BaseUnivariateDistribution):
 
     @property
     def _pdf_cdf_ppf_callables(self):
-        bincenters = _np.mean(_np.vstack([self.bins[0:-1], self.bins[1:]]), axis=0)
-        pdf = self.density
-        pdf_call = _stats_custom.interpolate_callable(bincenters, pdf)
-
-        bincenters = _np.mean(_np.vstack([self.bins[0:-1], self.bins[1:]]), axis=0)
-        cdf = _np.cumsum(self.density)
-        cdf = cdf / float(cdf[-1])
-
-        ppf_call = _stats_custom.interpolate_callable(cdf, bincenters)
-
-        # make sure interpolation on the right always gives 1, not the fill_value of 0
-        cdf_call = _stats_custom.interpolate_callable( _np.append(bincenters, _np.inf), _np.append(cdf, 1.0))
-
-        return pdf_call, cdf_call, ppf_call
+        return _hist_pdf_cdf_ppf_callables(self.bins, self.density)
 
     @property
     def dist_constructor_args(self):
@@ -3596,6 +3577,14 @@ class Uniform(BaseUnivariateDistribution):
 
     @property
     def width(self):
+        """
+        Access the width of the <Uniform> distribution, defined as
+        <Uniform.high> - <Uniform.low>
+
+        Returns
+        ----------
+        * float
+        """
         return self.high - self.low
 
     def to_gaussian(self, sigma=1.0):
@@ -3624,7 +3613,8 @@ class MVGaussian(BaseMultivariateDistribution):
     def __init__(self, mean=0.0, cov=1.0, allow_singular=False,
                  units=None, labels=None, wrap_ats=None):
         """
-        Create a <MVGaussian> distribution.
+        A Multivariate Gaussian distribution uses [scipy.stats.norm](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.multivariate_normal.html)
+        to sample values from a multivariate gaussian/normal function.
 
         This can also be created from a function at the top-level as:
 
@@ -3632,8 +3622,12 @@ class MVGaussian(BaseMultivariateDistribution):
 
         Arguments
         --------------
-        * `mean` (float or int, default=0.0): the central value of the gaussian distribution.
-        * `cov` (float or int, default=1.0): the scale (sigma) of the gaussian distribution.
+        * `mean` (float or int, default=0.0): the central value of the gaussian
+            distribution.
+        * `cov` (float or int, default=1.0): the scale (sigma) of the gaussian
+            distribution.
+        * `allow_singular` (bool, optional, default=False): passed directly to
+            scipy (see link above).
         * `units` (list of astropy.units objects, optional): the units of the provided values.
         * `labels` (list of strings, optional): labels for each dimension in the
             distribution.  This is used
@@ -3655,12 +3649,40 @@ class MVGaussian(BaseMultivariateDistribution):
     @property
     def ndimensions(self):
         """
+        Access the number of dimensions in the <MVGaussian> distribution.
+
+        Returns
+        --------
+        * int
         """
         return len(self.mean)
 
+    def slice(self, dimension):
+        """
+        Take a single dimension from the multivariate distribution while
+        retaining the covariances.  The returned <MVGaussianSlice> object
+        keeps the full multivariate distribution while acting somewhat
+        like a univariate distribution.
+
+        See also:
+        * <<class>.to_histogram>
+        * <<class>.to_gaussian>
+        * <MVGaussianSlice.dimension>
+
+        Arguments
+        ----------
+        * `dimension` (int or string): the label or index of the dimension to
+            take.
+
+        Returns
+        ------------
+        * <MVGaussianSlice> object
+        """
+        return MVGaussianSlice(self, dimension)
+
     def to_mvhistogram(self, N=1e6, bins=15, range=None):
         """
-        Convert the <<class>> distribution to an <MVHistogram> distribution.
+        Convert the <MVGaussian> distribution to an <MVHistogram> distribution.
 
         Under-the-hood, this calls <<class>.sample> with `size=N` and `wrap_at=False`
         and passes the resulting array as well as the requested `bins` and `range`
@@ -3683,8 +3705,70 @@ class MVGaussian(BaseMultivariateDistribution):
                                      bins=bins, range=range,
                                      units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
 
-    # def to_gaussian(self, dimension)
-    # def to_histogram(self, dimension, bins)
+    def to_univariate(self, dimension):
+        """
+        Shortcut to <MVGaussian.to_gaussian>
+        """
+        return self.to_gaussian(dimension=dimension)
+
+    def to_gaussian(self, dimension):
+        """
+        Convert the <MVGaussian> distribution to a <Gaussian> univariate distribution.
+
+        Arguments
+        -----------
+        * `dimension` (int or str): index or label of the dimension to use for
+            the univariate distribution.
+
+        Returns
+        ----------
+        * a <Gaussian> object
+        """
+        dimension = self._get_dimension_index(dimension)
+
+        return Gaussian(loc=self.mean[dimension], scale=_np.sqrt(self.cov[dimension, dimension]),
+                         unit=self.units[dimension] if self.units is not None else None,
+                         label=self.labels[dimension] if self.labels is not None else None,
+                         wrap_at=self.wrap_ats[dimension] if self.wrap_ats is not None else None)
+
+    def to_histogram(self, dimension, N=100000, bins=10, range=None, wrap_at=None):
+        """
+        Convert the <MVGaussian> distribution to a <Histogram> univariate distribution.
+
+        Under-the-hood, this calls <<class>.to_gaussian> and then
+        <Gaussian.to_histogram>.
+
+        Arguments
+        -----------
+        * `dimension` (int or str): index or label of the dimension to use for
+            the univariate distribution.
+        * `N` (int, optional, default=100000): number of samples to use for
+            the histogram.
+        * `bins` (int, optional, default=10): number of bins to use for the
+            histogram.
+        * `range` (tuple or None): range to use for the histogram.
+        * `wrap_at` (float or None, optional, default=None): value to set for
+            `wrap_at` of the returned <Histogram>.  If None or not provided,
+            will default to <<class>.wrap_at>.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
+        self.to_gaussian(dimension).to_histogram(N=N, bins=bins, range=range, wrap_at=wrap_at)
+
+class MVGaussianSlice(BaseMultivariateSliceDistribution):
+    @property
+    def dist_constructor_func(self):
+        return _stats.norm
+
+    @property
+    def dist_constructor_argnames(self):
+        return 'mean[{}]', 'cov[{}, {}]'.format((self.dimension, self.dimension, self.dimension))
+
+    @property
+    def dist_constructor_args(self):
+        return self.multivariate.mean[self.dimension], _np.sqrt(self.multivariate.cov[self.dimension, self.dimension])
 
 
 class MVHistogram(BaseMultivariateDistribution):
@@ -3747,7 +3831,11 @@ class MVHistogram(BaseMultivariateDistribution):
     def logcdf(self, x):
         raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
 
-    def ppf(self, q):
+    def _ppf(self, q, dimension=None):
+        # this is hidden because although it does work for random drawing, I'm
+        # not sure calling it ppf is really fair.
+
+
         # adapted from: https://stackoverflow.com/a/17822210
         #
         # MV case
@@ -3757,6 +3845,9 @@ class MVHistogram(BaseMultivariateDistribution):
         # 1D case
         # density, bins = np.histogram(np.random.rand(1000), normed=True)
         # bins = np.asarray([bins])
+
+        if dimension is not None:
+            dimension = self._get_dimension_index(dimension)
 
         if _np.any(q > 1) or _np.any(q < 0):
             raise ValueError("q must be between 0 and 1")
@@ -3791,31 +3882,61 @@ class MVHistogram(BaseMultivariateDistribution):
         values_from_bins = _np.column_stack([self.bins[dim,ind_this_dim]+bin_width_per_dim[dim,ind_this_dim]*rem_per_dim[dim] for dim,ind_this_dim in enumerate(ind_per_dim)])
 
         if return_single:
+            if dimension is not None:
+                return values_from_bins[:, dimension][0]
             return values_from_bins[0]
         else:
+            if dimension is not None:
+                return values_from_bins[:, dimension]
             return values_from_bins
 
     @property
     def ndimensions(self):
         """
+        Access the number of dimensions in the <MVHistogram> distribution.
+
+        Returns
+        --------
+        * int
         """
         return self.bins.shape[0]
+
+    def slice(self, dimension):
+        """
+        Take a single dimension from the multivariate distribution while
+        retaining the covariances.  The returned <MVHistogramSlice> object
+        keeps the full multivariate distribution while acting somewhat
+        like a univariate distribution.
+
+        See also:
+        * <<class>.to_histogram>
+        * <<class>.to_gaussian>
+        * <MVHistorgramSlice.dimension>
+
+        Arguments
+        ----------
+        * `dimension` (int or string): the label or index of the dimension to
+            take.
+
+        Returns
+        ------------
+        * <MVHistogramSlice> object
+        """
+        return MVHistogramSlice(self, dimension)
 
     def sample(self, size=None, dimension=None):
         """
         """
-        if dimension is not None:
-            raise NotImplementedError()
-        # dimension = self.get_dimension_by_label(dimension if dimension is not None else self.dimension)
-        if dimension is not None:
-            bins = self.bins[dimension]
-            density = self.density[dimension]
-        else:
-            bins = self.bins
-            density = self.density
+        # if dimension is not None:
+        #     dimension = self._get_dimension_index(dimension)
+        #     bins = self.bins[dimension]
+        #     density = self.density[dimension]
+        # else:
+        #     bins = self.bins
+        #     density = self.density
 
         q = _np.random.rand(size if size is not None else 1)
-        return self.ppf(q)
+        return self._ppf(q, dimension=dimension)
 
     def plot(self, *args, **kwargs):
         """
@@ -3824,7 +3945,7 @@ class MVHistogram(BaseMultivariateDistribution):
 
         dimension = kwargs.pop('dimension', None)
         if dimension is not None:
-            raise NotImplementedError()
+            dimension = self._get_dimension_index(dimension)
         # dimension = self.get_dimension_by_label(kwargs.get('dimension', None))
         if dimension is not None:
             kwargs.setdefault('bins', self.bins[dimension])
@@ -3904,7 +4025,7 @@ class MVHistogram(BaseMultivariateDistribution):
 
     def to_mvgaussian(self, N=1e5, allow_singular=False):
         """
-        Convert the <<class>> distribution to an <MVGaussian> distribution.
+        Convert the <MVHistogram> distribution to an <MVGaussian> distribution.
 
         See also:
 
@@ -3926,5 +4047,62 @@ class MVHistogram(BaseMultivariateDistribution):
         return MVGaussian(mean, cov, allow_singular=allow_singular,
                           units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
 
-    # def to_gaussian(self, dimension)
-    # def to_histogram(self, dimension, bins)
+    def to_univariate(self, dimension):
+        """
+        Shortcut to <MVHistogram.to_histogram>
+        """
+        return self.to_histogram(dimension=dimension)
+
+    def to_histogram(self, dimension, wrap_at=None):
+        """
+        Convert the <MVHistogram> distribution to a <Histogram> univariate distribution.
+
+        Arguments
+        -----------
+        * `dimension` (int or str): index or label of the dimension to use for
+            the univariate distribution.
+        * `wrap_at` (float or None, optional, default=None): value to set for
+            `wrap_at` of the returned <Histogram>.  If None or not provided,
+            will default to <<class>.wrap_at>.
+
+        Returns
+        --------
+        * a <Histogram> object
+        """
+        dimension = self._get_dimension_index(dimension)
+        # TODO: check to see if bins and density are being sliced correctly
+        return Histogram(bins=self.bins[dimension], density=self.density[dimension],
+                         unit=self.units[dimension] if self.units is not None else None,
+                         label=self.labels[dimension] if self.labels is not None else None,
+                         wrap_at=self.wrap_ats[dimension] if self.wrap_ats is not None else None)
+
+    def to_gaussian(self, dimension, size):
+        """
+        Convert the <MVHistogram> distribution to a <Gaussian> univariate distribution.
+
+        Under-the-hood, this calls <MVHistogram.to_histogram> followed by <Histogram.to_gaussian>.
+
+        Arguments
+        -----------
+        * `dimension` (int or str): index or label of the dimension to use for
+            the univariate distribution.
+
+        Returns
+        ----------
+        * a <Gaussian> object
+        """
+        return self.to_histogram(dimension).to_gaussian()
+
+class MVHistogramSlice(BaseMultivariateSliceDistribution):
+    @property
+    def dist_constructor_func(self):
+        return _stats_custom.generic_pdf_cdf_ppf
+
+    @property
+    def dist_constructor_argnames(self):
+        raise NotImplementedError()
+
+    @property
+    def dist_constructor_args(self):
+        # TODO: need to check shape of bins/densities and make sure this is filtering correctly
+        return _hist_pdf_cdf_ppf_callables(self.bins[self.dimension], self.density[self.dimension])
