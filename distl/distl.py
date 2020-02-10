@@ -3767,11 +3767,20 @@ class MVGaussianSlice(BaseMultivariateSliceDistribution):
 
     @property
     def dist_constructor_argnames(self):
-        return 'mean[{}]', 'cov[{}, {}]'.format((self.dimension, self.dimension, self.dimension))
+        return 'loc', 'scale'
 
     @property
     def dist_constructor_args(self):
-        return self.multivariate.mean[self.dimension], _np.sqrt(self.multivariate.cov[self.dimension, self.dimension])
+        return self.loc, self.scale
+
+    @property
+    def loc(self):
+        return self.multivariate.mean[self.dimension]
+
+
+    @property
+    def scale(self):
+        return _np.sqrt(self.multivariate.cov[self.dimension, self.dimension])
 
 
 class MVHistogram(BaseMultivariateDistribution):
@@ -4073,8 +4082,9 @@ class MVHistogram(BaseMultivariateDistribution):
         * a <Histogram> object
         """
         dimension = self._get_dimension_index(dimension)
-        # TODO: check to see if bins and density are being sliced correctly
-        return Histogram(bins=self.bins[dimension], density=self.density[dimension],
+        bins_flat = self.bins[dimension]
+        density_flat = _np.sum(self.density, axis=tuple([d for d in range(self.ndimensions) if d!=dimension]))
+        return Histogram(bins=bins_flat, density=density_flat,
                          unit=self.units[dimension] if self.units is not None else None,
                          label=self.labels[dimension] if self.labels is not None else None,
                          wrap_at=self.wrap_ats[dimension] if self.wrap_ats is not None else None)
@@ -4107,5 +4117,12 @@ class MVHistogramSlice(BaseMultivariateSliceDistribution):
 
     @property
     def dist_constructor_args(self):
-        # TODO: need to check shape of bins/densities and make sure this is filtering correctly
-        return _hist_pdf_cdf_ppf_callables(self.bins[self.dimension], self.density[self.dimension])
+        return _hist_pdf_cdf_ppf_callables(self.bins, self.density)
+
+    @property
+    def bins(self):
+        return self.multivariate.bins[self.dimension]
+
+    @property
+    def density(self):
+        return _np.sum(self.multivariate.density, axis=tuple([d for d in range(self.multivariate.ndimensions) if d!=self.dimension]))
