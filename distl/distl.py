@@ -2548,8 +2548,11 @@ class DistributionCollection(object):
     <DistributionCollection> allows sampling from multiple distribution objects
     simultaneously, respecting all underlying covariances whenever possible.
     """
-    def __init__(self, *args, distributions=[]):
-        self.distributions = list(args) + distributions
+    def __init__(self, *distributions):
+        if isinstance(distributions, BaseDistribution):
+            distributions = [distributions]
+
+        self.distributions = distributions
 
     def to_dict(self):
         """
