@@ -1985,8 +1985,11 @@ class BaseUnivariateDistribution(BaseDistribution):
         if seed is not None:
             _np.random.seed(seed)
 
+        qs = _np.random.random(size=size)
+        return self._return_with_units(self.wrap(self.dist_constructor_object.ppf(qs), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-        return self._return_with_units(self.wrap(self.dist_constructor_object.rvs(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+        # this causes all sorts of issues as it casts the interpolators to arrays
+        # return self._return_with_units(self.wrap(self.dist_constructor_object.rvs(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
 
     ### CONVERSION TO OTHER DISTRIBUTION TYPES
