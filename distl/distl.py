@@ -99,7 +99,7 @@ def is_distribution(value):
     """must be an distl Distribution object"""
     if isinstance(value, dict) and 'distl' in value.keys():
         return True, _from_dict(value)
-    return isinstance(value, BaseDistribution) or isinstance(value, MultivariateSlice), value
+    return isinstance(value, BaseDistribution), value
 
 def is_distribution_or_none(value):
     """must be an distl Distribution object or None"""
