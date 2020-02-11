@@ -89,7 +89,12 @@ def from_dict(d):
     # unloadable again), we'll do a dictionary comprehension.  If this causes
     # performance issues, we could instead accept and ignore distl as
     # a keyword argument to __init__
-    dist = getattr(_sys.modules[__name__], classname)(**{k:v for k,v in d.items() if k!='distl'})
+    args = d.get('args', None)
+    kwargs = {k:v for k,v in d.items() if k not in ['distl', 'args']}
+    if args is not None:
+        dist = getattr(_sys.modules[__name__], classname)(*args, **kwargs)
+    else:
+        dist = getattr(_sys.modules[__name__], classname)(**kwargs)
     # if unit is not None and _has_astropy:
         # dist *= _units.Unit(unit)
     return dist
@@ -188,7 +193,7 @@ def _json_safe(v):
 def is_distribution(value):
     """must be an distl Distribution object"""
     if isinstance(value, dict) and 'distl' in value.keys():
-        return True, _from_dict(value)
+        return True, from_dict(value)
     return isinstance(value, BaseDistribution), value
 
 def is_distribution_or_none(value):
@@ -293,6 +298,8 @@ def is_iterable(value):
 
 def is_square_matrix(value):
     """must be a square 2D matrix"""
+    if isinstance(value, list):
+        value = _np.asarray(value)
     return isinstance(value, _np.ndarray) and len(value.shape)==2 and value.shape[0]==value.shape[1], value
 
 
@@ -2469,7 +2476,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         self._parents_with_cache = []
 
         if isinstance(multivariate, dict):
-            multivariate = _from_dict(multivariate)
+            multivariate = from_dict(multivariate)
 
         if not isinstance(multivariate, BaseMultivariateDistribution):
             raise TypeError("multivariate must be of type BaseMultivariateDistribution")
@@ -2663,7 +2670,7 @@ class DistributionCollection(object):
 
         d = {}
         d['distl'] = self.__class__.__name__
-        d['distributions'] = [distribution.to_dict() for distribution in self.distributions]
+        d['args'] = [distribution.to_dict() for distribution in self.distributions]
         return d
 
     @property

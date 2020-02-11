@@ -22,9 +22,13 @@ def test_sample():
     distl.uniform().pdf(0)
     distl.uniform().ppf(0.5)
 
+def test_json():
+    distl.from_dict(distl.uniform().to_dict())
+
 
 if __name__ == '__main__':
     test_create()
     test_create_errors()
     test_conversions()
     test_sample()
+    test_json()
