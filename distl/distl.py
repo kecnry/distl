@@ -59,7 +59,7 @@ _physical_types_to_solar = {'length': 'm',
 
 def from_dict(d):
     """
-    Load an distl object from a dictionary.
+    Load a distl object from a dictionary.
 
     See also:
 
@@ -101,7 +101,7 @@ def from_dict(d):
 
 def from_json(j):
     """
-    Load an distl object from a json-formatted string.
+    Load a distl object from a json-formatted string.
 
     See also:
 
@@ -127,7 +127,7 @@ def from_json(j):
 
 def from_file(filename):
     """
-    Load an distl object from a json filename.
+    Load a distl object from a json filename.
 
     See also:
 
@@ -137,7 +137,7 @@ def from_file(filename):
     Arguments
     -------------
     * `s` (string): the filename pointing to a json formatted file representing
-        an distl object.
+        a distl object.
 
     Returns
     ----------
@@ -191,13 +191,20 @@ def _json_safe(v):
 # NOTE: the docstring is used as the error message if the test fails
 
 def is_distribution(value):
-    """must be an distl Distribution object"""
+    """must be a distl Distribution object"""
     if isinstance(value, dict) and 'distl' in value.keys():
         return True, from_dict(value)
     return isinstance(value, BaseDistribution), value
 
+def is_distribution_univariate_or_slice(value):
+    """must be a distl Distribution object (uniariate or multivariate-slice, not multivariate)"""
+    truth, value = is_distribution(value)
+    if not truth:
+        return truth, value
+    return isinstance(value, BaseUnivariateDistribution) or isinstance(value, BaseMultivariateSliceDistribution), value
+
 def is_distribution_or_none(value):
-    """must be an distl Distribution object or None"""
+    """must be a distl Distribution object or None"""
     if value is None:
         return True, value
     else:
@@ -353,11 +360,13 @@ class BaseDistribution(object):
         self._descriptors = OrderedDict()
         self._validators = OrderedDict()
 
+        self._cached_sample = None
+
         self._dist_constructor_func = dist_constructor_func
         self._dist_constructor_argnames = dist_constructor_argnames
 
         self._dist_constructor_object_cache = None
-        self._parents_with_cache = []
+        self._parents_with_constructor_object_cache = []
 
         for item in args:
             if item[0] in _builtin_attrs:
@@ -391,7 +400,7 @@ class BaseDistribution(object):
             if valid:
                 # clear the cache first since the underlying constructor object
                 # will now need to be rebuilt.  This also bubbles up to anything
-                # in self._parents_with_cache
+                # in self._parents_with_constructor_object_cache
                 self._dist_constructor_object_clear_cache()
                 # and then set the value in the dictionary
                 self._descriptors[name] = validated_value
@@ -604,6 +613,25 @@ class BaseDistribution(object):
 
         return Composite("tan", dist, label="tan({})".format(self.label) if self.label is not None else None)
 
+    ### SAMPLE CACHING
+    @property
+    def cached_sample(self):
+        return self._cached_sample
+
+    def clear_cached_sample(self):
+        self._cached_sample = None
+
+    def get_from_cache(self, x=None, unit=None):
+        if x is not None:
+            return x
+        if self.cached_sample is None:
+            raise ValueError("No cache exists: must provide value for x or call .sample() to create a cache first")
+
+        if unit is not None:
+            return (self.cached_sample * self.unit).to(unit).value
+
+        return self.cached_sample
+
 
     ### PROPERTIES/METHODS THAT EXPOSE UNDERLYING SCIPY.STATS FUNCTIONALITY
 
@@ -652,7 +680,7 @@ class BaseDistribution(object):
         """
         # print("*** clearing cache {}".format(self))
         self._dist_constructor_object_cache = None
-        for parent in self._parents_with_cache:
+        for parent in self._parents_with_constructor_object_cache:
             parent._dist_constructor_object_clear_cache()
 
     @property
@@ -675,7 +703,7 @@ class BaseDistribution(object):
 
         return self._dist_constructor_object_cache
 
-    def pdf(self, x, unit=None):
+    def pdf(self, x=None, unit=None):
         """
         Expose the probability density function (pdf) at values of `x`.
 
@@ -690,7 +718,10 @@ class BaseDistribution(object):
 
         Arguments
         ----------
-        * `x` (float or array): x-values at which to expose the pdf
+        * `x` (float or array, optional, default=None): x-values at which to
+            expose the pdf.  If None or not provided, <<class>.cached_sample>
+            will be used if available, or raise an error if no cached samples
+            are available.
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x`.  If None or not provided, will assume they're provided in
             <<class>.unit>.
@@ -699,6 +730,8 @@ class BaseDistribution(object):
         ---------
         * (float or array) pdf values of the same type/shape as `x`
         """
+        x = self.get_from_cache(x, unit=unit)
+
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -711,7 +744,7 @@ class BaseDistribution(object):
         except AttributeError:
             raise NotImplementedError("{} does not support pdf".format(self.__class__.__name__))
 
-    def logpdf(self, x, unit=None):
+    def logpdf(self, x=None, unit=None):
         """
         Expose the log-probability density function (log of pdf) at values of `x`.
 
@@ -726,7 +759,10 @@ class BaseDistribution(object):
 
         Arguments
         ----------
-        * `x` (float or array): x-values at which to expose the logpdf
+        * `x` (float or array, optional, default=None): x-values at which to
+            expose the logpdf.  If None or not provided, <<class>.cached_sample>
+            will be used if available, or raise an error if no cached samples
+            are available.
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x`.  If None or not provided, will assume they're provided in
             <<class>.unit>.
@@ -735,6 +771,8 @@ class BaseDistribution(object):
         ---------
         * (float or array) logpdf values of the same type/shape as `x`
         """
+        x = self.get_from_cache(x, unit=unit)
+
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -747,7 +785,7 @@ class BaseDistribution(object):
         except AttributeError:
             raise NotImplementedError("{} does not support logpdf".format(self.__class__.__name__))
 
-    def cdf(self, x, unit=None):
+    def cdf(self, x=None, unit=None):
         """
         Expose the cummulative density function (cdf) at values of `x`.
 
@@ -762,7 +800,10 @@ class BaseDistribution(object):
 
         Arguments
         ----------
-        * `x` (float or array): x-values at which to expose the cdf
+        * `x` (float or array, optional, default=None): x-values at which to
+            expose the cdf.  If None or not provided, <<class>.cached_sample>
+            will be used if available, or raise an error if no cached samples
+            are available.
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x`.  If None or not provided, will assume they're provided in
             <<class>.unit>.
@@ -771,6 +812,8 @@ class BaseDistribution(object):
         ---------
         * (float or array) cdf values of the same type/shape as `x`
         """
+        x = self.get_from_cache(x, unit=unit)
+
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -783,7 +826,7 @@ class BaseDistribution(object):
         except AttributeError:
             raise NotImplementedError("{} does not support cdf".format(self.__class__.__name__))
 
-    def logcdf(self, x, unit=None):
+    def logcdf(self, x=None, unit=None):
         """
         Expose the log-cummulative density function (log of cdf) at values of `x`.
 
@@ -798,7 +841,10 @@ class BaseDistribution(object):
 
         Arguments
         ----------
-        * `x` (float or array): x-values at which to expose the logcdf
+        * `x` (float or array, optional, default=None): x-values at which to
+            expose the logcdf.  If None or not provided, <<class>.cached_sample>
+            will be used if available, or raise an error if no cached samples
+            are available.
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x`.  If None or not provided, will assume they're provided in
             <<class>.unit>.
@@ -807,6 +853,8 @@ class BaseDistribution(object):
         ---------
         * (float or array) logcdf values of the same type/shape as `x`
         """
+        x = self.get_from_cache(x, unit=unit)
+
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -934,7 +982,7 @@ class BaseDistribution(object):
 
         if plot_gaussian or plot_pdf or plot_cdf:
             # we need to know the original x-range, before wrapping
-            # sample = self.sample(size=size, unit=unit, wrap_at=False)
+            # sample = self.sample(size=size, unit=unit, wrap_at=False, cache_sample=False)
             # xmin = _np.min(sample)
             # xmax = _np.max(sample)
             xmin, xmax = self.interval(0.999, wrap_at=False, unit=unit)
@@ -1058,7 +1106,7 @@ class BaseDistribution(object):
         # Perhaps we should bin and then wrap?  Or bin before wrapping and get a guess at the
         # appropriate bins
         if samples is None:
-            samples = self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed)
+            samples = self.sample(size, unit=unit, wrap_at=wrap_at, seed=seed, cache_sample=False)
 
         try:
             ret = _plt.hist(samples, density=True, **kwargs)
@@ -1654,7 +1702,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         return self._return_with_units(self.wrap(ppf, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-    def sf(self, x, unit=None):
+    def sf(self, x=None, unit=None):
         """
         Expose the survival function (sf; also defined as 1 - cdf, but sf is
         sometimes more accurate)
@@ -1672,7 +1720,10 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         Arguments
         ----------
-        * `x` (float or array): x-values at which to expose the sf
+        * `x` (float or array, optional, default=None): x-values at which to
+            expose the sf.  If None or not provided, <<class>.cached_sample>
+            will be used if available, or raise an error if no cached samples
+            are available.
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x`.  If None or not provided, will assume they're provided in
             <<class>.unit>.
@@ -1681,6 +1732,8 @@ class BaseUnivariateDistribution(BaseDistribution):
         ---------
         * (float or array) sf values of the same type/shape as `x`
         """
+        x = self.get_from_cache(x, unit=unit)
+
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -1693,7 +1746,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         except AttributeError:
             raise NotImplementedError("{} does not support sf".format(self.__class__.__name__))
 
-    def logsf(self, x, unit=None):
+    def logsf(self, x=None, unit=None):
         """
         Expose the log of the survival function (logsf).
 
@@ -1710,7 +1763,10 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         Arguments
         ----------
-        * `x` (float or array): x-values at which to expose the logsf
+        * `x` (float or array, optional, default=None): x-values at which to
+            expose the logsf.  If None or not provided, <<class>.cached_sample>
+            will be used if available, or raise an error if no cached samples
+            are available.
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x`.  If None or not provided, will assume they're provided in
             <<class>.unit>.
@@ -1719,6 +1775,8 @@ class BaseUnivariateDistribution(BaseDistribution):
         ---------
         * (float or array) logsf values of the same type/shape as `x`
         """
+        x = self.get_from_cache(x, unit=unit)
+
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -1731,7 +1789,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         except AttributeError:
             raise NotImplementedError("{} does not support logsf".format(self.__class__.__name__))
 
-    def isf(self, x, unit=None):
+    def isf(self, x=None, unit=None):
         """
         Expose the inverse of the survival function (isf).
 
@@ -1748,7 +1806,10 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         Arguments
         ----------
-        * `x` (float or array): x-values at which to expose the osf
+        * `x` (float or array, optional, default=None): x-values at which to
+            expose the isf.  If None or not provided, <<class>.cached_sample>
+            will be used if available, or raise an error if no cached samples
+            are available.
         * `unit` (astropy.unit, optional, default=None): unit of the values
             in `x`.  If None or not provided, will assume they're provided in
             <<class>.unit>.
@@ -1757,6 +1818,8 @@ class BaseUnivariateDistribution(BaseDistribution):
         ---------
         * (float or array) osf values of the same type/shape as `x`
         """
+        x = self.get_from_cache(x, unit=unit)
+
         # x is assumed to be in the new units
         if unit is not None:
             if self.unit is None:
@@ -2040,7 +2103,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
     ### SAMPLING
 
-    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None):
+    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None, cache_sample=True):
         """
         Sample from the distribution.
 
@@ -2068,6 +2131,8 @@ class BaseUnivariateDistribution(BaseDistribution):
             according to <<class>.unit> not `unit`.
         * `seed` (int, optional): seed to pass to np.random.seed
             prior to sampling.
+        * `cache_sample` (bool, optional, default=True): whether to override the
+            existing <<class>.cached_sample>.
 
         Returns
         ---------
@@ -2083,7 +2148,11 @@ class BaseUnivariateDistribution(BaseDistribution):
             _np.random.seed(seed)
 
         qs = _np.random.random(size=size)
-        return self._return_with_units(self.wrap(self.dist_constructor_object.ppf(qs), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+        sample = self.dist_constructor_object.ppf(qs)
+        if cache_sample:
+            self._cached_sample = sample
+
+        return self._return_with_units(self.wrap(sample, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
         # this causes all sorts of issues as it casts the interpolators to arrays
         # return self._return_with_units(self.wrap(self.dist_constructor_object.rvs(size=size), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
@@ -2114,7 +2183,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         --------
         * a <Histogram> object
         """
-        return Histogram.from_data(self.sample(size=N, wrap_at=False),
+        return Histogram.from_data(self.sample(size=N, wrap_at=False, cache_sample=False),
                                    bins=bins, range=range,
                                    unit=self.unit, label=self.label, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
 
@@ -2359,35 +2428,50 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         return wrap_at
 
-    def pdf(self, x):
-        # TODO: this won't work probably, because the underlying calls will
-        # require len self._ndimensions_available not those set - this would
-        # require flattening in the other dimensions somehow
-        if hasattr(x, '__iter__'):
-            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
+    def pdf(self, x=None):
+        x = self.get_from_cache(x)
+        if not hasattr(x, '__iter__'):
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
+        if len(x.shape) > 2 or x.shape[-1] != self.ndimensions:
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
 
-        return super(BaseMultivariateDistribution, self).pdf(x) #[self.dimension_indices]
+        # TODO: unit support?
+        return super(BaseMultivariateDistribution, self).pdf(x)
 
-    def logpdf(self, x):
-        if hasattr(x, '__iter__'):
-            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
-
-        return super(BaseMultivariateDistribution, self).logpdf(x) #[self.dimension_indices]
-
-    def cdf(self, x):
-        if hasattr(x, '__iter__'):
-            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
-
-        return super(BaseMultivariateDistribution, self).cdf(x) #[self._dimension_indices]
-
-    def logcdf(self, x):
-        if hasattr(x, '__iter__'):
-            raise TypeError('x must be an array with length {}'.format(len(self.dimension_indices)))
-
-        return super(BaseMultivariateDistribution, self).logcdf(x) #[self._dimension_indices]
+    def logpdf(self, x=None):
+        x = self.get_from_cache(x)
+        if not hasattr(x, '__iter__'):
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
+        if len(x.shape) > 2 or x.shape[-1] != self.ndimensions:
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
 
 
-    def sample(self, size=None, dimension=None):
+        # TODO: unit support?
+        return super(BaseMultivariateDistribution, self).logpdf(x)
+
+    def cdf(self, x=None):
+        x = self.get_from_cache(x)
+        if not hasattr(x, '__iter__'):
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
+        if len(x.shape) > 2 or x.shape[-1] != self.ndimensions:
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
+
+        # TODO: unit support?
+        return super(BaseMultivariateDistribution, self).cdf(x)
+
+    def logcdf(self, x=None):
+        x = self.get_from_cache(x)
+        if not hasattr(x, '__iter__'):
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
+        if len(x.shape) > 2 or x.shape[-1] != self.ndimensions:
+            raise TypeError('x must be an array with length {} or matrix with shape (S, {}) where S is number of samples'.format(self.ndimensions, self.ndimensions))
+
+        # TODO: unit support?
+        return super(BaseMultivariateDistribution, self).logcdf(x)
+
+
+
+    def sample(self, size=None, dimension=None, cache_sample=True):
         """
         Sample from the distribution.
 
@@ -2398,6 +2482,8 @@ class BaseMultivariateDistribution(BaseDistribution):
         * `dimension`: (int or list of ints, optional, default=None): dimension(s)
             of the multivariate distribution to sample.  If not provided or
             None, will return all dimensions.
+        * `cache_sample` (bool, optional, default=True): whether to override the
+            existing <<class>.cached_sample>.
 
         Returns
         ---------
@@ -2408,6 +2494,9 @@ class BaseMultivariateDistribution(BaseDistribution):
         # TODO: add support for per-dimension unit, wrap_at, as_quantity (and pass in to_mvhistogram)
 
         sample = self.dist_constructor_object.rvs(size=size)
+
+        if cache_sample:
+            self._cached_sample = sample
 
         if dimension is not None:
             if len(sample.shape) == 1:
@@ -2441,7 +2530,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
             samples = kwargs.pop('samples', None)
             if samples is None:
-                samples = self.sample(size=int(1e5), dimension=dimension) #, unit=unit, wrap_at=wrap_at)
+                samples = self.sample(size=int(1e5), dimension=dimension, cache_sample=False) #, unit=unit, wrap_at=wrap_at)
             return super(BaseMultivariateDistribution, self).plot_sample(samples=samples, label=label, unit=unit, wrap_at=wrap_at, xlabel=xlabel, **kwargs)
         else:
             # then we need to do a corner plot
@@ -2449,7 +2538,7 @@ class BaseMultivariateDistribution(BaseDistribution):
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
 
-            return corner.corner(self.sample(size=int(1e5)), labels=self.labels, **kwargs)
+            return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=self.labels, **kwargs)
 
     def plot(self, **kwargs):
         """
@@ -2473,7 +2562,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         self._descriptors = {}
 
         self._dist_constructor_object_cache = None
-        self._parents_with_cache = []
+        self._parents_with_constructor_object_cache = []
 
         if isinstance(multivariate, dict):
             multivariate = from_dict(multivariate)
@@ -2617,9 +2706,20 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         dimension = self.multivariate._get_dimension_index(dimension)
         self._dimension = dimension
 
+    ### SAMPLE CACHING
+    @property
+    def cached_sample(self):
+        return self.multivariate.cached_sample[self.dimension]
+
+    def clear_cached_sample(self):
+        self.multivariate.clear_cached_sample()
+
+    ### OVERRIDE SCIPY.STATS FROM UNIVARIATE
 
     def ppf(self, q):
         raise NotImplementedError("ppf not supported for multivariate slices ({}).  Translate to a univariate via to_univariate() first.".format(self.__class__.__name__))
+
+    ### SAMPLING & PLOTTING
 
     def sample(self, size=None):
         """
@@ -2628,7 +2728,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         """
 
         # TODO: support unit, wrap_at, as_quantity
-        return self.multivariate.sample(size=size, dimension=self.dimension)
+        return self.multivariate.sample(size=size, dimension=self.dimension, cache_sample=False)
 
     def plot_sample(self, *args, **kwargs):
         return self.multivariate.plot_sample(*args, dimension=self.dimension, **kwargs)
@@ -2650,6 +2750,8 @@ class DistributionCollection(object):
             distributions = [distributions]
 
         self.distributions = distributions
+
+        self._cached_sample = None
 
     def to_dict(self):
         """
@@ -2686,10 +2788,10 @@ class DistributionCollection(object):
         if not (isinstance(distributions, list) or isinstance(distributions, tuple)):
             raise TypeError('distributions must be a list of distribution objects')
 
-        if not _np.all([is_distribution(distribution)[0] for distribution in distributions]):
-            raise TypeError('distributions must be a list of distribution objects')
+        if not _np.all([is_distribution_univariate_or_slice(distribution)[0] for distribution in distributions]):
+            raise TypeError('distributions must be a list of distribution objects (where each must be a univariate or multivariate-slice)')
 
-        self._dists = [is_distribution(distribution)[1] for distribution in distributions]
+        self._dists = [is_distribution_univariate_or_slice(distribution)[1] for distribution in distributions]
 
     @property
     def distributions_unpacked(self):
@@ -2709,6 +2811,83 @@ class DistributionCollection(object):
             dists_all += unpack_dists(dist)
 
         return dists_all
+
+    @property
+    def cached_sample(self):
+        return self._cached_sample
+
+    def _method_on_values(self, method, npmethod, values, unpacked):
+        # sum = 0.0
+        # dists_dict = {}
+        # values_dict = {}
+        #
+        # for dist,value in zip(self.distributions, values):
+        #     hash = dist.hash
+        #     if hash in dists_dict.keys():
+        #         dists_dict[hash] += [dist]
+        #         values_dict[hash] += [value]
+        #     else:
+        #         dists_dict[hash] = [dist]
+        #         values_dict[hash] = [value]
+        #
+        # for dists, values in zip(dists_dict.values(), values_dict.values()):
+        #     for dist, value in zip(dists, values):
+        #         sum += getattr(dist, method)(value)
+        #     # logpdf += dists[0].logp(values, dimension=[dist.dimension for dist in dists]) #* len(dists)
+        #
+        # return sum
+
+        values, dists = self._get_cached_values_dists(values, unpacked)
+        # npmethod: one of 'product', 'sum', etc
+        # method: one of 'pdf', 'cdf', 'logpdf', 'logcdf', etc
+        return getattr(_np, npmethod)([getattr(dist, method)(value) for dist, method in zip(dists, values)])
+
+    def _get_cached_values_dists(self, values, unpacked):
+        if values is None:
+            values = self.cached_samples_unpacked if unpacked else self.cached_samples
+            if values is None:
+                raise ValueError("no cached values available.  Must past values or call .sample()")
+
+        dists = self.distributions_unpacked if unpacked else self.distributions
+        if len(values) != len(dists):
+            raise ValueError("values must be same length as self.{} ({})".format('distributions_unpacked' if unpacked else 'distributions', len(dists)))
+
+        return values, dists
+
+
+    def pdf(self, values=None, unpacked=False):
+        """
+        """
+        return self._method_on_values('pdf', 'product', values, unpacked)
+
+
+    def logpdf(self, values=None, unpacked=False):
+        """
+
+        Arguments
+        ------------
+        * `values` (list, tuple, array or None, optional, default=None): list of
+            values in same length and order as <DistributionCollection.distributions> or
+            <DistributionCollection.distributions_unpacked> (see `unpacked`).
+            If not provided or None, the latest values from <DistributionCollection.sample>
+            will be assumed (respecting the value of `unpacked`).  If no cached
+            samples are available, a ValueError will be raised.
+        * `unpacked` (bool, optional, default=False): whether `values` corresponds
+            to the passed distributions (<DistributionCollection.distributions>)
+            or the underlying unpacked distributions (<DistributionCollection.distributions_unpacked>).
+            If the former (`unpacked=False`), the covariances will not be propagated
+            through any math or slicing.  If the latter (`unpacked=False`) covariances
+            will be respected.
+
+        Returns
+        ----------
+        * float or array of floats
+
+        Raises
+        ----------
+        * ValueError: if `values` is None, but no cached samples are available.
+        """
+        return self._method_on_values('logpdf', 'sum', values, unpacked)
 
     def sample(self, *args, **kwargs):
         """
@@ -2730,6 +2909,9 @@ class DistributionCollection(object):
         -------------
         * `*args`: all positional arguments are sent to <BaseDistribution.sample>
             for each item in `dists`.
+        * `cache_sample` (bool, optional, default=True): whether to cache the
+            sampled values for subsequent calls to <DistributionCollection.pdf>,
+            <DistributionCollection.logpdf>, etc.
         * `**kwargs`: all keyword arguments are sent to <BaseDistribution.sample>
             for each item in `dists`.  Note: `seed` is forbidden and will raise
             a ValueError.
@@ -2745,6 +2927,8 @@ class DistributionCollection(object):
         if 'seed' in kwargs.keys():
             raise ValueError("seeds are automatically determined: cannot pass seed")
 
+        cache_values = kwargs.pop('cache_values', True)
+
         seeds = kwargs.pop('seeds', {})
         if seeds is None:
             seeds = {}
@@ -2752,42 +2936,15 @@ class DistributionCollection(object):
         for i,dist in enumerate(self.distributions_unpacked):
             seeds.setdefault(dist.hash, get_random_seed()[i])
 
+        sample_kwargs = {k:v for k,v in kwargs.items() if k not in ['seeds']}
+        # print("*** seeds: {}, sample_kwargs: {}".format(seeds, sample_kwargs))
+        samples = _np.asarray([dist.sample(*args, seed=seeds, **sample_kwargs) for dist in self.distributions]).T
 
-        samples = [dist.sample(*args, seed=seeds, **kwargs) for dist in self.distributions]
-        return _np.asarray(samples).T
+        if cache_values:
+            self._cached_sample = samples
 
-
-    def logpdf(self, values):
-        """
-
-        Arguments
-        ------------
-        * `values` (list, tuple, or array): list of values in same length and
-            order as <<class>.distributions>.
-
-        Returns
-        ----------
-        * float
-        """
-        logpdf = 0.0
-        dists_dict = {}
-        values_dict = {}
-
-        for dist,value in zip(self.distributions, values):
-            hash = dist.hash
-            if hash in dists_dict.keys():
-                dists_dict[hash] += [dist]
-                values_dict[hash] += [value]
-            else:
-                dists_dict[hash] = [dist]
-                values_dict[hash] = [value]
-
-        for dists, values in zip(dists_dict.values(), values_dict.values()):
-            for dist, value in zip(dists, values):
-                logpdf += dist.logpdf(value)
-            # logpdf += dists[0].logp(values, dimension=[dist.dimension for dist in dists]) #* len(dists)
-
-        return logpdf
+        # TODO: units, quantity, wrap_at
+        return samples
 
     def sample_func(self, func, x, N=1000, func_kwargs={}):
         """
@@ -2815,7 +2972,7 @@ class DistributionCollection(object):
         """
         # TODO: allow passing args to sample_from_dists
         # TODO: optimize this by doing all sampling first?
-        sample_args = [self.sample() for i in range(N)]
+        sample_args = [self.sample(cache_sample=False) for i in range(N)]
         models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
         return models
 
@@ -3001,9 +3158,9 @@ class Composite(BaseUnivariateDistribution):
 
         # do some paperwork so changes to descriptors in the children bubble
         # up and will call self._dist_constructor_object_clear_cache()
-        dist1._parents_with_cache.append(self)
+        dist1._parents_with_constructor_object_cache.append(self)
         if dist2 is not None:
-            dist2._parents_with_cache.append(self)
+            dist2._parents_with_constructor_object_cache.append(self)
 
 
     def __repr__(self):
@@ -3036,6 +3193,21 @@ class Composite(BaseUnivariateDistribution):
                 return [self.dist1.hash, self.dist2.hash]
         else:
             return self.dist1.hash
+
+    ### SAMPLE CACHING
+
+    @property
+    def cached_sample_children(self):
+        if self.dist2 is not None:
+            return [self.dist1.cached_sample, self.dist2.cached_sample]
+        else:
+            return self.dist1.cached_sample
+
+    def clear_cached_sample(self):
+        super(Composite, self).clear_cached_sample()
+        self.dist1.clear_cached_sample()
+        if self.dist2 is not None:
+            self.dist2.clear_cached_sample()
 
 
     @property
@@ -3133,7 +3305,7 @@ class Composite(BaseUnivariateDistribution):
     def dist_constructor_args(self):
         return self._pdf_cdf_ppf_callables
 
-    def _sample_from_children(self, math, dist1, dist2, seed={}, size=None):
+    def _sample_from_children(self, math, dist1, dist2, seed={}, size=None, cache_sample=True):
         if math == '__and__':
             raise NotImplementedError("cannot sample from children with & logic")
         elif self.math == '__or__':
@@ -3141,7 +3313,7 @@ class Composite(BaseUnivariateDistribution):
             choice = _np.random.randint(0,2)
             if size is None:
                 dist = [dist1, dist2][choice]
-                return dist.sample(size=size, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled])
+                return dist.sample(size=size, seed=seed, cache_sample=cache_sample, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled])
             else:
                 # NOTE: // for python2 and 3 will do floor division, returning an integer
                 size1 = size//2
@@ -3154,8 +3326,8 @@ class Composite(BaseUnivariateDistribution):
                     else:
                         size2 += 1
 
-                return _np.concatenate((dist1.sample(size=size1, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]),
-                                        dist2.sample(size=size2, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled])))
+                return _np.concatenate((dist1.sample(size=size1, seed=seed, cache_sample=cache_sample, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]),
+                                        dist2.sample(size=size2, seed=seed, cache_sample=cache_sample, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled])))
 
         elif self.dist2 is not None:
             # NOTE: this will account for multivariate, but only for THESE 2
@@ -3163,7 +3335,7 @@ class Composite(BaseUnivariateDistribution):
 
             # samples = sample_from_dists((dist1, dist2), seeds=seed, size=size)
             # TODO: OPTIMIZE: should we cache the collection?
-            samples = DistributionCollection(dist1, dist2).sample(seeds=seed, size=size)
+            samples = DistributionCollection(dist1, dist2).sample(seeds=seed, size=size, cache_sample=cache_sample)
             if size is not None:
                 return getattr(samples[:,0], math)(samples[:,1])
             else:
@@ -3173,14 +3345,10 @@ class Composite(BaseUnivariateDistribution):
             #     unit = _units.rad
             # else:
             #     unit = None
-            return getattr(_np, math)(dist1.sample(size=size, seed=seed, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
+            return getattr(_np, math)(dist1.sample(size=size, seed=seed, cache_sample=cache_sample, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
 
 
-
-            return self._return_with_units(self.wrap(self._sample_from_children(*self.sample_args, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
-
-
-    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}):
+    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}, cache_sample=True):
         """
         Sample from the distribution.
 
@@ -3201,6 +3369,8 @@ class Composite(BaseUnivariateDistribution):
             according to <<class>.unit> not `unit`.
         * `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
             pass to underlying distributions.
+        * `cache_sample` (bool, optional, default=True): whether to override the
+            existing <<class>.cached_sample>.
 
         Returns
         ---------
@@ -3218,13 +3388,21 @@ class Composite(BaseUnivariateDistribution):
             #     q = _np.random.random()
             #     if q <= chance:
             #         return sample_value
-            return super(Composite, self).sample(size=size, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at, seed=seed)
+            return super(Composite, self).sample(size=size, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at, seed=seed, cache_sample=cache_sample)
         else:
             # NOTE: even though in these cases we sample from the underlying children
             # (and therefore can account for covariances from multivariate children),
             # calls to pdf/cdf/ppf will still need to merge and interpolate
             # and will ignore these covariances.
-            return self._return_with_units(self.wrap(self._sample_from_children(self.math, self.dist1, self.dist2, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+            sample =  self._sample_from_children(self.math, self.dist1, self.dist2, size=size, seed=seed, cache_sample=cache_sample)
+
+            if cache_sample:
+                self._cached_sample = sample
+
+            return self._return_with_units(self.wrap(sample, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
+
+            # return self._return_with_units(self.wrap(self._sample_from_children(self.math, self.dist1, self.dist2, size=size, seed=seed), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
 
     def to_gaussian(self, N=1000, bins=10, range=None):
@@ -3804,7 +3982,7 @@ class MVGaussian(BaseMultivariateDistribution):
         * an <MVHistogram> object
         """
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
-        return MVHistogram.from_data(self.sample(size=int(N)),
+        return MVHistogram.from_data(self.sample(size=int(N), cache_sample=False),
                                      bins=bins, range=range,
                                      units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
 
@@ -4085,7 +4263,7 @@ class MVHistogram(BaseMultivariateDistribution):
         # means could also be self.ppf(0.5)
 
         # TODO: pass wrap_at=False once supported
-        samples = self.sample(size=int(N))
+        samples = self.sample(size=int(N), cache_sample=False)
         # means = [_np.mean(samples[:,d] for d in range(self.dimensions))]
         means = _np.mean(samples, axis=0)
         covariances = _np.cov(samples.T)
