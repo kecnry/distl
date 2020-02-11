@@ -2482,7 +2482,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
 
 
-    def sample(self, size=None, dimension=None, cache_sample=True):
+    def sample(self, size=None, dimension=None, seed=None, cache_sample=True):
         """
         Sample from the distribution.
 
@@ -2493,6 +2493,8 @@ class BaseMultivariateDistribution(BaseDistribution):
         * `dimension`: (int or list of ints, optional, default=None): dimension(s)
             of the multivariate distribution to sample.  If not provided or
             None, will return all dimensions.
+        * `seed` (int, optional): seed to pass to np.random.seed
+            prior to sampling.
         * `cache_sample` (bool, optional, default=True): whether to override the
             existing <<class>.cached_sample>.
 
@@ -2503,6 +2505,12 @@ class BaseMultivariateDistribution(BaseDistribution):
         """
 
         # TODO: add support for per-dimension unit, wrap_at, as_quantity (and pass in to_mvhistogram)
+        # TODO: add support for seed
+        if isinstance(seed, dict):
+            seed = seed.get(self.hash, None)
+
+        if seed is not None:
+            _np.random.seed(seed)
 
         sample = self.dist_constructor_object.rvs(size=size)
 
@@ -2737,14 +2745,14 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
 
     ### SAMPLING & PLOTTING
 
-    def sample(self, size=None):
+    def sample(self, size=None, seed=None, cache_sample=True):
         """
         Sample the underlying <<class>.multivariate> distribution in the dimension
         defined in <<class>.dimension>.
         """
 
         # TODO: support unit, wrap_at, as_quantity
-        return self.multivariate.sample(size=size, dimension=self.dimension, cache_sample=False)
+        return self.multivariate.sample(size=size, seed=seed, dimension=self.dimension, cache_sample=cache_sample)
 
     def plot_sample(self, *args, **kwargs):
         return self.multivariate.plot_sample(*args, dimension=self.dimension, **kwargs)
@@ -2810,6 +2818,10 @@ class DistributionCollection(object):
         self._dists = [is_distribution_univariate_or_slice(distribution)[1] for distribution in distributions]
 
     @property
+    def labels(self):
+        return [d.label for d in self.distributions]
+
+    @property
     def distributions_unpacked(self):
         # first well expand any Composite distributions to access the underlying
         # distributions
@@ -2856,11 +2868,11 @@ class DistributionCollection(object):
         values, dists = self._get_cached_values_dists(values, unpacked)
         # npmethod: one of 'product', 'sum', etc
         # method: one of 'pdf', 'cdf', 'logpdf', 'logcdf', etc
-        return getattr(_np, npmethod)([getattr(dist, method)(value) for dist, method in zip(dists, values)])
+        return getattr(_np, npmethod)([getattr(dist, method)(value) for dist, value in zip(dists, values)])
 
     def _get_cached_values_dists(self, values, unpacked):
         if values is None:
-            values = self.cached_samples_unpacked if unpacked else self.cached_samples
+            values = self.cached_sample_unpacked if unpacked else self.cached_sample
             if values is None:
                 raise ValueError("no cached values available.  Must past values or call .sample()")
 
@@ -2943,7 +2955,7 @@ class DistributionCollection(object):
         if 'seed' in kwargs.keys():
             raise ValueError("seeds are automatically determined: cannot pass seed")
 
-        cache_values = kwargs.pop('cache_values', True)
+        cache_sample = kwargs.pop('cache_sample', True)
 
         seeds = kwargs.pop('seeds', {})
         if seeds is None:
@@ -2956,7 +2968,7 @@ class DistributionCollection(object):
         # print("*** seeds: {}, sample_kwargs: {}".format(seeds, sample_kwargs))
         samples = _np.asarray([dist.sample(*args, seed=seeds, **sample_kwargs) for dist in self.distributions]).T
 
-        if cache_values:
+        if cache_sample:
             self._cached_sample = samples
 
         # TODO: units, quantity, wrap_at
@@ -2991,6 +3003,19 @@ class DistributionCollection(object):
         sample_args = [self.sample(cache_sample=False) for i in range(N)]
         models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
         return models
+
+    def plot_sample(self, **kwargs):
+        # then we need to do a corner plot
+        if not _has_corner:
+            raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
+
+
+        return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=self.labels, **kwargs)
+
+    def plot(self, **kwargs):
+        """
+        """
+        return self.plot_sample(**kwargs)
 
     def plot_func(self, func, x, N=1000, func_kwargs={}, show=False):
         """
@@ -4232,8 +4257,18 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         return MVHistogramSlice(self, dimension)
 
-    def sample(self, size=None, dimension=None):
+    def sample(self, size=None, dimension=None, seed=None, cache_sample=True):
         """
+
+        Arguments
+        ----------
+        * `size`
+        * `dimension`
+        * `seed` (int, optional): seed to pass to np.random.seed
+            prior to sampling.
+        * `cache_sample` (bool, optional, default=True): whether to override the
+            existing <<class>.cached_sample>.
+
         """
         # if dimension is not None:
         #     dimension = self._get_dimension_index(dimension)
@@ -4243,8 +4278,20 @@ class MVHistogram(BaseMultivariateDistribution):
         #     bins = self.bins
         #     density = self.density
 
+        if isinstance(seed, dict):
+            seed = seed.get(self.hash, None)
+
+        if seed is not None:
+            _np.random.seed(seed)
+
         q = _np.random.rand(size if size is not None else 1)
-        return self._ppf(q, dimension=dimension)
+        sample = self._ppf(q, dimension=dimension)
+
+        if cache_sample:
+            self._cache_sample = sample
+
+        # TODO: units, as_quantity, wrapping
+        return sample
 
     def plot(self, *args, **kwargs):
         """
