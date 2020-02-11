@@ -102,7 +102,7 @@ out = dc.plot(show=True)
 
 Additionally, we can access [pdf](../api/DistributionCollection.pdf.md), [logpdf](../api/DistributionCollection.logpdf.md), [cdf](../api/DistributionCollection.cdf.md), and [logcdf](../api/DistributionCollection.logcdf.md). These all take a single argument which must be a list/tuple/array with the same length as the number of distributions.
 
-In the case of univariate distributions, pdf and cdf will be simply the product of the values from the children distributions, and logpdf and logcdf the products.  However, this is where subtle complications come into place with [Composite](../api/Composite.md) and Multivariate distributions, which we'll see in the next few sections.
+In the case of univariate distributions, pdf and cdf will be simply the product of the values from the children distributions, and logpdf and logcdf the sums.  However, this is where subtle complications come into place with [Composite](../api/Composite.md) and Multivariate distributions, which we'll see in the next few sections.
 
 
 ```python
@@ -146,7 +146,9 @@ mvg = distl.mvgaussian([5,10, 12],
 
 Now let's imagine a scenario where we want to draw from the following sub-distributions: 'gaussian', 'uniform', 'mvg_a', and 'mvg_c' (but let's say we don't want 'mvg_b').  Here we want to *maintain* the covariances between 'mvg_a' and 'mvg_c' while *independently* sampling from 'gaussian' and 'uniform'.
 
-To learn about slicing multivariate distributions, see [multivariate slicing](./multivariate_slice.md).
+Yes, in theory you could call sample on `g`, `u`, `mvg` and just ignore the second index in the returned arrays from `mvg.sample`... but a [DistributionCollection](../api/DistributionCollection.md) starts to provide some convenience in this case for both plotting and accessing the probabilities of a given drawn sample.  This becomes especially useful when coupled with [sample caching](./sample_cache.md).
+
+To learn more about slicing multivariate distributions, see [multivariate slicing](./multivariate_slice.md), but in simple terms it allows you to select a single dimension from a multivariate distribution, acting like a univariate distribution but still retaining the underlying covariances of the multivariate distribution.
 
 
 ```python
@@ -178,11 +180,6 @@ As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a t
 
 It is **very** important to note here that this call to pdf does **NOT** account for the covariance between 'mvg_a' and 'mvg_c' (as it would also be necessary to know the assumed value of mvg_b or to collapse along that dimension).
 
-**TODO**: need to support and explain three cases
-* treat each as univariates for pdf
-* collapse the unused dimensions out and calculate multivariate pdf
-* provide unsampled value and calculate multivariate pdf
-
 
 ```python
 dc.labels
@@ -207,9 +204,14 @@ dc.pdf([10, 5, 5, 11])
 
 
 
+**TODO**: need to support and explain three cases
+* treat each as univariates for pdf (DONE)
+* collapse the unused dimensions out and calculate multivariate pdf (NEED TO IMPLEMENT - can probably detect based on the length passed to `pdf` but could also have a different method or flag to be explicit).  At the least, we need to think about the default behavior when caching the samples
+* provide unsampled value and calculate multivariate pdf (or maybe three is too much and we should drop this one)
+
 # using Composite distributions
 
-Now let's consider a more complex example: let's sample from 'gaussian * mvg_a' and 'mvg_c'.  Here we want to covariance between 'mvg_a' and 'mvg_c' respected, even though there is a math operation on the result.
+Now let's consider a more complex example: let's sample from 'gaussian * mvg_a' and 'mvg_c'.  Here we want the covariance between 'mvg_a' and 'mvg_c' respected, even though there is a math operation on the result of 'mvg_a'.
 
 
 ```python
