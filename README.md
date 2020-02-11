@@ -1,6 +1,6 @@
 # distl
 
-**Simple Distributions: math operations, serializing, covariances**
+**simplified and condensed distributions**
 
 [![badge](https://img.shields.io/badge/github-kecnry%2Fdistl-blue.svg)](https://github.com/kecnry/distl)
 [![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/distl/)
@@ -12,6 +12,14 @@
 
 Read the [latest documentation on readthedocs](https://distl.readthedocs.io) or [browse the current documentation](./docs/index.md).
 
+**distl** provides a python object-interface on top of several distribution (random variable) functions in [scipy.stats](https://docs.scipy.org/doc/scipy/reference/stats.html) and allows for:
+
+  - serialization of distributions (so they can be saved to disk or pickled and sent to processors within MPI)
+  - support for units and wrapping
+  - conversion between different types of distributions
+  - math between distributions, handling covariances from multivariate distributions wherever possible
+  - plotting convenience functions
+
 ## Getting Started
 
 ### Dependencies
@@ -19,14 +27,15 @@ Read the [latest documentation on readthedocs](https://distl.readthedocs.io) or 
 **distl** requires the following dependencies:
 
   - python 2.7+ or 3.6+
+  - scipy 1.0+
   - numpy 1.10+
 
 
 and the following optional dependencies:
 
   - matplotlib 2.2+ (required for plotting distributions)
+  - [corner](https://corner.readthedocs.io) (required for plotting multivariate distributions and distribution collections)
   - astropy 1.0+ (required for units support)
-  - dill (required for saving/loading [Function Distributions](./api/Function.md))
 
 
 You can see the [Travis testing matrix](https://travis-ci.org/kecnry/distl) for

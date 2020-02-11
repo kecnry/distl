@@ -34,7 +34,7 @@
 and the following optional dependencies:
 
   - matplotlib 2.2+ (required for plotting distributions)
-  - [corner](https://corner.readthedocs.io) (required for plotting multivariate distributions)
+  - [corner](https://corner.readthedocs.io) (required for plotting multivariate distributions and distribution collections)
   - astropy 1.0+ (required for units support)
 
 
