@@ -16,13 +16,13 @@ g.sample()
 
 
 
-    0.07401217191565479
+    2.954209607232361
 
 
 
 
 ```python
-g.sample_ppf(0.5)
+g.ppf(0.5)
 ```
 
 
@@ -34,7 +34,7 @@ g.sample_ppf(0.5)
 
 
 ```python
-g.mean
+g.mean()
 ```
 
 
@@ -46,7 +46,7 @@ g.mean
 
 
 ```python
-g.sample_ppf([0.25, 0.5])
+g.ppf([0.25, 0.5])
 ```
 
 
@@ -69,49 +69,58 @@ h.sample()
 
 
 
-    4.424695149285333
+    9.089030111111642
 
 
 
 
 ```python
-h.sample_ppf(0.5)
+h.ppf(0.5)
 ```
 
 
 
 
-    4.601943803662765
+    4.1367621032365145
 
 
 
 
 ```python
-h.mean  # NOTE: under-the-hood this now calls sample_ppf(0.5)
+h.mean()
+```
+
+    /home/kyle/.local/lib/python3.7/site-packages/scipy/stats/_distn_infrastructure.py:1675: IntegrationWarning: The maximum number of subdivisions (50) has been achieved.
+      If increasing the limit yields no improvement it is advised to analyze 
+      the integrand in order to determine the difficulties.  If the position of a 
+      local difficulty can be determined (singularity, discontinuity) one will 
+      probably gain from splitting up the interval and calling the integrator 
+      on the subranges.  Perhaps a special-purpose integrator should be used.
+      return integrate.quad(self._mom_integ1, 0, 1, args=(m,)+args)[0]
+
+
+
+
+
+    4.152677471447151
+
+
+
+
+```python
+h.ppf([0.25, 0.5, 0.75])
 ```
 
 
 
 
-    4.601943803662765
+    array([2.75884038, 4.1367621 , 5.55750496])
 
 
 
 
 ```python
-h.sample_ppf([0.25, 0.5, 0.75])
-```
-
-
-
-
-    array([3.01692611, 4.6019438 , 6.1869615 ])
-
-
-
-
-```python
-distl.uniform(0,10).sample_ppf(0.5)
+distl.uniform(0,10).ppf(0.5)
 ```
 
 
@@ -123,7 +132,7 @@ distl.uniform(0,10).sample_ppf(0.5)
 
 
 ```python
-distl.delta(0.2).sample_ppf(0.5)
+distl.delta(0.2).ppf(0.5)
 ```
 
 
@@ -131,47 +140,6 @@ distl.delta(0.2).sample_ppf(0.5)
 
     0.2
 
-
-
-
-```python
-h.logp(4.6)
-```
-
-
-    ---------------------------------------------------------------------------
-
-    TypeError                                 Traceback (most recent call last)
-
-    <ipython-input-16-45dabcd11cf0> in <module>()
-    ----> 1 h.logp(4.6)
-    
-
-    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.pyc in logp(self, x, unit)
-       1067         * array: array of density/y values.
-       1068         """
-    -> 1069         densities = self.distribution(x=x, unit=unit)
-       1070         return _np.log(densities)
-       1071 
-
-
-    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.pyc in distribution(self, x, unit)
-       1046 
-       1047         # print "*** x passed to dist_func", x.min(), x.max()
-    -> 1048         return self.dist_func(x, *self.dist_args)
-       1049 
-       1050     def logp(self, x, unit=None):
-
-
-    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.pyc in histogram(x, bins, density)
-        367     out = _np.zeros_like(x)
-        368     filter_in_range = (x >= bins.min()) & (x < bins.max())
-    --> 369     out[filter_in_range] = density[_np.digitize(x[filter_in_range], bins)-1]
-        370     return out
-        371 
-
-
-    TypeError: 'float' object has no attribute '__getitem__'
 
 
 

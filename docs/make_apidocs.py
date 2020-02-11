@@ -117,6 +117,7 @@ if __name__ == '__main__':
     fms = api_docs(distl._distl.BaseDistribution, skip=skip_methods)
     fms = api_docs(distl._distl.BaseUnivariateDistribution, skip=skip_methods)
     fms = api_docs(distl._distl.BaseMultivariateDistribution, skip=skip_methods)
+    fms = api_docs(distl._distl.BaseMultivariateSliceDistribution, skip=skip_methods)
 
     fms = api_docs(distl._distl.Composite, skip=skip_methods)
     fms = api_docs(distl._distl.DistributionCollection, skip=skip_methods)
@@ -128,4 +129,6 @@ if __name__ == '__main__':
     fms = api_docs(distl._distl.Uniform, skip=skip_methods)
 
     fms = api_docs(distl._distl.MVGaussian, skip=skip_methods)
+    fms = api_docs(distl._distl.MVGaussianSlice, skip=skip_methods)
     fms = api_docs(distl._distl.MVHistogram, skip=skip_methods)
+    fms = api_docs(distl._distl.MVHistogramSlice, skip=skip_methods)

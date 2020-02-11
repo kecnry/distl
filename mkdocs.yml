@@ -13,20 +13,25 @@ nav:
     - Examples:
         - sampling: examples/sampling.md
         - random seed: examples/random_seed.md
-        - sampling from ppf: examples/ppf.md
         - plotting: examples/plotting.md
         - math: examples/math.md
+        - and/or logic: examples/and_or.md
         - units: examples/units.md
         - wrapping: examples/wrapping.md
         - multivariate: examples/multivariate.md
+        - multivariate slices: examples/multivariate_slice.md
+        - distribution collections: examples/collections.md
+        - sampling cache: examples/sample_cache.md
         # - fitting with EMCEE: examples/fitting_emcee.md
     - API:
         - distl: api.md
         - Delta: api/Delta.md
         - Gaussian: api/Gaussian.md
         - Uniform: api/Uniform.md
-        - Composite: api/Composite.md
-        - Function: api/Function.md
         - Histogram: api/Histogram.md
+        - Composite: api/Composite.md
         - Multivariate Gaussian: api/MVGaussian.md
+        - Multivariate Gaussian Slice: api/MVGaussianSlice.md
         - Multivariate Histogram: api/MVHistogram.md
+        - Multivariate Histogram Slice: api/MVHistogramSlice.md
+        - DistributionCollection: api/DistributionCollection.md

@@ -3,7 +3,7 @@
 
 ```py
 
-def sample(self, size=None, dimension=None)
+def sample(self, size=None, dimension=None, cache_sample=True)
 
 ```
 
@@ -15,8 +15,11 @@ Arguments
 -----------
 * `size` (int or tuple or None, optional, default=None): size/shape of the
     resulting array.
-* `dimension`: (int, optional): dimension of the multivariate distribution
-    to sample.  If not provided or None, will default to [MVGaussian.dimension](MVGaussian.dimension.md).
+* `dimension`: (int or list of ints, optional, default=None): dimension(s)
+    of the multivariate distribution to sample.  If not provided or
+    None, will return all dimensions.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [MVGaussian.cached_sample](MVGaussian.cached_sample.md).
 
 Returns
 ---------

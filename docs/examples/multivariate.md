@@ -8,35 +8,38 @@ First we'll create a [multivariate gaussian](../api/MVGaussian.md) distribution 
 
 ```python
 mvg = distl.mvgaussian([5,10, 12], 
-                         np.array([[ 1., 1., -1.], [1, -1, 1], [-1., 1.,  1.]]),
-                         label=['a', 'b', 'c'])
+                       np.array([[ 2,  1, -1], 
+                                 [ 1,  2,  1], 
+                                 [-1,  1,  2]]),
+                       allow_singular=True,
+                       labels=['a', 'b', 'c'])
 ```
-
-We can then easily access the means and covariances and see that they exactly match what we set.
 
 
 ```python
-mvg.means
+mvg.sample()
 ```
 
 
 
 
-    [5, 10, 12]
+    array([ 5.28918573, 11.21208674, 12.92290101])
 
 
 
 
 ```python
-mvg.covariances
+mvg.sample(size=5)
 ```
 
 
 
 
-    array([[ 1.,  1., -1.],
-           [ 1., -1.,  1.],
-           [-1.,  1.,  1.]])
+    array([[ 5.69256978, 12.65094467, 13.95837489],
+           [ 5.48324556,  8.00583062,  9.52258506],
+           [ 4.04494092,  7.86700014, 10.82205921],
+           [ 2.41793021,  8.99122719, 13.57329698],
+           [ 2.67232714, 10.60534095, 14.9330138 ]])
 
 
 
@@ -44,75 +47,70 @@ and plotting will now show a corner plot (if [corner](https://corner.readthedocs
 
 
 ```python
-mvg.plot(show=True)
+fig = mvg.plot(show=True)
 ```
 
-    /home/kyle/.local/lib/python2.7/site-packages/distl-0.1.0.dev0-py2.7.egg/distl/distl.py:952: RuntimeWarning: covariance is not positive-semidefinite.
 
-
-
-
-
-![png](multivariate_files/multivariate_7_1.png)
-
-
-
-
-![png](multivariate_files/multivariate_7_2.png)
+![png](multivariate_files/multivariate_6_0.png)
 
 
 we can now convert this multivariate gaussian distribution into a [multivariate histogram](../api/MVHistogram.md) distribution
 
 
 ```python
-mvh = mvg.to_mvhistogram()
+mvh = mvg.to_mvhistogram(bins=15)
 ```
 
 
 ```python
-mvh.plot(show=True)
+fig = mvh.plot(show=True, size=1e6)
+```
+
+
+![png](multivariate_files/multivariate_9_0.png)
+
+
+
+```python
+np.asarray(mvh.density.shape)
 ```
 
 
 
 
-![png](multivariate_files/multivariate_10_0.png)
+    array([15, 15, 15])
 
-
-
-
-![png](multivariate_files/multivariate_10_1.png)
 
 
 Now if we access the means and covariances, we'll see that they are slightly different due to the binning.
 
 
 ```python
-mvh.means
+mvh.calculate_means()
 ```
 
 
 
 
-    [4.925224407767696, 9.917332103497039, 12.012708452098943]
+    array([ 4.97142828,  9.97154187, 11.05755981])
 
 
 
 
 ```python
-mvh.covariances
+mvh.calculate_covariances()
 ```
 
 
 
 
-    array([[ 1.70746864, -0.3386417 , -0.32937709],
-           [-0.3386417 ,  1.82331543, -0.33388958],
-           [-0.32937709, -0.33388958,  1.73651273]])
+    array([[ 2.12439248,  0.99252033, -0.99530192],
+           [ 0.99252033,  2.12913431,  1.00080292],
+           [-0.99530192,  1.00080292,  2.1276206 ]])
 
 
 
-If we convert back to a multivariate gaussian, these are the means and covariances that will be adopted.
+If we convert back to a multivariate gaussian, these are the means and covariances that will be adopted (technically not exactly as they'll be recomputed from another sampling of the underlying distribution).
 
 
 ```python
@@ -121,43 +119,36 @@ mvhg = mvh.to_mvgaussian()
 
 
 ```python
-mvhg.plot(show=True)
+fig = mvhg.plot(show=True)
 ```
-
-
 
 
 ![png](multivariate_files/multivariate_16_0.png)
 
 
 
-
-![png](multivariate_files/multivariate_16_1.png)
-
-
-
 ```python
-mvhg.means
+mvhg.mean
 ```
 
 
 
 
-    [4.939194686320406, 9.971444324306338, 11.968570240345853]
+    array([ 4.96348824,  9.96372407, 11.06157606])
 
 
 
 
 ```python
-mvhg.covariances
+mvhg.cov
 ```
 
 
 
 
-    array([[ 1.70305748, -0.33501587, -0.31426569],
-           [-0.33501587,  1.83181591, -0.34252835],
-           [-0.31426569, -0.34252835,  1.74348311]])
+    array([[ 2.14968705,  1.0014201 , -1.01230489],
+           [ 1.0014201 ,  2.11435132,  0.98121077],
+           [-1.01230489,  0.98121077,  2.12815416]])
 
 
 

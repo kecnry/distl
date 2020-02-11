@@ -3,7 +3,7 @@
 
 ```py
 
-def plot_gaussian(self, x=None, unit=None, wrap_at=None, label=None, show=False, **kwargs)
+def plot_gaussian(self, x=None, unit=None, wrap_at=None, label=None, xlabel=None, show=False, **kwargs)
 
 ```
 
@@ -40,7 +40,10 @@ Arguments
     according to [Histogram.unit](Histogram.unit.md) not `unit`.
 * `label` (string, optional, default=None): override the label on the
     x-axis.  If not provided or None, will use [Histogram.label](Histogram.label.md).  Will
-    only be used if `show=True`.
+    only be used if `show=True`.  Unit will automatically be appended.
+    Will be ignored if `xlabel` is provided.
+* `xlabel` (string, optional, default=None): override the label on the
+    x-axis without appending the unit.  Will override `label`.
 * `show` (bool, optional, default=True): whether to show the resulting
     matplotlib figure.
 * `**kwargs`: keyword arguments for `sigma`, `N`, `bins`, `range` will

@@ -3,7 +3,7 @@
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={})
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}, cache_sample=True)
 
 ```
 
@@ -28,6 +28,8 @@ Arguments
     according to [Composite.unit](Composite.unit.md) not `unit`.
 * `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
     pass to underlying distributions.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [Composite.cached_sample](Composite.cached_sample.md).
 
 Returns
 ---------

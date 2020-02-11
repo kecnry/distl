@@ -3,7 +3,7 @@
 
 ```py
 
-def plot(self, *args, **kwargs)
+def plot(self, **kwargs)
 
 ```
 

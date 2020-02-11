@@ -3,7 +3,7 @@
 
 ```py
 
-def cdf(self, x, unit=None)
+def cdf(self, x=None, unit=None)
 
 ```
 
@@ -22,7 +22,10 @@ See also:
 
 Arguments
 ----------
-* `x` (float or array): x-values at which to expose the cdf
+* `x` (float or array, optional, default=None): x-values at which to
+    expose the cdf.  If None or not provided, [BaseDistribution.cached_sample](BaseDistribution.cached_sample.md)
+    will be used if available, or raise an error if no cached samples
+    are available.
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [BaseDistribution.unit](BaseDistribution.unit.md).

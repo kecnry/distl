@@ -1,6 +1,6 @@
 # distl
 
-**High-Level Wrappers for Probability Density Functions and Distributions using Numpy**
+**simplified and condensed distributions**
 
 [![badge](https://img.shields.io/badge/github-kecnry%2Fdistl-blue.svg)](https://github.com/kecnry/distl)
 [![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/distl/)
@@ -11,6 +11,13 @@
 
 **IMPORTANT**: **distl** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please check back until an official release is ready.
 
+**distl** provides a python object-interface on top of several distribution (random variable) functions in [scipy.stats](https://docs.scipy.org/doc/scipy/reference/stats.html) and allows for:
+
+  - serialization of distributions (so they can be saved to disk or pickled and sent to processors within MPI)
+  - support for units and wrapping
+  - conversion between different types of distributions
+  - math between distributions, handling covariances from multivariate distributions wherever possible
+  - plotting convenience functions
 
 
 ## Getting Started
@@ -20,6 +27,7 @@
 **distl** requires the following dependencies:
 
   - python 2.7+ or 3.6+
+  - scipy 1.0+
   - numpy 1.10+
 
 
@@ -107,6 +115,7 @@ and limitations.  Below is a summary of all implemented translation methods:
     * [to_uniform](./api/Histogram.to_uniform.md)
 * [MVGaussian](./api/MVGaussian.md)
     * [to_mvhistogram](./api/MVGaussian.to_mvhistogram.md)
+    * [to_gaussian](./api/MVGaussian.to_gaussian.md)
     * [to_histogram](./api/MVGaussian.to_histogram.md)
 * [MVHistogram](./api/MVHistogram.md)
     * [to_mvgaussian](./api/MVHistogram.to_mvgaussian.md)
