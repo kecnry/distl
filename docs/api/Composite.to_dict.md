@@ -1,4 +1,4 @@
-### [Composite](Composite.md).to_dict (method)
+### [Composite](Composite.md).to_dict (function)
 
 
 ```py

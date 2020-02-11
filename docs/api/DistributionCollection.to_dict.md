@@ -1,4 +1,4 @@
-### [DistributionCollection](DistributionCollection.md).to_dict (method)
+### [DistributionCollection](DistributionCollection.md).to_dict (function)
 
 
 ```py

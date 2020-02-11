@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).plot_pdf (method)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).plot_pdf (function)
 
 
 ```py

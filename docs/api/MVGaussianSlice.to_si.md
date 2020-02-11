@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).to_si (method)
+### [MVGaussianSlice](MVGaussianSlice.md).to_si (function)
 
 
 ```py

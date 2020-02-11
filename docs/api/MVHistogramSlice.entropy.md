@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).entropy (method)
+### [MVHistogramSlice](MVHistogramSlice.md).entropy (function)
 
 
 ```py

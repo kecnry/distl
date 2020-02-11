@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).plot_pdf (method)
+### [BaseDistribution](BaseDistribution.md).plot_pdf (function)
 
 
 ```py

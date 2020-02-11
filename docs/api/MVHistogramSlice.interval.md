@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).interval (method)
+### [MVHistogramSlice](MVHistogramSlice.md).interval (function)
 
 
 ```py

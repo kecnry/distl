@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).to_dict (method)
+### [Gaussian](Gaussian.md).to_dict (function)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).to_solar (method)
+### [MVHistogramSlice](MVHistogramSlice.md).to_solar (function)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).to_univariate (method)
+### [MVHistogramSlice](MVHistogramSlice.md).to_univariate (function)
 
 
 ```py

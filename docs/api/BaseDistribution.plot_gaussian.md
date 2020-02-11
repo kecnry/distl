@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).plot_gaussian (method)
+### [BaseDistribution](BaseDistribution.md).plot_gaussian (function)
 
 
 ```py

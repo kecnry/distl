@@ -1,4 +1,4 @@
-### [Delta](Delta.md).plot_sample (method)
+### [Delta](Delta.md).plot_sample (function)
 
 
 ```py

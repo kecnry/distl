@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).wrap (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).wrap (function)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [DistributionCollection](DistributionCollection.md).plot_func (method)
+### [DistributionCollection](DistributionCollection.md).plot_func (function)
 
 
 ```py

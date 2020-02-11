@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_histogram (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_histogram (function)
 
 
 ```py

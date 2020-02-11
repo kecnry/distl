@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).entropy (method)
+### [Uniform](Uniform.md).entropy (function)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Composite](Composite.md).plot_gaussian (method)
+### [Composite](Composite.md).plot_gaussian (function)
 
 
 ```py

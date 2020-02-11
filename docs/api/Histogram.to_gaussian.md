@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).to_gaussian (method)
+### [Histogram](Histogram.md).to_gaussian (function)
 
 
 ```py

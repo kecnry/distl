@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).interval (method)
+### [Gaussian](Gaussian.md).interval (function)
 
 
 ```py

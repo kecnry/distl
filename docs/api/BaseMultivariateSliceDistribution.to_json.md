@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_json (method)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_json (function)
 
 
 ```py

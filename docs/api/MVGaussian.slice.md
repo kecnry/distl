@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).slice (method)
+### [MVGaussian](MVGaussian.md).slice (function)
 
 
 ```py
@@ -15,6 +15,7 @@ keeps the full multivariate distribution while acting somewhat
 like a univariate distribution.
 
 See also:
+
 * [MVGaussian.to_histogram](MVGaussian.to_histogram.md)
 * [MVGaussian.to_gaussian](MVGaussian.to_gaussian.md)
 * [MVGaussianSlice.dimension](MVGaussianSlice.dimension.md)

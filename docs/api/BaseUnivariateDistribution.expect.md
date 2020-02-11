@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).expect (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).expect (function)
 
 
 ```py

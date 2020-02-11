@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).calculate_means (method)
+### [MVHistogram](MVHistogram.md).calculate_means (function)
 
 
 ```py

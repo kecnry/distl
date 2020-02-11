@@ -1,9 +1,9 @@
-### [MVGaussian](MVGaussian.md).sample (method)
+### [MVGaussian](MVGaussian.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None, dimension=None)
+def sample(self, size=None, dimension=None, seed=None, cache_sample=True)
 
 ```
 
@@ -18,6 +18,10 @@ Arguments
 * `dimension`: (int or list of ints, optional, default=None): dimension(s)
     of the multivariate distribution to sample.  If not provided or
     None, will return all dimensions.
+* `seed` (int, optional): seed to pass to np.random.seed
+    prior to sampling.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [MVGaussian.cached_sample](MVGaussian.cached_sample.md).
 
 Returns
 ---------

@@ -1,9 +1,9 @@
-### [MVGaussianSlice](MVGaussianSlice.md).sample (method)
+### [MVGaussianSlice](MVGaussianSlice.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None)
+def sample(self, size=None, seed=None, cache_sample=True)
 
 ```
 

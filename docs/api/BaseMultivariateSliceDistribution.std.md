@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).std (method)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).std (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [BaseMultivariateSliceDistribution.median](BaseMultivariateSliceDistribution.median.md)
 * [BaseMultivariateSliceDistribution.mean](BaseMultivariateSliceDistribution.mean.md)
 * [BaseMultivariateSliceDistribution.var](BaseMultivariateSliceDistribution.var.md)

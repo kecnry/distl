@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_dict (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_dict (function)
 
 
 ```py

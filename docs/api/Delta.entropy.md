@@ -1,4 +1,4 @@
-### [Delta](Delta.md).entropy (method)
+### [Delta](Delta.md).entropy (function)
 
 
 ```py

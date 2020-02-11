@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).to_univariate (method)
+### [MVGaussianSlice](MVGaussianSlice.md).to_univariate (function)
 
 
 ```py

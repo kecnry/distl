@@ -9,7 +9,7 @@ def from_json(j)
 
 
 
-Load an distl object from a json-formatted string.
+Load a distl object from a json-formatted string.
 
 See also:
 

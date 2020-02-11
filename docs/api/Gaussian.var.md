@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).var (method)
+### [Gaussian](Gaussian.md).var (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Gaussian.median](Gaussian.median.md)
 * [Gaussian.mean](Gaussian.mean.md)
 * [Gaussian.std](Gaussian.std.md)

@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).plot_cdf (method)
+### [Histogram](Histogram.md).plot_cdf (function)
 
 
 ```py

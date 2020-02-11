@@ -1,4 +1,4 @@
-### [DistributionCollection](DistributionCollection.md).sample_func (method)
+### [DistributionCollection](DistributionCollection.md).sample_func (function)
 
 
 ```py

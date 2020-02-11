@@ -1,9 +1,9 @@
-### [Delta](Delta.md).sample (method)
+### [Delta](Delta.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None, cache_sample=True)
 
 ```
 
@@ -12,6 +12,7 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=Non
 Sample from the distribution.
 
 See also:
+
 * [Delta.pdf](Delta.pdf.md)
 * [Delta.cdf](Delta.cdf.md)
 * [Delta.ppf](Delta.ppf.md)
@@ -35,6 +36,8 @@ Arguments
     according to [Delta.unit](Delta.unit.md) not `unit`.
 * `seed` (int, optional): seed to pass to np.random.seed
     prior to sampling.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [Delta.cached_sample](Delta.cached_sample.md).
 
 Returns
 ---------

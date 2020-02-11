@@ -1,4 +1,4 @@
-### [Delta](Delta.md).ppf (method)
+### [Delta](Delta.md).ppf (function)
 
 
 ```py
@@ -19,6 +19,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Delta.pdf](Delta.pdf.md)
 * [Delta.cdf](Delta.cdf.md)
 * [Delta.sample](Delta.sample.md)

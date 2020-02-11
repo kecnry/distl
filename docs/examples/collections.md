@@ -204,7 +204,8 @@ dc.pdf([10, 5, 5, 11])
 
 
 
-**TODO**: need to support and explain three cases
+**TODO**: need to support and explain three cases:
+
 * treat each as univariates for pdf (DONE)
 * collapse the unused dimensions out and calculate multivariate pdf (NEED TO IMPLEMENT - can probably detect based on the length passed to `pdf` but could also have a different method or flag to be explicit).  At the least, we need to think about the default behavior when caching the samples
 * provide unsampled value and calculate multivariate pdf (or maybe three is too much and we should drop this one)

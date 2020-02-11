@@ -1,9 +1,9 @@
-### [Delta](Delta.md).logpdf (method)
+### [Delta](Delta.md).logpdf (function)
 
 
 ```py
 
-def logpdf(self, x, unit=None)
+def logpdf(self, x=None, unit=None)
 
 ```
 
@@ -17,12 +17,16 @@ This method is just a wrapper around the scipy.stats method on
 [Delta.dist_constructor_object](Delta.dist_constructor_object.md) after doing any requested unit-conversions.
 
 See also:
+
 * [Delta.pdf](Delta.pdf.md)
 * [Delta.cdf](Delta.cdf.md)
 
 Arguments
 ----------
-* `x` (float or array): x-values at which to expose the logpdf
+* `x` (float or array, optional, default=None): x-values at which to
+    expose the logpdf.  If None or not provided, [Delta.cached_sample](Delta.cached_sample.md)
+    will be used if available, or raise an error if no cached samples
+    are available.
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [Delta.unit](Delta.unit.md).

@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).to_gaussian (method)
+### [MVHistogram](MVHistogram.md).to_gaussian (function)
 
 
 ```py

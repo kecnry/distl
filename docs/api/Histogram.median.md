@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).median (method)
+### [Histogram](Histogram.md).median (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Histogram.mean](Histogram.mean.md)
 * [Histogram.var](Histogram.var.md)
 * [Histogram.std](Histogram.std.md)

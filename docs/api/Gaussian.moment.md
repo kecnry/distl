@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).moment (method)
+### [Gaussian](Gaussian.md).moment (function)
 
 
 ```py

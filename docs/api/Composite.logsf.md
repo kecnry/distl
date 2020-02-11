@@ -1,9 +1,9 @@
-### [Composite](Composite.md).logsf (method)
+### [Composite](Composite.md).logsf (function)
 
 
 ```py
 
-def logsf(self, x, unit=None)
+def logsf(self, x=None, unit=None)
 
 ```
 
@@ -24,7 +24,10 @@ See also:
 
 Arguments
 ----------
-* `x` (float or array): x-values at which to expose the logsf
+* `x` (float or array, optional, default=None): x-values at which to
+    expose the logsf.  If None or not provided, [Composite.cached_sample](Composite.cached_sample.md)
+    will be used if available, or raise an error if no cached samples
+    are available.
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [Composite.unit](Composite.unit.md).

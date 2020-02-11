@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).expect (method)
+### [Uniform](Uniform.md).expect (function)
 
 
 ```py

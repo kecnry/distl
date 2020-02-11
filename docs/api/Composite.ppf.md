@@ -1,4 +1,4 @@
-### [Composite](Composite.md).ppf (method)
+### [Composite](Composite.md).ppf (function)
 
 
 ```py
@@ -19,6 +19,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Composite.pdf](Composite.pdf.md)
 * [Composite.cdf](Composite.cdf.md)
 * [Composite.sample](Composite.sample.md)

@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_solar (method)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_solar (function)
 
 
 ```py

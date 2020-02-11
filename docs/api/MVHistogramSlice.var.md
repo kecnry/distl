@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).var (method)
+### [MVHistogramSlice](MVHistogramSlice.md).var (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [MVHistogramSlice.median](MVHistogramSlice.median.md)
 * [MVHistogramSlice.mean](MVHistogramSlice.mean.md)
 * [MVHistogramSlice.std](MVHistogramSlice.std.md)

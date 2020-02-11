@@ -1,9 +1,9 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).sf (method)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).sf (function)
 
 
 ```py
 
-def sf(self, x, unit=None)
+def sf(self, x=None, unit=None)
 
 ```
 
@@ -25,7 +25,10 @@ See also:
 
 Arguments
 ----------
-* `x` (float or array): x-values at which to expose the sf
+* `x` (float or array, optional, default=None): x-values at which to
+    expose the sf.  If None or not provided, [BaseMultivariateSliceDistribution.cached_sample](BaseMultivariateSliceDistribution.cached_sample.md)
+    will be used if available, or raise an error if no cached samples
+    are available.
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [BaseMultivariateSliceDistribution.unit](BaseMultivariateSliceDistribution.unit.md).

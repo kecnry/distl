@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).__init__ (method)
+### [BaseDistribution](BaseDistribution.md).__init__ (function)
 
 
 ```py

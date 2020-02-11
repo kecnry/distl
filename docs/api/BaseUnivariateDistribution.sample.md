@@ -1,9 +1,9 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).sample (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None, cache_sample=True)
 
 ```
 
@@ -12,6 +12,7 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=Non
 Sample from the distribution.
 
 See also:
+
 * [BaseUnivariateDistribution.pdf](BaseUnivariateDistribution.pdf.md)
 * [BaseUnivariateDistribution.cdf](BaseUnivariateDistribution.cdf.md)
 * [BaseUnivariateDistribution.ppf](BaseUnivariateDistribution.ppf.md)
@@ -35,6 +36,8 @@ Arguments
     according to [BaseUnivariateDistribution.unit](BaseUnivariateDistribution.unit.md) not `unit`.
 * `seed` (int, optional): seed to pass to np.random.seed
     prior to sampling.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [BaseUnivariateDistribution.cached_sample](BaseUnivariateDistribution.cached_sample.md).
 
 Returns
 ---------

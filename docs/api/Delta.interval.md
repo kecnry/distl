@@ -1,4 +1,4 @@
-### [Delta](Delta.md).interval (method)
+### [Delta](Delta.md).interval (function)
 
 
 ```py

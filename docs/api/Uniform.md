@@ -11,7 +11,9 @@ Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
 
 
 * [__init__](Uniform.__init__.md)
+* [cached_sample](Uniform.cached_sample.md)
 * [cdf](Uniform.cdf.md)
+* [clear_cached_sample](Uniform.clear_cached_sample.md)
 * [copy](Uniform.copy.md)
 * [dist_constructor_argnames](Uniform.dist_constructor_argnames.md)
 * [dist_constructor_args](Uniform.dist_constructor_args.md)
@@ -19,6 +21,7 @@ Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
 * [dist_constructor_object](Uniform.dist_constructor_object.md)
 * [entropy](Uniform.entropy.md)
 * [expect](Uniform.expect.md)
+* [get_from_cache](Uniform.get_from_cache.md)
 * [get_wrap_at](Uniform.get_wrap_at.md)
 * [hash](Uniform.hash.md)
 * [interval](Uniform.interval.md)

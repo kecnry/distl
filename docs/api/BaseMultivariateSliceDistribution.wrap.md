@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).wrap (method)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).wrap (function)
 
 
 ```py

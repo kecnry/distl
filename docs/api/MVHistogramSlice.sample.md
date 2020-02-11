@@ -1,9 +1,9 @@
-### [MVHistogramSlice](MVHistogramSlice.md).sample (method)
+### [MVHistogramSlice](MVHistogramSlice.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None)
+def sample(self, size=None, seed=None, cache_sample=True)
 
 ```
 

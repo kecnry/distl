@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).std (method)
+### [Uniform](Uniform.md).std (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Uniform.median](Uniform.median.md)
 * [Uniform.mean](Uniform.mean.md)
 * [Uniform.var](Uniform.var.md)

@@ -1,9 +1,9 @@
-### [DistributionCollection](DistributionCollection.md).logpdf (function)
+### [DistributionCollection](DistributionCollection.md).logcdf (function)
 
 
 ```py
 
-def logpdf(self, values=None, unpacked=False)
+def logcdf(self, values=None, unpacked=False)
 
 ```
 

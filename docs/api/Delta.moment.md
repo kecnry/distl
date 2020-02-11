@@ -1,4 +1,4 @@
-### [Delta](Delta.md).moment (method)
+### [Delta](Delta.md).moment (function)
 
 
 ```py

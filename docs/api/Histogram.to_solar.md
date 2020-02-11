@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).to_solar (method)
+### [Histogram](Histogram.md).to_solar (function)
 
 
 ```py

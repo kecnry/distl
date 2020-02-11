@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to_json (method)
+### [Delta](Delta.md).to_json (function)
 
 
 ```py

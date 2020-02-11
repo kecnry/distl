@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).moment (method)
+### [Uniform](Uniform.md).moment (function)
 
 
 ```py

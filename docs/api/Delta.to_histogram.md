@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to_histogram (method)
+### [Delta](Delta.md).to_histogram (function)
 
 
 ```py

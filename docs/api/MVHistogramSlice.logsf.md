@@ -1,9 +1,9 @@
-### [MVHistogramSlice](MVHistogramSlice.md).logsf (method)
+### [MVHistogramSlice](MVHistogramSlice.md).logsf (function)
 
 
 ```py
 
-def logsf(self, x, unit=None)
+def logsf(self, x=None, unit=None)
 
 ```
 
@@ -24,7 +24,10 @@ See also:
 
 Arguments
 ----------
-* `x` (float or array): x-values at which to expose the logsf
+* `x` (float or array, optional, default=None): x-values at which to
+    expose the logsf.  If None or not provided, [MVHistogramSlice.cached_sample](MVHistogramSlice.cached_sample.md)
+    will be used if available, or raise an error if no cached samples
+    are available.
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [MVHistogramSlice.unit](MVHistogramSlice.unit.md).

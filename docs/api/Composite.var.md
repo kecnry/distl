@@ -1,4 +1,4 @@
-### [Composite](Composite.md).var (method)
+### [Composite](Composite.md).var (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Composite.median](Composite.median.md)
 * [Composite.mean](Composite.mean.md)
 * [Composite.std](Composite.std.md)

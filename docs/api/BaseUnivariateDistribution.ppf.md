@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).ppf (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).ppf (function)
 
 
 ```py
@@ -19,6 +19,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [BaseUnivariateDistribution.pdf](BaseUnivariateDistribution.pdf.md)
 * [BaseUnivariateDistribution.cdf](BaseUnivariateDistribution.cdf.md)
 * [BaseUnivariateDistribution.sample](BaseUnivariateDistribution.sample.md)

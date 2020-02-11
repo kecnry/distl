@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).to_json (method)
+### [Gaussian](Gaussian.md).to_json (function)
 
 
 ```py

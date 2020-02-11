@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).ppf (method)
+### [Histogram](Histogram.md).ppf (function)
 
 
 ```py
@@ -19,6 +19,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Histogram.pdf](Histogram.pdf.md)
 * [Histogram.cdf](Histogram.cdf.md)
 * [Histogram.sample](Histogram.sample.md)

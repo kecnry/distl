@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).var (method)
+### [MVGaussianSlice](MVGaussianSlice.md).var (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [MVGaussianSlice.median](MVGaussianSlice.median.md)
 * [MVGaussianSlice.mean](MVGaussianSlice.mean.md)
 * [MVGaussianSlice.std](MVGaussianSlice.std.md)

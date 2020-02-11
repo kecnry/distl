@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_univariate (method)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_univariate (function)
 
 
 ```py

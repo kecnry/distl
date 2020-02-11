@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).to_json (method)
+### [MVGaussianSlice](MVGaussianSlice.md).to_json (function)
 
 
 ```py

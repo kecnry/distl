@@ -1,4 +1,4 @@
-### [Composite](Composite.md).to_json (method)
+### [Composite](Composite.md).to_json (function)
 
 
 ```py

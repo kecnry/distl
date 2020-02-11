@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).moment (method)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).moment (function)
 
 
 ```py

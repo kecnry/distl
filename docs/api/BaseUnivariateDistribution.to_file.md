@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_file (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_file (function)
 
 
 ```py

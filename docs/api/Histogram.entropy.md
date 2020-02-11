@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).entropy (method)
+### [Histogram](Histogram.md).entropy (function)
 
 
 ```py

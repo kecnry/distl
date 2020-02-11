@@ -66,7 +66,10 @@ and linearly interpolating between the bins, thereby losing all covariances.
 
 
 * [__init__](Composite.__init__.md)
+* [cached_sample](Composite.cached_sample.md)
+* [cached_sample_children](Composite.cached_sample_children.md)
 * [cdf](Composite.cdf.md)
+* [clear_cached_sample](Composite.clear_cached_sample.md)
 * [copy](Composite.copy.md)
 * [dist_constructor_argnames](Composite.dist_constructor_argnames.md)
 * [dist_constructor_args](Composite.dist_constructor_args.md)
@@ -75,6 +78,7 @@ and linearly interpolating between the bins, thereby losing all covariances.
 * [dists](Composite.dists.md)
 * [entropy](Composite.entropy.md)
 * [expect](Composite.expect.md)
+* [get_from_cache](Composite.get_from_cache.md)
 * [get_wrap_at](Composite.get_wrap_at.md)
 * [hash](Composite.hash.md)
 * [interval](Composite.interval.md)

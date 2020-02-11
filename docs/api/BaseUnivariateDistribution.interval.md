@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).interval (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).interval (function)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).median (method)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).median (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [BaseUnivariateDistribution.mean](BaseUnivariateDistribution.mean.md)
 * [BaseUnivariateDistribution.var](BaseUnivariateDistribution.var.md)
 * [BaseUnivariateDistribution.std](BaseUnivariateDistribution.std.md)

@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).copy (method)
+### [MVGaussianSlice](MVGaussianSlice.md).copy (function)
 
 
 ```py

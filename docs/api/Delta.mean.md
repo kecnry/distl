@@ -1,4 +1,4 @@
-### [Delta](Delta.md).mean (method)
+### [Delta](Delta.md).mean (function)
 
 
 ```py
@@ -18,6 +18,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Delta.median](Delta.median.md)
 * [Delta.var](Delta.var.md)
 * [Delta.std](Delta.std.md)

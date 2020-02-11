@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).to_json (method)
+### [BaseDistribution](BaseDistribution.md).to_json (function)
 
 
 ```py

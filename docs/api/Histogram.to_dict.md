@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).to_dict (method)
+### [Histogram](Histogram.md).to_dict (function)
 
 
 ```py

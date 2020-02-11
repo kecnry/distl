@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).get_wrap_at (method)
+### [Uniform](Uniform.md).get_wrap_at (function)
 
 
 ```py

@@ -21,7 +21,9 @@ well as used when calling &lt;[class](class.md).sample&gt;.
 
 
 * [__init__](Histogram.__init__.md)
+* [cached_sample](Histogram.cached_sample.md)
 * [cdf](Histogram.cdf.md)
+* [clear_cached_sample](Histogram.clear_cached_sample.md)
 * [copy](Histogram.copy.md)
 * [dist_constructor_argnames](Histogram.dist_constructor_argnames.md)
 * [dist_constructor_args](Histogram.dist_constructor_args.md)
@@ -30,6 +32,7 @@ well as used when calling &lt;[class](class.md).sample&gt;.
 * [entropy](Histogram.entropy.md)
 * [expect](Histogram.expect.md)
 * [from_data](Histogram.from_data.md)
+* [get_from_cache](Histogram.get_from_cache.md)
 * [get_wrap_at](Histogram.get_wrap_at.md)
 * [hash](Histogram.hash.md)
 * [interval](Histogram.interval.md)

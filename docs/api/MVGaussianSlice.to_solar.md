@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).to_solar (method)
+### [MVGaussianSlice](MVGaussianSlice.md).to_solar (function)
 
 
 ```py

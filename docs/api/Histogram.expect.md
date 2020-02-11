@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).expect (method)
+### [Histogram](Histogram.md).expect (function)
 
 
 ```py

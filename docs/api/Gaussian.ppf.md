@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).ppf (method)
+### [Gaussian](Gaussian.md).ppf (function)
 
 
 ```py
@@ -19,6 +19,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Gaussian.pdf](Gaussian.pdf.md)
 * [Gaussian.cdf](Gaussian.cdf.md)
 * [Gaussian.sample](Gaussian.sample.md)

@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).plot_cdf (method)
+### [Uniform](Uniform.md).plot_cdf (function)
 
 
 ```py

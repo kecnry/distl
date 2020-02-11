@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).moment (method)
+### [MVGaussianSlice](MVGaussianSlice.md).moment (function)
 
 
 ```py

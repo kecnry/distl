@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).ppf (method)
+### [Uniform](Uniform.md).ppf (function)
 
 
 ```py
@@ -19,6 +19,7 @@ This method is just a wrapper around the scipy.stats method on
 quantity objects, and wrapping done on the returned result.
 
 See also:
+
 * [Uniform.pdf](Uniform.pdf.md)
 * [Uniform.cdf](Uniform.cdf.md)
 * [Uniform.sample](Uniform.sample.md)

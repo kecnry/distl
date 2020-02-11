@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).to_uniform (method)
+### [Gaussian](Gaussian.md).to_uniform (function)
 
 
 ```py

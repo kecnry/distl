@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).to_json (method)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).to_json (function)
 
 
 ```py

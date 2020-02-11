@@ -1,4 +1,4 @@
-### [DistributionCollection](DistributionCollection.md).sample (method)
+### [DistributionCollection](DistributionCollection.md).sample (function)
 
 
 ```py
@@ -27,6 +27,9 @@ Arguments
 -------------
 * `*args`: all positional arguments are sent to [BaseDistribution.sample](BaseDistribution.sample.md)
     for each item in `dists`.
+* `cache_sample` (bool, optional, default=True): whether to cache the
+    sampled values for subsequent calls to [DistributionCollection.pdf](DistributionCollection.pdf.md),
+    [DistributionCollection.logpdf](DistributionCollection.logpdf.md), etc.
 * `**kwargs`: all keyword arguments are sent to [BaseDistribution.sample](BaseDistribution.sample.md)
     for each item in `dists`.  Note: `seed` is forbidden and will raise
     a ValueError.

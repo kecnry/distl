@@ -1,4 +1,4 @@
-### [Composite](Composite.md).interval (method)
+### [Composite](Composite.md).interval (function)
 
 
 ```py

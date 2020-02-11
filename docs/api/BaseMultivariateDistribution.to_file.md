@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).to_file (method)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).to_file (function)
 
 
 ```py

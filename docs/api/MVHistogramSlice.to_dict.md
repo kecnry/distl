@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).to_dict (method)
+### [MVHistogramSlice](MVHistogramSlice.md).to_dict (function)
 
 
 ```py

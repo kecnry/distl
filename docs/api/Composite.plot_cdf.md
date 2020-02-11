@@ -1,4 +1,4 @@
-### [Composite](Composite.md).plot_cdf (method)
+### [Composite](Composite.md).plot_cdf (function)
 
 
 ```py
