@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).sample (function)
+### [BaseDistribution](BaseDistribution.md).sample (method)
 
 
 ```py

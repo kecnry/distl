@@ -1,4 +1,4 @@
-### [Composite](Composite.md).to_file (function)
+### [Composite](Composite.md).to_file (method)
 
 
 ```py

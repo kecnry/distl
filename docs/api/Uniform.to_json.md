@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to_json (function)
+### [Uniform](Uniform.md).to_json (method)
 
 
 ```py

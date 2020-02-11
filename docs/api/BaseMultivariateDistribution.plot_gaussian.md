@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).plot_gaussian (function)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).plot_gaussian (method)
 
 
 ```py

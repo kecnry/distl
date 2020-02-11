@@ -1,4 +1,4 @@
-### [Composite](Composite.md).entropy (function)
+### [Composite](Composite.md).entropy (method)
 
 
 ```py

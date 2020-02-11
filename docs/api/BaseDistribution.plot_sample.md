@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).plot_sample (function)
+### [BaseDistribution](BaseDistribution.md).plot_sample (method)
 
 
 ```py

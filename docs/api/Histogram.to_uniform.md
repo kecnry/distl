@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).to_uniform (function)
+### [Histogram](Histogram.md).to_uniform (method)
 
 
 ```py

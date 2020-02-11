@@ -1,10 +1,8 @@
 ## MVGaussianSlice (class)
 
 * [__init__](MVGaussianSlice.__init__.md)
-* [cached_sample](MVGaussianSlice.cached_sample.md)
 * [cdf](MVGaussianSlice.cdf.md)
 * [change_slice_dimension](MVGaussianSlice.change_slice_dimension.md)
-* [clear_cached_sample](MVGaussianSlice.clear_cached_sample.md)
 * [copy](MVGaussianSlice.copy.md)
 * [dimension](MVGaussianSlice.dimension.md)
 * [dist_constructor_argnames](MVGaussianSlice.dist_constructor_argnames.md)
@@ -13,7 +11,6 @@
 * [dist_constructor_object](MVGaussianSlice.dist_constructor_object.md)
 * [entropy](MVGaussianSlice.entropy.md)
 * [expect](MVGaussianSlice.expect.md)
-* [get_from_cache](MVGaussianSlice.get_from_cache.md)
 * [get_wrap_at](MVGaussianSlice.get_wrap_at.md)
 * [hash](MVGaussianSlice.hash.md)
 * [interval](MVGaussianSlice.interval.md)

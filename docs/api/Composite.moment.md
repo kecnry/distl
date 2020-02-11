@@ -1,4 +1,4 @@
-### [Composite](Composite.md).moment (function)
+### [Composite](Composite.md).moment (method)
 
 
 ```py

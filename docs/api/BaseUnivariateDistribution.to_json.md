@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_json (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_json (method)
 
 
 ```py

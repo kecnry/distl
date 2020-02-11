@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).ppf (function)
+### [Gaussian](Gaussian.md).ppf (method)
 
 
 ```py

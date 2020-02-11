@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).plot_cdf (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).plot_cdf (method)
 
 
 ```py

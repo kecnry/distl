@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).plot_cdf (function)
+### [MVHistogram](MVHistogram.md).plot_cdf (method)
 
 
 ```py

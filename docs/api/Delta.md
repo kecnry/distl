@@ -11,9 +11,7 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 
 
 * [__init__](Delta.__init__.md)
-* [cached_sample](Delta.cached_sample.md)
 * [cdf](Delta.cdf.md)
-* [clear_cached_sample](Delta.clear_cached_sample.md)
 * [copy](Delta.copy.md)
 * [dist_constructor_argnames](Delta.dist_constructor_argnames.md)
 * [dist_constructor_args](Delta.dist_constructor_args.md)
@@ -21,7 +19,6 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 * [dist_constructor_object](Delta.dist_constructor_object.md)
 * [entropy](Delta.entropy.md)
 * [expect](Delta.expect.md)
-* [get_from_cache](Delta.get_from_cache.md)
 * [get_wrap_at](Delta.get_wrap_at.md)
 * [hash](Delta.hash.md)
 * [interval](Delta.interval.md)

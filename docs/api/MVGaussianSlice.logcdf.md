@@ -1,9 +1,9 @@
-### [MVGaussianSlice](MVGaussianSlice.md).logcdf (function)
+### [MVGaussianSlice](MVGaussianSlice.md).logcdf (method)
 
 
 ```py
 
-def logcdf(self, x=None, unit=None)
+def logcdf(self, x, unit=None)
 
 ```
 
@@ -22,10 +22,7 @@ See also:
 
 Arguments
 ----------
-* `x` (float or array, optional, default=None): x-values at which to
-    expose the logcdf.  If None or not provided, [MVGaussianSlice.cached_sample](MVGaussianSlice.cached_sample.md)
-    will be used if available, or raise an error if no cached samples
-    are available.
+* `x` (float or array): x-values at which to expose the logcdf
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [MVGaussianSlice.unit](MVGaussianSlice.unit.md).

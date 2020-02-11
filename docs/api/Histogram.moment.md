@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).moment (function)
+### [Histogram](Histogram.md).moment (method)
 
 
 ```py

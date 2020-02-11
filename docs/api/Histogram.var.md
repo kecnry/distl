@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).var (function)
+### [Histogram](Histogram.md).var (method)
 
 
 ```py

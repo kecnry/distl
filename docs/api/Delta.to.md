@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to (function)
+### [Delta](Delta.md).to (method)
 
 
 ```py

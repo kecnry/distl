@@ -1,4 +1,4 @@
-### [Composite](Composite.md).plot_sample (function)
+### [Composite](Composite.md).plot_sample (method)
 
 
 ```py

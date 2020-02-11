@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).change_slice_dimension (function)
+### [MVGaussianSlice](MVGaussianSlice.md).change_slice_dimension (method)
 
 
 ```py

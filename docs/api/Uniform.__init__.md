@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).__init__ (function)
+### [Uniform](Uniform.md).__init__ (method)
 
 
 ```py

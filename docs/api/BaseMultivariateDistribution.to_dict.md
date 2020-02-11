@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).to_dict (function)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).to_dict (method)
 
 
 ```py

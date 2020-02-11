@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to_si (function)
+### [Uniform](Uniform.md).to_si (method)
 
 
 ```py

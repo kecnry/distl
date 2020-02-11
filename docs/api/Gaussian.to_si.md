@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).to_si (function)
+### [Gaussian](Gaussian.md).to_si (method)
 
 
 ```py

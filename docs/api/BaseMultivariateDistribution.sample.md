@@ -1,9 +1,9 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).sample (function)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).sample (method)
 
 
 ```py
 
-def sample(self, size=None, dimension=None, cache_sample=True)
+def sample(self, size=None, dimension=None)
 
 ```
 
@@ -18,8 +18,6 @@ Arguments
 * `dimension`: (int or list of ints, optional, default=None): dimension(s)
     of the multivariate distribution to sample.  If not provided or
     None, will return all dimensions.
-* `cache_sample` (bool, optional, default=True): whether to override the
-    existing [BaseMultivariateDistribution.cached_sample](BaseMultivariateDistribution.cached_sample.md).
 
 Returns
 ---------

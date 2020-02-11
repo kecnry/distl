@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).to_univariate (function)
+### [MVGaussian](MVGaussian.md).to_univariate (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Delta](Delta.md).median (function)
+### [Delta](Delta.md).median (method)
 
 
 ```py

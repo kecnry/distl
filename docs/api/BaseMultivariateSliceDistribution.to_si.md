@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_si (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_si (method)
 
 
 ```py

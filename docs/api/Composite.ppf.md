@@ -1,4 +1,4 @@
-### [Composite](Composite.md).ppf (function)
+### [Composite](Composite.md).ppf (method)
 
 
 ```py

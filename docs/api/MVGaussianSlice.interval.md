@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).interval (function)
+### [MVGaussianSlice](MVGaussianSlice.md).interval (method)
 
 
 ```py

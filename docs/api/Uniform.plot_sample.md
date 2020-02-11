@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).plot_sample (function)
+### [Uniform](Uniform.md).plot_sample (method)
 
 
 ```py

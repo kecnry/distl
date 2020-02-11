@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to_dict (function)
+### [Uniform](Uniform.md).to_dict (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).plot (function)
+### [BaseDistribution](BaseDistribution.md).plot (method)
 
 
 ```py

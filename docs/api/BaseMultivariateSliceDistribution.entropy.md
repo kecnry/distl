@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).entropy (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).entropy (method)
 
 
 ```py

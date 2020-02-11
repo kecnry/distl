@@ -2,10 +2,8 @@
 
 * [__init__](MVHistogramSlice.__init__.md)
 * [bins](MVHistogramSlice.bins.md)
-* [cached_sample](MVHistogramSlice.cached_sample.md)
 * [cdf](MVHistogramSlice.cdf.md)
 * [change_slice_dimension](MVHistogramSlice.change_slice_dimension.md)
-* [clear_cached_sample](MVHistogramSlice.clear_cached_sample.md)
 * [copy](MVHistogramSlice.copy.md)
 * [density](MVHistogramSlice.density.md)
 * [dimension](MVHistogramSlice.dimension.md)
@@ -15,7 +13,6 @@
 * [dist_constructor_object](MVHistogramSlice.dist_constructor_object.md)
 * [entropy](MVHistogramSlice.entropy.md)
 * [expect](MVHistogramSlice.expect.md)
-* [get_from_cache](MVHistogramSlice.get_from_cache.md)
 * [get_wrap_at](MVHistogramSlice.get_wrap_at.md)
 * [hash](MVHistogramSlice.hash.md)
 * [interval](MVHistogramSlice.interval.md)

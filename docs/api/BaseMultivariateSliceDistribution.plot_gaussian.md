@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).plot_gaussian (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).plot_gaussian (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).mean (function)
+### [MVHistogramSlice](MVHistogramSlice.md).mean (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to_file (function)
+### [Delta](Delta.md).to_file (method)
 
 
 ```py

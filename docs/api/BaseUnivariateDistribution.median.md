@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).median (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).median (method)
 
 
 ```py

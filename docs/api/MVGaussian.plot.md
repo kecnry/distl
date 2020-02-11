@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).plot (function)
+### [MVGaussian](MVGaussian.md).plot (method)
 
 
 ```py

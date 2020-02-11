@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).expect (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).expect (method)
 
 
 ```py

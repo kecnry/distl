@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to_file (function)
+### [Uniform](Uniform.md).to_file (method)
 
 
 ```py

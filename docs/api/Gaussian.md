@@ -10,9 +10,7 @@ Can be created from the top-level via the [distl.gaussian](distl.gaussian.md) or
 
 
 * [__init__](Gaussian.__init__.md)
-* [cached_sample](Gaussian.cached_sample.md)
 * [cdf](Gaussian.cdf.md)
-* [clear_cached_sample](Gaussian.clear_cached_sample.md)
 * [copy](Gaussian.copy.md)
 * [dist_constructor_argnames](Gaussian.dist_constructor_argnames.md)
 * [dist_constructor_args](Gaussian.dist_constructor_args.md)
@@ -20,7 +18,6 @@ Can be created from the top-level via the [distl.gaussian](distl.gaussian.md) or
 * [dist_constructor_object](Gaussian.dist_constructor_object.md)
 * [entropy](Gaussian.entropy.md)
 * [expect](Gaussian.expect.md)
-* [get_from_cache](Gaussian.get_from_cache.md)
 * [get_wrap_at](Gaussian.get_wrap_at.md)
 * [hash](Gaussian.hash.md)
 * [interval](Gaussian.interval.md)

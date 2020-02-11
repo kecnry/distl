@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).plot_pdf (function)
+### [Uniform](Uniform.md).plot_pdf (method)
 
 
 ```py

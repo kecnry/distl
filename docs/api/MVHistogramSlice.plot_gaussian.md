@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).plot_gaussian (function)
+### [MVHistogramSlice](MVHistogramSlice.md).plot_gaussian (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).expect (function)
+### [MVGaussianSlice](MVGaussianSlice.md).expect (method)
 
 
 ```py

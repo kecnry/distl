@@ -1,4 +1,4 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).copy (function)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).copy (method)
 
 
 ```py

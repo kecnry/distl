@@ -1,4 +1,4 @@
-### [BaseDistribution](BaseDistribution.md).plot_cdf (function)
+### [BaseDistribution](BaseDistribution.md).plot_cdf (method)
 
 
 ```py

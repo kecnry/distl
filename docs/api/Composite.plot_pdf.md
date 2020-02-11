@@ -1,4 +1,4 @@
-### [Composite](Composite.md).plot_pdf (function)
+### [Composite](Composite.md).plot_pdf (method)
 
 
 ```py

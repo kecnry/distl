@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).plot_cdf (function)
+### [MVGaussian](MVGaussian.md).plot_cdf (method)
 
 
 ```py

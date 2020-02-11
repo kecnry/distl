@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).plot_sample (function)
+### [Gaussian](Gaussian.md).plot_sample (method)
 
 
 ```py

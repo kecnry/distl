@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).to_json (function)
+### [MVHistogram](MVHistogram.md).to_json (method)
 
 
 ```py

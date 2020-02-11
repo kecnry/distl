@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).to_dict (function)
+### [MVGaussianSlice](MVGaussianSlice.md).to_dict (method)
 
 
 ```py

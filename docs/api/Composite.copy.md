@@ -1,4 +1,4 @@
-### [Composite](Composite.md).copy (function)
+### [Composite](Composite.md).copy (method)
 
 
 ```py

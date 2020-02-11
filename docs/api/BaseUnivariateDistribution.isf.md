@@ -1,9 +1,9 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).isf (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).isf (method)
 
 
 ```py
 
-def isf(self, x=None, unit=None)
+def isf(self, x, unit=None)
 
 ```
 
@@ -24,10 +24,7 @@ See also:
 
 Arguments
 ----------
-* `x` (float or array, optional, default=None): x-values at which to
-    expose the isf.  If None or not provided, [BaseUnivariateDistribution.cached_sample](BaseUnivariateDistribution.cached_sample.md)
-    will be used if available, or raise an error if no cached samples
-    are available.
+* `x` (float or array): x-values at which to expose the osf
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [BaseUnivariateDistribution.unit](BaseUnivariateDistribution.unit.md).

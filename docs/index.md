@@ -172,6 +172,22 @@ out = gh.plot(200, show=True, plot_gaussian=True)
 
 See [these plotting examples](./examples/plotting.md) for more details.
 
+## Serializing
+
+```py
+g = distl.gaussian(5, 3)
+g = distl.from_dict(g.to_dict())
+```
+
+See the API docs on the following for more details:
+
+  - [to_dict](./api/BaseDistribution.to_dict.md)
+  - [from_dict](./api/distl.from_dict.md)
+  - [to_json](./api/BaseDistribution.to_json.md)
+  - [from_json](./api/distl.from_json.md)
+  - [to_file](./api/BaseDistribution.to_file.md)
+  - [from_file](./api/distl.from_file.md)
+
 
 ## Math with Distribution Objects
 
@@ -212,9 +228,36 @@ out = g.plot(show=True)
 
 See [these wrapping examples](./examples/wrapping.md) for more details.
 
-## Hard Limits
+## Slicing Multivariate Distributions
 
-**COMING SOON**
+```py
+mvg = distl.mvgaussian([5,10, 12],
+                       np.array([[ 2,  1, -1],
+                                 [ 1,  2,  1],
+                                 [-1,  1,  2]]),
+                       allow_singular=True,
+                       labels=['mvg_a', 'mvg_b', 'mvg_c'])
+mvg_a = mvg.slice('a')
+mvg_a.sample()
+mvg_a.plot(show=True)
+```
+
+See [these slicing examples](./examples/multivariate_slice.md) for more details.
+
+
+## Drawing and Computing Probabilities for Multiple Distributions via DistributionCollections
+
+```py
+g = distl.gaussian(10, 2, label='gaussian')
+u = distl.uniform(0, 5, label='uniform')
+dc = distl.DistributionCollection(g, u)
+dc.plot(show=True)
+```
+
+![png](./examples/collections_files/collections_14_0.png)
+
+See [these collections examples](./examples/collections.md) for more details.
+
 
 ## API Documentation
 

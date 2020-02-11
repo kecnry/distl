@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).entropy (function)
+### [MVGaussianSlice](MVGaussianSlice.md).entropy (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).plot_gaussian (function)
+### [Uniform](Uniform.md).plot_gaussian (method)
 
 
 ```py

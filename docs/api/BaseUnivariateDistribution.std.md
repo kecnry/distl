@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).std (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).std (method)
 
 
 ```py

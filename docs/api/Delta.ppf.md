@@ -1,4 +1,4 @@
-### [Delta](Delta.md).ppf (function)
+### [Delta](Delta.md).ppf (method)
 
 
 ```py

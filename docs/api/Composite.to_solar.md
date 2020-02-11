@@ -1,4 +1,4 @@
-### [Composite](Composite.md).to_solar (function)
+### [Composite](Composite.md).to_solar (method)
 
 
 ```py

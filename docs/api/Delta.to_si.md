@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to_si (function)
+### [Delta](Delta.md).to_si (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Composite](Composite.md).mean (function)
+### [Composite](Composite.md).mean (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Composite](Composite.md).to_histogram (function)
+### [Composite](Composite.md).to_histogram (method)
 
 
 ```py

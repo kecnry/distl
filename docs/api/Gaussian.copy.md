@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).copy (function)
+### [Gaussian](Gaussian.md).copy (method)
 
 
 ```py

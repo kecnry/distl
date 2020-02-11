@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).interval (function)
+### [Uniform](Uniform.md).interval (method)
 
 
 ```py

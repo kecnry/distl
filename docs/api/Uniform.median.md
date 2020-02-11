@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).median (function)
+### [Uniform](Uniform.md).median (method)
 
 
 ```py

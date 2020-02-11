@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).change_slice_dimension (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).change_slice_dimension (method)
 
 
 ```py

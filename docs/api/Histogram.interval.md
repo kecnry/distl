@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).interval (function)
+### [Histogram](Histogram.md).interval (method)
 
 
 ```py

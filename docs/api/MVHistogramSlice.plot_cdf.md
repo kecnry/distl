@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).plot_cdf (function)
+### [MVHistogramSlice](MVHistogramSlice.md).plot_cdf (method)
 
 
 ```py

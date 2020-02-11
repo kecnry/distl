@@ -1,4 +1,4 @@
-### [Delta](Delta.md).plot_cdf (function)
+### [Delta](Delta.md).plot_cdf (method)
 
 
 ```py

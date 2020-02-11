@@ -1,4 +1,4 @@
-### [Delta](Delta.md).get_wrap_at (function)
+### [Delta](Delta.md).get_wrap_at (method)
 
 
 ```py

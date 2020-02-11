@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to_uniform (function)
+### [Delta](Delta.md).to_uniform (method)
 
 
 ```py

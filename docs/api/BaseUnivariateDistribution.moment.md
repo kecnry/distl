@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).moment (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).moment (method)
 
 
 ```py

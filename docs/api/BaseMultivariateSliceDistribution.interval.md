@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).interval (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).interval (method)
 
 
 ```py

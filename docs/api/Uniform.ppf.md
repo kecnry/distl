@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).ppf (function)
+### [Uniform](Uniform.md).ppf (method)
 
 
 ```py

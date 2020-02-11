@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to_solar (function)
+### [Delta](Delta.md).to_solar (method)
 
 
 ```py

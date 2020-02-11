@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).to_univariate (function)
+### [MVHistogram](MVHistogram.md).to_univariate (method)
 
 
 ```py

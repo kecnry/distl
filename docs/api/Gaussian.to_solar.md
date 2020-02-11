@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).to_solar (function)
+### [Gaussian](Gaussian.md).to_solar (method)
 
 
 ```py

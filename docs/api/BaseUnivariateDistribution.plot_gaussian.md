@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).plot_gaussian (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).plot_gaussian (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).std (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).std (method)
 
 
 ```py

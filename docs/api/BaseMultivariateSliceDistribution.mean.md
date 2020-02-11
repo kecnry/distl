@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).mean (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).mean (method)
 
 
 ```py

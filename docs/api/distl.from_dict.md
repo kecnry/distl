@@ -9,7 +9,7 @@ def from_dict(d)
 
 
 
-Load a distl object from a dictionary.
+Load an distl object from a dictionary.
 
 See also:
 

@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).median (function)
+### [Histogram](Histogram.md).median (method)
 
 
 ```py

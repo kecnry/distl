@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).std (function)
+### [Uniform](Uniform.md).std (method)
 
 
 ```py

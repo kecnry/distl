@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).to_si (function)
+### [MVHistogramSlice](MVHistogramSlice.md).to_si (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).entropy (function)
+### [Gaussian](Gaussian.md).entropy (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Composite](Composite.md).plot (function)
+### [Composite](Composite.md).plot (method)
 
 
 ```py

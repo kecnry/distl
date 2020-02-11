@@ -1,9 +1,9 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).logsf (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).logsf (method)
 
 
 ```py
 
-def logsf(self, x=None, unit=None)
+def logsf(self, x, unit=None)
 
 ```
 
@@ -24,10 +24,7 @@ See also:
 
 Arguments
 ----------
-* `x` (float or array, optional, default=None): x-values at which to
-    expose the logsf.  If None or not provided, [BaseMultivariateSliceDistribution.cached_sample](BaseMultivariateSliceDistribution.cached_sample.md)
-    will be used if available, or raise an error if no cached samples
-    are available.
+* `x` (float or array): x-values at which to expose the logsf
 * `unit` (astropy.unit, optional, default=None): unit of the values
     in `x`.  If None or not provided, will assume they're provided in
     [BaseMultivariateSliceDistribution.unit](BaseMultivariateSliceDistribution.unit.md).

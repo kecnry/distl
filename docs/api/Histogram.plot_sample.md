@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).plot_sample (function)
+### [Histogram](Histogram.md).plot_sample (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).median (function)
+### [MVHistogramSlice](MVHistogramSlice.md).median (method)
 
 
 ```py

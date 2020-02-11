@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).median (function)
+### [Gaussian](Gaussian.md).median (method)
 
 
 ```py

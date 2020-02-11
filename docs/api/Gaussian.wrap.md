@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).wrap (function)
+### [Gaussian](Gaussian.md).wrap (method)
 
 
 ```py

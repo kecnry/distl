@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).copy (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).copy (method)
 
 
 ```py

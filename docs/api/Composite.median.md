@@ -1,4 +1,4 @@
-### [Composite](Composite.md).median (function)
+### [Composite](Composite.md).median (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).get_wrap_at (function)
+### [MVHistogram](MVHistogram.md).get_wrap_at (method)
 
 
 ```py

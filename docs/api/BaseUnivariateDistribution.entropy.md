@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).entropy (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).entropy (method)
 
 
 ```py

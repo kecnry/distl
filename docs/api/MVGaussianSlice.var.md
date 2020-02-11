@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).var (function)
+### [MVGaussianSlice](MVGaussianSlice.md).var (method)
 
 
 ```py

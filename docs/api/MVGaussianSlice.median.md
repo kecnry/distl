@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).median (function)
+### [MVGaussianSlice](MVGaussianSlice.md).median (method)
 
 
 ```py

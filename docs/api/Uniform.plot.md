@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).plot (function)
+### [Uniform](Uniform.md).plot (method)
 
 
 ```py

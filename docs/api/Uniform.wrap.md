@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).wrap (function)
+### [Uniform](Uniform.md).wrap (method)
 
 
 ```py

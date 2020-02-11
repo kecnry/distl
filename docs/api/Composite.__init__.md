@@ -1,4 +1,4 @@
-### [Composite](Composite.md).__init__ (function)
+### [Composite](Composite.md).__init__ (method)
 
 
 ```py

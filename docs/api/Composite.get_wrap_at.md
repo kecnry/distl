@@ -1,4 +1,4 @@
-### [Composite](Composite.md).get_wrap_at (function)
+### [Composite](Composite.md).get_wrap_at (method)
 
 
 ```py

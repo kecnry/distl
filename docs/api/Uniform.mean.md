@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).mean (function)
+### [Uniform](Uniform.md).mean (method)
 
 
 ```py

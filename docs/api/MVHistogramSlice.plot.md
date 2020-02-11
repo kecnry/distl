@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).plot (function)
+### [MVHistogramSlice](MVHistogramSlice.md).plot (method)
 
 
 ```py

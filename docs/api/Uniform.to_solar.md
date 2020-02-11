@@ -1,4 +1,4 @@
-### [Uniform](Uniform.md).to_solar (function)
+### [Uniform](Uniform.md).to_solar (method)
 
 
 ```py

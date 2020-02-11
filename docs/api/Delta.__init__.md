@@ -1,4 +1,4 @@
-### [Delta](Delta.md).__init__ (function)
+### [Delta](Delta.md).__init__ (method)
 
 
 ```py

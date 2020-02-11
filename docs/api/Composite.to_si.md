@@ -1,4 +1,4 @@
-### [Composite](Composite.md).to_si (function)
+### [Composite](Composite.md).to_si (method)
 
 
 ```py

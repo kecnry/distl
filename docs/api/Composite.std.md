@@ -1,4 +1,4 @@
-### [Composite](Composite.md).std (function)
+### [Composite](Composite.md).std (method)
 
 
 ```py

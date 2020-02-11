@@ -1,4 +1,4 @@
-### [Delta](Delta.md).expect (function)
+### [Delta](Delta.md).expect (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_histogram (function)
+### [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).to_histogram (method)
 
 
 ```py

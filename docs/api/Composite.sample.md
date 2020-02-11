@@ -1,9 +1,9 @@
-### [Composite](Composite.md).sample (function)
+### [Composite](Composite.md).sample (method)
 
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}, cache_sample=True)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={})
 
 ```
 
@@ -28,8 +28,6 @@ Arguments
     according to [Composite.unit](Composite.unit.md) not `unit`.
 * `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
     pass to underlying distributions.
-* `cache_sample` (bool, optional, default=True): whether to override the
-    existing [Composite.cached_sample](Composite.cached_sample.md).
 
 Returns
 ---------

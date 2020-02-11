@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).to_file (function)
+### [MVGaussian](MVGaussian.md).to_file (method)
 
 
 ```py

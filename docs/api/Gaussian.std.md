@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).std (function)
+### [Gaussian](Gaussian.md).std (method)
 
 
 ```py

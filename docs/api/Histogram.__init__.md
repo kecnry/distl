@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).__init__ (function)
+### [Histogram](Histogram.md).__init__ (method)
 
 
 ```py

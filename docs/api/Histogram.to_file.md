@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).to_file (function)
+### [Histogram](Histogram.md).to_file (method)
 
 
 ```py

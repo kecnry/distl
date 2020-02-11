@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).to_file (function)
+### [MVHistogramSlice](MVHistogramSlice.md).to_file (method)
 
 
 ```py

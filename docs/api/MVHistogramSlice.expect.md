@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).expect (function)
+### [MVHistogramSlice](MVHistogramSlice.md).expect (method)
 
 
 ```py

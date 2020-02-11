@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_solar (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).to_solar (method)
 
 
 ```py

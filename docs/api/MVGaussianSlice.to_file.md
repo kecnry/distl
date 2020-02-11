@@ -1,4 +1,4 @@
-### [MVGaussianSlice](MVGaussianSlice.md).to_file (function)
+### [MVGaussianSlice](MVGaussianSlice.md).to_file (method)
 
 
 ```py

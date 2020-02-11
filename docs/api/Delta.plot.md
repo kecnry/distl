@@ -1,4 +1,4 @@
-### [Delta](Delta.md).plot (function)
+### [Delta](Delta.md).plot (method)
 
 
 ```py

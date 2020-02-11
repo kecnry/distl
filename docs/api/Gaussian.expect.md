@@ -1,4 +1,4 @@
-### [Gaussian](Gaussian.md).expect (function)
+### [Gaussian](Gaussian.md).expect (method)
 
 
 ```py

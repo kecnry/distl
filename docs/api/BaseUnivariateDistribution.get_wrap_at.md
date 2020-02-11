@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).get_wrap_at (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).get_wrap_at (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [Composite](Composite.md).expect (function)
+### [Composite](Composite.md).expect (method)
 
 
 ```py

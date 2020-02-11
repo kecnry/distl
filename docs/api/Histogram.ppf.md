@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).ppf (function)
+### [Histogram](Histogram.md).ppf (method)
 
 
 ```py

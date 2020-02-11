@@ -1,4 +1,4 @@
-### [DistributionCollection](DistributionCollection.md).__init__ (function)
+### [DistributionCollection](DistributionCollection.md).__init__ (method)
 
 
 ```py
@@ -7,7 +7,4 @@ def __init__(self, *distributions)
 
 ```
 
-
-
-Initialize self.  See help(type(self)) for accurate signature.
 

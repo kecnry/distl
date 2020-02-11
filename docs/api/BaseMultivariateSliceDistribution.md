@@ -1,10 +1,8 @@
 ## BaseMultivariateSliceDistribution (class)
 
 * [__init__](BaseMultivariateSliceDistribution.__init__.md)
-* [cached_sample](BaseMultivariateSliceDistribution.cached_sample.md)
 * [cdf](BaseMultivariateSliceDistribution.cdf.md)
 * [change_slice_dimension](BaseMultivariateSliceDistribution.change_slice_dimension.md)
-* [clear_cached_sample](BaseMultivariateSliceDistribution.clear_cached_sample.md)
 * [copy](BaseMultivariateSliceDistribution.copy.md)
 * [dimension](BaseMultivariateSliceDistribution.dimension.md)
 * [dist_constructor_argnames](BaseMultivariateSliceDistribution.dist_constructor_argnames.md)
@@ -13,7 +11,6 @@
 * [dist_constructor_object](BaseMultivariateSliceDistribution.dist_constructor_object.md)
 * [entropy](BaseMultivariateSliceDistribution.entropy.md)
 * [expect](BaseMultivariateSliceDistribution.expect.md)
-* [get_from_cache](BaseMultivariateSliceDistribution.get_from_cache.md)
 * [get_wrap_at](BaseMultivariateSliceDistribution.get_wrap_at.md)
 * [hash](BaseMultivariateSliceDistribution.hash.md)
 * [interval](BaseMultivariateSliceDistribution.interval.md)

@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).copy (function)
+### [MVGaussian](MVGaussian.md).copy (method)
 
 
 ```py

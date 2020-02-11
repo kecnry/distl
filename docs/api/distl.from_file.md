@@ -9,7 +9,7 @@ def from_file(filename)
 
 
 
-Load a distl object from a json filename.
+Load an distl object from a json filename.
 
 See also:
 
@@ -19,7 +19,7 @@ See also:
 Arguments
 -------------
 * `s` (string): the filename pointing to a json formatted file representing
-    a distl object.
+    an distl object.
 
 Returns
 ----------

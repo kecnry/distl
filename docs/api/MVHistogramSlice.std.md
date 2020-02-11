@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).std (function)
+### [MVHistogramSlice](MVHistogramSlice.md).std (method)
 
 
 ```py

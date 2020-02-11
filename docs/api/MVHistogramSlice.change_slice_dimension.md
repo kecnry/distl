@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).change_slice_dimension (function)
+### [MVHistogramSlice](MVHistogramSlice.md).change_slice_dimension (method)
 
 
 ```py

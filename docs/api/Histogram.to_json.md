@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).to_json (function)
+### [Histogram](Histogram.md).to_json (method)
 
 
 ```py

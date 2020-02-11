@@ -3,6 +3,8 @@ import distl
 import numpy as np
 ```
 
+# Multivariate Gaussian
+
 First we'll create a [multivariate gaussian](../api/MVGaussian.md) distribution by providing the means and covariances of three parameters.
 
 
@@ -54,7 +56,9 @@ fig = mvg.plot(show=True)
 ![png](multivariate_files/multivariate_6_0.png)
 
 
-we can now convert this multivariate gaussian distribution into a [multivariate histogram](../api/MVHistogram.md) distribution
+# Multivariate Histogram
+
+we can now convert this multivariate gaussian distribution into a [multivariate histogram](../api/MVHistogram.md) distribution (alternatively we could create a histogram directly from a set of samples or chains via [mvhistogram_from_data](../api/distl.mvhistogram_from_data.md).
 
 
 ```python

@@ -8,7 +8,7 @@ import numpy as np
 g = distl.gaussian(10, 2)
 ```
 
-distl obeys the seed set in `np.random.seed`.
+**distl** obeys the seed set in `np.random.seed`.
 
 
 ```python

@@ -1,4 +1,4 @@
-### [Delta](Delta.md).to_gaussian (function)
+### [Delta](Delta.md).to_gaussian (method)
 
 
 ```py

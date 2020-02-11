@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).__init__ (function)
+### [MVGaussian](MVGaussian.md).__init__ (method)
 
 
 ```py

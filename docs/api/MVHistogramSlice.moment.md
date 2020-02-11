@@ -1,4 +1,4 @@
-### [MVHistogramSlice](MVHistogramSlice.md).moment (function)
+### [MVHistogramSlice](MVHistogramSlice.md).moment (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).to_json (function)
+### [MVGaussian](MVGaussian.md).to_json (method)
 
 
 ```py

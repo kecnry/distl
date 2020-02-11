@@ -1,4 +1,4 @@
-### [Composite](Composite.md).var (function)
+### [Composite](Composite.md).var (method)
 
 
 ```py

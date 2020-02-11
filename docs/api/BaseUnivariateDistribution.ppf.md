@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).ppf (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).ppf (method)
 
 
 ```py

@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).calculate_covariances (function)
+### [MVHistogram](MVHistogram.md).calculate_covariances (method)
 
 
 ```py

@@ -1,9 +1,7 @@
 ## BaseUnivariateDistribution (class)
 
 * [__init__](BaseUnivariateDistribution.__init__.md)
-* [cached_sample](BaseUnivariateDistribution.cached_sample.md)
 * [cdf](BaseUnivariateDistribution.cdf.md)
-* [clear_cached_sample](BaseUnivariateDistribution.clear_cached_sample.md)
 * [copy](BaseUnivariateDistribution.copy.md)
 * [dist_constructor_argnames](BaseUnivariateDistribution.dist_constructor_argnames.md)
 * [dist_constructor_args](BaseUnivariateDistribution.dist_constructor_args.md)
@@ -11,7 +9,6 @@
 * [dist_constructor_object](BaseUnivariateDistribution.dist_constructor_object.md)
 * [entropy](BaseUnivariateDistribution.entropy.md)
 * [expect](BaseUnivariateDistribution.expect.md)
-* [get_from_cache](BaseUnivariateDistribution.get_from_cache.md)
 * [get_wrap_at](BaseUnivariateDistribution.get_wrap_at.md)
 * [hash](BaseUnivariateDistribution.hash.md)
 * [interval](BaseUnivariateDistribution.interval.md)

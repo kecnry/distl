@@ -1,4 +1,4 @@
-### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).plot_sample (function)
+### [BaseUnivariateDistribution](BaseUnivariateDistribution.md).plot_sample (method)
 
 
 ```py

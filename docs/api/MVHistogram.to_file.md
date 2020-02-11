@@ -1,4 +1,4 @@
-### [MVHistogram](MVHistogram.md).to_file (function)
+### [MVHistogram](MVHistogram.md).to_file (method)
 
 
 ```py
