@@ -713,6 +713,7 @@ class BaseDistribution(object):
         <<class>.dist_constructor_object> after doing any requested unit-conversions.
 
         See also:
+
         * <<class>.logpdf>
         * <<class>.cdf>
 
@@ -754,6 +755,7 @@ class BaseDistribution(object):
         <<class>.dist_constructor_object> after doing any requested unit-conversions.
 
         See also:
+
         * <<class>.pdf>
         * <<class>.cdf>
 
@@ -795,6 +797,7 @@ class BaseDistribution(object):
         <<class>.dist_constructor_object> after doing any requested unit-conversions.
 
         See also:
+
         * <<class>.logcdf>
         * <<class>.pdf>
 
@@ -836,6 +839,7 @@ class BaseDistribution(object):
         <<class>.dist_constructor_object> after doing any requested unit-conversions.
 
         See also:
+
         * <<class>.cdf>
         * <<class>.pdf>
 
@@ -1432,8 +1436,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         """
         The label of the distribution object.  When not None, this is used for
         the x-label when plotting (see <<class>.plot>) and for the
-        string representation for any math in a <Composite> or <Function>
-        distribution.
+        string representation for any math in a <Composite>.
         """
         return self._label
 
@@ -1672,6 +1675,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         quantity objects, and wrapping done on the returned result.
 
         See also:
+
         * <<class>.pdf>
         * <<class>.cdf>
         * <<class>.sample>
@@ -1915,6 +1919,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         quantity objects, and wrapping done on the returned result.
 
         See also:
+
         * <<class>.mean>
         * <<class>.var>
         * <<class>.std>
@@ -1955,6 +1960,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         quantity objects, and wrapping done on the returned result.
 
         See also:
+
         * <<class>.median>
         * <<class>.var>
         * <<class>.std>
@@ -1995,6 +2001,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         quantity objects, and wrapping done on the returned result.
 
         See also:
+
         * <<class>.median>
         * <<class>.mean>
         * <<class>.std>
@@ -2035,6 +2042,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         quantity objects, and wrapping done on the returned result.
 
         See also:
+
         * <<class>.median>
         * <<class>.mean>
         * <<class>.var>
@@ -2108,6 +2116,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         Sample from the distribution.
 
         See also:
+
         * <<class>.pdf>
         * <<class>.cdf>
         * <<class>.ppf>
@@ -2141,8 +2150,6 @@ class BaseUnivariateDistribution(BaseDistribution):
         """
         if isinstance(seed, dict):
             seed = seed.get(self.hash, None)
-
-        # print("{} seed: {}".format(self, seed))
 
         if seed is not None:
             _np.random.seed(seed)
@@ -2260,6 +2267,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         The labels of each dimension in the multivariate distribution.
 
         See also:
+
         * <<class>.all_labels>
         * <<class>.dimensions>
 
@@ -2287,6 +2295,7 @@ class BaseMultivariateDistribution(BaseDistribution):
     #     """
     #
     #     See also:
+    #
     #     * <<class>.units>
     #     * <<class>.dimensions>
     #     """
@@ -2306,6 +2315,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         order to set and/or use distributions with units.
 
         See also:
+
         * <<class>.all_units>
         * <<class>.dimensions>
 
@@ -2337,6 +2347,7 @@ class BaseMultivariateDistribution(BaseDistribution):
     #     """
     #
     #     See also:
+    #
     #     * <<class>.wrap_ats>
     #     * <<class>.dimensions>
     #     """
@@ -2636,6 +2647,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         sliced dimension
 
         See also:
+
         * <<class>.multivariate>
         * <<class>.dimension>
 
@@ -2652,6 +2664,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         sliced dimension
 
         See also:
+
         * <<class>.multivariate>
         * <<class>.dimension>
 
@@ -2668,6 +2681,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         sliced dimension
 
         See also:
+
         * <<class>.multivariate>
         * <<class>.dimension>
 
@@ -2683,6 +2697,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         Access the index of the sliced dimension.
 
         See also:
+
         * <<class>.change_sliced_dimension>
         * <<class>.label>
 
@@ -2697,6 +2712,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         Change the sliced dimension of the underlying <<class>.multivariate> distribution.
 
         See also:
+
         * <<class>.dimension>
         """
         self.dimension = dimension
@@ -3946,6 +3962,7 @@ class MVGaussian(BaseMultivariateDistribution):
         like a univariate distribution.
 
         See also:
+
         * <<class>.to_histogram>
         * <<class>.to_gaussian>
         * <MVGaussianSlice.dimension>
@@ -4199,6 +4216,7 @@ class MVHistogram(BaseMultivariateDistribution):
         like a univariate distribution.
 
         See also:
+
         * <<class>.to_histogram>
         * <<class>.to_gaussian>
         * <MVHistorgramSlice.dimension>
