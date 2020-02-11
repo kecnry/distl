@@ -17,7 +17,7 @@ Although this wouldn't exactly be difficult for a simple univariate and even mul
 
 
 ```python
-g = distl.gaussian(10, 2)
+g = distl.gaussian(10, 2, label='g')
 ```
 
 
@@ -28,7 +28,7 @@ g.sample()
 
 
 
-    9.900940302116243
+    8.301950998373297
 
 
 
@@ -40,7 +40,7 @@ g.cached_sample
 
 
 
-    9.900940302116243
+    8.301950998373297
 
 
 
@@ -52,7 +52,7 @@ g.pdf()
 
 
 
-    0.1992266183043953
+    0.1391076736349794
 
 
 
@@ -66,7 +66,7 @@ g.sample(size=2)
 
 
 
-    array([6.10428511, 8.83604573])
+    array([ 9.83866389, 11.45079051])
 
 
 
@@ -78,7 +78,7 @@ g.cached_sample
 
 
 
-    array([6.10428511, 8.83604573])
+    array([ 9.83866389, 11.45079051])
 
 
 
@@ -90,7 +90,7 @@ g.pdf()
 
 
 
-    array([0.02992204, 0.16839643])
+    array([0.19882318, 0.15332662])
 
 
 
@@ -130,7 +130,7 @@ mvg.sample()
 
 
 
-    array([ 3.19921555,  7.93923632, 11.74002076])
+    array([ 5.95120439, 11.7635396 , 12.8123352 ])
 
 
 
@@ -156,7 +156,7 @@ mvg.pdf()
 
 
 
-    0.01505543608374843
+    0.024340482001559628
 
 
 
@@ -170,8 +170,8 @@ mvg.sample(size=2)
 
 
 
-    array([[ 3.35510368,  9.09194424, 12.73684056],
-           [ 4.02721431,  8.27476347, 11.24754916]])
+    array([[ 4.41475233, 10.85247649, 13.43772416],
+           [ 4.37431024,  8.48164916, 11.10733892]])
 
 
 
@@ -183,8 +183,8 @@ mvg.cached_sample
 
 
 
-    array([[ 3.35510368,  9.09194424, 12.73684056],
-           [ 4.02721431,  8.27476347, 11.24754916]])
+    array([[ 4.41475233, 10.85247649, 13.43772416],
+           [ 4.37431024,  8.48164916, 11.10733892]])
 
 
 
@@ -196,7 +196,7 @@ mvg.pdf()
 
 
 
-    array([0.02690742, 0.02510608])
+    array([0.03145482, 0.02963568])
 
 
 
@@ -217,7 +217,7 @@ mvg_a.sample()
 
 
 
-    5.1774427052571195
+    5.28368877637045
 
 
 
@@ -229,7 +229,7 @@ mvg_a.cached_sample
 
 
 
-    array([ 3.35510368,  9.09194424, 12.73684056])
+    5.28368877637045
 
 
 
@@ -241,8 +241,7 @@ mvg_a.multivariate.cached_sample
 
 
 
-    array([[ 3.35510368,  9.09194424, 12.73684056],
-           [ 4.02721431,  8.27476347, 11.24754916]])
+    array([ 5.28368878,  9.21794452, 10.93425575])
 
 
 
@@ -256,7 +255,7 @@ mvg_a.pdf()
 
 
 
-    array([1.43426424e-01, 4.28980488e-03, 8.93962067e-08])
+    0.2764758084352122
 
 
 
@@ -270,7 +269,7 @@ mvg_a.multivariate.pdf()
 
 
 
-    array([0.02690742, 0.02510608])
+    0.03911929302710746
 
 
 
@@ -284,7 +283,7 @@ mvg_a.sample(size=2)
 
 
 
-    array([5.76028248, 6.74748488])
+    array([6.29865519, 6.88451019])
 
 
 
@@ -296,7 +295,7 @@ mvg_a.cached_sample
 
 
 
-    array([ 3.35510368,  9.09194424, 12.73684056])
+    array([ 6.29865519, 11.08697687, 11.78832168])
 
 
 
@@ -308,7 +307,7 @@ mvg_a.pdf()
 
 
 
-    array([1.43426424e-01, 4.28980488e-03, 8.93962067e-08])
+    array([1.85048293e-01, 2.67671818e-05, 2.80014335e-06])
 
 
 
@@ -318,9 +317,10 @@ Similarly to MultivariateSlices, Composite distributions also expose the univari
 
 
 ```python
-g = distl.gaussian(10, 2)
-u = distl.uniform(1, 3)
+g = distl.gaussian(10, 2, label='g')
+u = distl.uniform(1, 3, label='u')
 c = g * u
+c.label = 'c'
 ```
 
 
@@ -331,7 +331,7 @@ c.sample()
 
 
 
-    33.44445139761177
+    23.44816323551863
 
 
 
@@ -343,7 +343,7 @@ c.cached_sample
 
 
 
-    33.44445139761177
+    23.44816323551863
 
 
 
@@ -357,7 +357,7 @@ c.pdf()
 
 
 
-    0.011540154840759452
+    0.04197821858381385
 
 
 
@@ -382,7 +382,7 @@ c.cached_sample_children
 
 
 
-    [11.684825206551611, 2.8622123828484547]
+    array([10.91396087,  2.14845586])
 
 
 
@@ -394,7 +394,7 @@ c.cached_sample_children[0] * c.cached_sample_children[1]
 
 
 
-    33.44445139761177
+    23.44816323551863
 
 
 
@@ -408,7 +408,7 @@ c.dist1.pdf(c.cached_sample_children[0]), c.dist2.pdf(c.cached_sample_children[1
 
 
 
-    (0.1398877154261344, 0.5)
+    (0.17969374889690237, 0.5)
 
 
 
@@ -422,7 +422,7 @@ c.dist1.pdf(c.cached_sample_children[0]) * c.dist2.pdf(c.cached_sample_children[
 
 
 
-    0.0699438577130672
+    0.08984687444845119
 
 
 
@@ -436,7 +436,7 @@ c.sample(size=2)
 
 
 
-    array([33.4444514 , 18.61904463])
+    array([23.44816324, 12.95003355])
 
 
 
@@ -448,7 +448,7 @@ c.cached_sample
 
 
 
-    array([33.4444514 , 18.61904463])
+    array([23.44816324, 12.95003355])
 
 
 
@@ -460,7 +460,8 @@ c.cached_sample_children
 
 
 
-    [array([11.68482521,  8.97531451]), array([2.86221238, 2.07447267])]
+    array([[10.91396087,  9.19345783],
+           [ 2.14845586,  1.40861402]])
 
 
 
@@ -468,79 +469,136 @@ c.cached_sample_children
 
 
 ```python
-ds = distl.DistributionCollection(g, mvg_a, c)
+dc = distl.DistributionCollection(g, mvg_a, c)
 ```
 
 
 ```python
-ds
+dc
 ```
 
 
 
 
-    <distl.distl.DistributionCollection at 0x7fe08b8756d0>
+    <distl.distl.DistributionCollection at 0x7fa191ac1710>
 
 
 
 
 ```python
-ds.sample()
+dc.sample()
 ```
 
 
-    ---------------------------------------------------------------------------
-
-    TypeError                                 Traceback (most recent call last)
-
-    <ipython-input-40-3fbb3b78150c> in <module>
-    ----> 1 ds.sample()
-    
-
-    ~/.local/lib/python3.7/site-packages/distl-0.1.0.dev0-py3.7.egg/distl/distl.py in sample(self, *args, **kwargs)
-       2939         sample_kwargs = {k:v for k,v in kwargs.items() if k not in ['seeds']}
-       2940         # print("*** seeds: {}, sample_kwargs: {}".format(seeds, sample_kwargs))
-    -> 2941         samples = _np.asarray([dist.sample(*args, seed=seeds, **sample_kwargs) for dist in self.distributions]).T
-       2942 
-       2943         if cache_values:
 
 
-    ~/.local/lib/python3.7/site-packages/distl-0.1.0.dev0-py3.7.egg/distl/distl.py in <listcomp>(.0)
-       2939         sample_kwargs = {k:v for k,v in kwargs.items() if k not in ['seeds']}
-       2940         # print("*** seeds: {}, sample_kwargs: {}".format(seeds, sample_kwargs))
-    -> 2941         samples = _np.asarray([dist.sample(*args, seed=seeds, **sample_kwargs) for dist in self.distributions]).T
-       2942 
-       2943         if cache_values:
+    array([11.27173285,  6.6477602 , 32.49904246])
 
-
-    TypeError: sample() got an unexpected keyword argument 'seed'
 
 
 For collections, `cached_sample` refers to the passed `distributions`...
 
 
 ```python
-ds.cached_sample
+dc.cached_sample
 ```
+
+
+
+
+    array([11.27173285,  6.6477602 , 32.49904246])
+
+
 
 
 ```python
-ds.distributions
+dc.labels
 ```
+
+
+
+
+    ['g', 'a', 'c']
+
+
 
 ... whereas `cached_samples_unpacked` refers to the unpacked list of all underlying distributions (i.e. composite distributions are broken down into their subcomponents so that all the actual drawn values can be recorded to track covariances).
 
 
 ```python
-ds.cached_sample_unpacked
+dc.cached_sample_unpacked
 ```
+
+
+
+
+    array([11.27173285,  6.6477602 , 11.27173285,  2.88323392])
+
+
 
 
 ```python
-ds.distributions_unpacked
+dc.labels_unpacked
 ```
+
+
+
+
+    ['g', 'a', 'g', 'u']
+
+
+
+We can notice a few things here.  The first is that `u` shows up twice (as it is returned in the sample but also used in the math to compute `c`), and is given the same value in both cases.  Furthermore, `c` was defined as `g * u`, which we can confirm here by doing math on the cached values.
 
 
 ```python
-
+dc.cached_sample_unpacked[2] * dc.cached_sample_unpacked[3], dc.cached_sample[2]
 ```
+
+
+
+
+    (32.49904245599096, 32.49904245599096)
+
+
+
+We can also see that the covariances are respected by plotting.  For more details, see the [DistributionCollections examples](./collections.md).
+
+
+```python
+out = dc.plot(show=True)
+```
+
+
+![png](sample_cache_files/sample_cache_68_0.png)
+
+
+Now if we rely on the cached values when calling [pdf](../api/DistributionCollection.pdf.md) it will default to passing [cached_sample_unpacked](../api/DistributionCollection.cached_sample_unpacked.md) (and ignoring duplicate entries when doing the sum/product), therefore accounting for covariances.
+
+
+```python
+dc.pdf()
+```
+
+
+
+
+    0.011658887736809443
+
+
+
+To avoid this behavior and instead treat each of the three sampled values in their univariate forms, you can explicitly pass the non-unpacked cache (distl recognized that the length matches the sampled values directly and computes using the flattend univariates instead).
+
+**NOTE**: if you're passing values manually to `pdf`, the length of the passed array must agree with `as_univariates`.  In some cases (like this one) the lengths are different and so an error will be raised if they're in disagreement.  But in other cases the lengths can be the same, and so the behavior will rely on the value of `as_univariates` which defaults to `False`.  See [collections examples](./collections.md) for more details.
+
+
+```python
+dc.pdf(as_univariates=True)
+```
+
+
+
+
+    0.00032474896167878573
+
+

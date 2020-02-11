@@ -8,10 +8,12 @@ simultaneously, respecting all underlying covariances whenever possible.
 
 * [__init__](DistributionCollection.__init__.md)
 * [cached_sample](DistributionCollection.cached_sample.md)
+* [cached_sample_unpacked](DistributionCollection.cached_sample_unpacked.md)
 * [cdf](DistributionCollection.cdf.md)
 * [distributions](DistributionCollection.distributions.md)
 * [distributions_unpacked](DistributionCollection.distributions_unpacked.md)
 * [labels](DistributionCollection.labels.md)
+* [labels_unpacked](DistributionCollection.labels_unpacked.md)
 * [logcdf](DistributionCollection.logcdf.md)
 * [logpdf](DistributionCollection.logpdf.md)
 * [pdf](DistributionCollection.pdf.md)

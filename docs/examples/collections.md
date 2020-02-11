@@ -28,7 +28,7 @@ dc
 
 
 
-    <distl.distl.DistributionCollection at 0x7fac5bb87890>
+    <distl.distl.DistributionCollection at 0x7f4262bb3f90>
 
 
 
@@ -42,7 +42,7 @@ dc.sample()
 
 
 
-    array([7.94423774, 3.38192392])
+    array([7.94423774, 3.33282292])
 
 
 
@@ -83,9 +83,9 @@ dc.sample(size=3)
 
 
 
-    array([[13.05648357,  3.17603292],
-           [ 7.23378384,  3.35741225],
-           [10.18171253,  2.41334386]])
+    array([[ 6.81209169,  4.1446646 ],
+           [10.94875155,  3.2347412 ],
+           [ 6.93169641,  4.50939464]])
 
 
 
@@ -128,7 +128,7 @@ g.pdf(10) * u.pdf(5)
 
 
 
-# using MultivariateSlice distributions
+# MultivariateSlice distributions
 
 First we'll create a [gaussian](../api/distl.gaussian.md), [uniform](../api/distl.uniform.md), and [multivariate gaussian](../api/distl.mvgaussian.md) distributions.
 
@@ -163,7 +163,7 @@ dc.sample()
 
 
 
-    array([11.26488164,  0.87127455,  5.54918169, 12.94481664])
+    array([12.51011783,  3.06575975,  7.07904016, 10.97771337])
 
 
 
@@ -176,9 +176,7 @@ out = dc.plot(show=True)
 ![png](collections_files/collections_23_0.png)
 
 
-As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array with the same length as the provided number of distributions (and in the same order as [labels](../api/DistributionCollection.labels.md).
-
-It is **very** important to note here that this call to pdf does **NOT** account for the covariance between 'mvg_a' and 'mvg_c' (as it would also be necessary to know the assumed value of mvg_b or to collapse along that dimension).
+As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array.  This time, the pdf will account for the covariance between 'mvg_a' and 'mvg_c', by default.  As 'mvg_b' is not included, no value will be assumed, but rather will be marginalized over (via [take_dimensions](../api/BaseMultivariateDistribution.take_dimensions.md)).
 
 
 ```python
@@ -200,17 +198,25 @@ dc.pdf([10, 5, 5, 11])
 
 
 
-    0.0024724446692818785
+    0.011253953951963828
 
 
 
-**TODO**: need to support and explain three cases:
+To avoid this behavior and instead sum/multiply over the flattened univariate versions of each of the sampled parameters, pass `as_univariates=True` to [pdf](../api/DistributionCollection.pdf.md).
 
-* treat each as univariates for pdf (DONE)
-* collapse the unused dimensions out and calculate multivariate pdf (NEED TO IMPLEMENT - can probably detect based on the length passed to `pdf` but could also have a different method or flag to be explicit).  At the least, we need to think about the default behavior when caching the samples
-* provide unsampled value and calculate multivariate pdf (or maybe three is too much and we should drop this one)
 
-# using Composite distributions
+```python
+dc.pdf([10, 5, 5, 11], as_univariates=True)
+```
+
+
+
+
+    0.011253953951963828
+
+
+
+# Composite (math operators) distributions
 
 Now let's consider a more complex example: let's sample from 'gaussian * mvg_a' and 'mvg_c'.  Here we want the covariance between 'mvg_a' and 'mvg_c' respected, even though there is a math operation on the result of 'mvg_a'.
 
@@ -227,7 +233,32 @@ Now let's consider a more complex example: let's sample from 'gaussian * mvg_a' 
 
 
 ```python
-#dc.pdf()
+#out = dc.plot(show=True)
+```
+
+As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array.  However, in order to respect the covariances, the length of the input must match that of the underlying distributions that were sampled (see [labels_unpacked](../api/DistributionCollection.labels_unpacked.md) or [distributions_unpacked](../api/DistributionCollection.distributions_unpacked.md)).
+
+
+
+```python
+#dc.labels_unpacked
+```
+
+
+```python
+#dc.pdf([5, 10, 10])
+```
+
+As with the multivariate case above, we can pass `as_univariates=True` to instead calculate the pdf from the flattened univariate representations of each of the sampled parameters.  In this case, the passed samples much match the length of the exposed sampled parameters (see [labels](../api/DistributionCollection.labels.md) or [distributions](../api/DistributionCollection.distributions.md)).
+
+
+```python
+#dc.labels
+```
+
+
+```python
+#dc.pdf([5, 10])
 ```
 
 

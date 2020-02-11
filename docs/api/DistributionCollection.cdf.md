@@ -3,7 +3,7 @@
 
 ```py
 
-def cdf(self, values=None, unpacked=False)
+def cdf(self, values=None, as_univariates=False)
 
 ```
 

@@ -2801,6 +2801,8 @@ class DistributionCollection(object):
 
     @property
     def distributions(self):
+        """
+        """
         return self._dists
 
     @distributions.setter
@@ -2819,10 +2821,14 @@ class DistributionCollection(object):
 
     @property
     def labels(self):
+        """
+        """
         return [d.label for d in self.distributions]
 
     @property
     def distributions_unpacked(self):
+        """
+        """
         # first well expand any Composite distributions to access the underlying
         # distributions
         def unpack_dists(dist):
@@ -2841,71 +2847,79 @@ class DistributionCollection(object):
         return dists_all
 
     @property
+    def labels_unpacked(self):
+        """
+        """
+        return [d.label for d in self.distributions_unpacked]
+
+    @property
     def cached_sample(self):
         return self._cached_sample
 
-    def _method_on_values(self, method, npmethod, values, unpacked):
-        # sum = 0.0
-        # dists_dict = {}
-        # values_dict = {}
-        #
-        # for dist,value in zip(self.distributions, values):
-        #     hash = dist.hash
-        #     if hash in dists_dict.keys():
-        #         dists_dict[hash] += [dist]
-        #         values_dict[hash] += [value]
-        #     else:
-        #         dists_dict[hash] = [dist]
-        #         values_dict[hash] = [value]
-        #
-        # for dists, values in zip(dists_dict.values(), values_dict.values()):
-        #     for dist, value in zip(dists, values):
-        #         sum += getattr(dist, method)(value)
-        #     # logpdf += dists[0].logp(values, dimension=[dist.dimension for dist in dists]) #* len(dists)
-        #
-        # return sum
+    @property
+    def cached_sample_unpacked(self):
+        """
+        """
+        return _np.asarray([d.cached_sample for d in self.distributions_unpacked])
 
-        values, dists = self._get_cached_values_dists(values, unpacked)
+    def _method_on_values(self, method, npmethod, values, as_univariates):
+        values, dists = self._get_unique_values_dists(self._get_cached_values(values, as_univariates), as_univariates)
+        # print("_method_on_values(method={}, npmethod={}, values={}) dists={}".format(method, npmethod, values, dists))
+
         # npmethod: one of 'product', 'sum', etc
         # method: one of 'pdf', 'cdf', 'logpdf', 'logcdf', etc
         return getattr(_np, npmethod)([getattr(dist, method)(value) for dist, value in zip(dists, values)])
 
-    def _get_cached_values_dists(self, values, unpacked):
+    def _get_cached_values(self, values, as_univariates):
         if values is None:
-            values = self.cached_sample_unpacked if unpacked else self.cached_sample
+            values = self.cached_sample if as_univariates else self.cached_sample_unpacked
             if values is None:
                 raise ValueError("no cached values available.  Must past values or call .sample()")
 
-        dists = self.distributions_unpacked if unpacked else self.distributions
+        return values
+
+    def _get_unique_values_dists(self, values, as_univariates):
+        dists = self.distributions if as_univariates else self.distributions_unpacked
+
         if len(values) != len(dists):
-            raise ValueError("values must be same length as self.{} ({})".format('distributions_unpacked' if unpacked else 'distributions', len(dists)))
+            raise ValueError("values must be same length as self.{} (length={}).  To use self.{} instead, pass as_univariates={}".format('distributions' if as_univariates else 'distributions_unpacked', len(dists)), 'distributions' if not as_univariates else 'distributions_unpacked', not as_univariates)
 
-        return values, dists
+        dists_unique = []
+        dists_unique_hashes = []
+        values_unique = []
+        for dist, value in zip(dists, values):
+            # we could cheat here and do
+            if dist.hash not in dists_unique_hashes:
+                dists_unique_hashes.append(dist.hash)
+                dists_unique.append(dist)
+                values_unique.append(value)
+
+        return values_unique, dists_unique
 
 
-    def pdf(self, values=None, unpacked=False):
+    def pdf(self, values=None, as_univariates=False):
         """
         """
-        return self._method_on_values('pdf', 'product', values, unpacked)
+        return self._method_on_values('pdf', 'product', values, as_univariates)
 
 
-    def logpdf(self, values=None, unpacked=False):
+    def logpdf(self, values=None, as_univariates=False):
         """
 
         Arguments
         ------------
         * `values` (list, tuple, array or None, optional, default=None): list of
             values in same length and order as <DistributionCollection.distributions> or
-            <DistributionCollection.distributions_unpacked> (see `unpacked`).
+            <DistributionCollection.distributions_unpacked> (see `as_univariates`).
             If not provided or None, the latest values from <DistributionCollection.sample>
-            will be assumed (respecting the value of `unpacked`).  If no cached
+            will be assumed (respecting the value of `as_univariates`).  If no cached
             samples are available, a ValueError will be raised.
-        * `unpacked` (bool, optional, default=False): whether `values` corresponds
+        * `as_univariates` (bool, optional, default=False): whether `values` corresponds
             to the passed distributions (<DistributionCollection.distributions>)
             or the underlying unpacked distributions (<DistributionCollection.distributions_unpacked>).
-            If the former (`unpacked=False`), the covariances will not be propagated
-            through any math or slicing.  If the latter (`unpacked=False`) covariances
-            will be respected.
+            If the former (`as_univariates=False`), covariances will be respected
+            from any underlying multivariate distributions.  If the latter
+            (`as_univariates=True`) covariances will be ignored.
 
         Returns
         ----------
@@ -2915,41 +2929,18 @@ class DistributionCollection(object):
         ----------
         * ValueError: if `values` is None, but no cached samples are available.
         """
-        return self._method_on_values('logpdf', 'sum', values, unpacked)
+        return self._method_on_values('logpdf', 'sum', values, as_univariates)
 
-    def cdf(self, values=None, unpacked=False):
+    def cdf(self, values=None, as_univariates=False):
         """
         """
-        return self._method_on_values('cdf', 'product', values, unpacked)
+        return self._method_on_values('cdf', 'product', values, as_univariates)
 
 
-    def logcdf(self, values=None, unpacked=False):
+    def logcdf(self, values=None, as_univariates=False):
         """
-
-        Arguments
-        ------------
-        * `values` (list, tuple, array or None, optional, default=None): list of
-            values in same length and order as <DistributionCollection.distributions> or
-            <DistributionCollection.distributions_unpacked> (see `unpacked`).
-            If not provided or None, the latest values from <DistributionCollection.sample>
-            will be assumed (respecting the value of `unpacked`).  If no cached
-            samples are available, a ValueError will be raised.
-        * `unpacked` (bool, optional, default=False): whether `values` corresponds
-            to the passed distributions (<DistributionCollection.distributions>)
-            or the underlying unpacked distributions (<DistributionCollection.distributions_unpacked>).
-            If the former (`unpacked=False`), the covariances will not be propagated
-            through any math or slicing.  If the latter (`unpacked=False`) covariances
-            will be respected.
-
-        Returns
-        ----------
-        * float or array of floats
-
-        Raises
-        ----------
-        * ValueError: if `values` is None, but no cached samples are available.
         """
-        return self._method_on_values('logcdf', 'sum', values, unpacked)
+        return self._method_on_values('logcdf', 'sum', values, as_univariates)
 
     def sample(self, *args, **kwargs):
         """
@@ -3000,7 +2991,7 @@ class DistributionCollection(object):
 
         sample_kwargs = {k:v for k,v in kwargs.items() if k not in ['seeds']}
         # print("*** seeds: {}, sample_kwargs: {}".format(seeds, sample_kwargs))
-        samples = _np.asarray([dist.sample(*args, seed=seeds, **sample_kwargs) for dist in self.distributions]).T
+        samples = _np.asarray([dist.sample(*args, seed=seeds, cache_sample=cache_sample, **sample_kwargs) for dist in self.distributions]).T
 
         if cache_sample:
             self._cached_sample = samples
@@ -3274,7 +3265,7 @@ class Composite(BaseUnivariateDistribution):
     @property
     def cached_sample_children(self):
         if self.dist2 is not None:
-            return [self.dist1.cached_sample, self.dist2.cached_sample]
+            return _np.asarray([self.dist1.cached_sample, self.dist2.cached_sample])
         else:
             return self.dist1.cached_sample
 
@@ -3409,7 +3400,7 @@ class Composite(BaseUnivariateDistribution):
             # if there are nested CompositeDistributions, then the seed will be lost
 
             # samples = sample_from_dists((dist1, dist2), seeds=seed, size=size)
-            # TODO: OPTIMIZE: should we cache the collection?
+            # TODO: OPTIMIZE: should we cache the collection? (in which case we should pass cache_sample)
             samples = DistributionCollection(dist1, dist2).sample(seeds=seed, size=size, cache_sample=cache_sample)
             if size is not None:
                 return getattr(samples[:,0], math)(samples[:,1])
