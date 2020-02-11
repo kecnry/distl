@@ -36,8 +36,9 @@ matrix:
 
         # Try with stable versions of numpy/astropy
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=stable ASTROPY_VERSION=stable SCIPY_VERSION=1.3
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=stable ASTROPY_VERSION=stable SCIPY_VERSION=1.2
 
+        # NOTE: scipy 1.3+ only supports python3
         - os: linux
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=stable ASTROPY_VERSION=stable SCIPY_VERSION=1.3
 
