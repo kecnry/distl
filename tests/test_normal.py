@@ -17,8 +17,14 @@ def test_conversions():
     distl.gaussian().to_histogram()
     distl.gaussian().to_uniform()
 
+def test_sample():
+    distl.gaussian().sample()
+    distl.gaussian().pdf(0)
+    distl.gaussian().ppf(0.5)
+
 
 if __name__ == '__main__':
     test_create()
     test_create_errors()
     test_conversions()
+    test_sample()
