@@ -35,7 +35,7 @@ def test_mvslice():
     dc.pdf()
 
     # passing the wrong shape to pdf should raise a ValueError
-    assert_raises(ValueError, dc.pdf, [1,1,1])
+    assert_raises(ValueError, dc.pdf, [1,1])
     assert_raises(TypeError, dc.pdf, 1)
     assert_raises(TypeError, dc.pdf, 1.0)
 
