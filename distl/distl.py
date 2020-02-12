@@ -3227,9 +3227,7 @@ class Composite(BaseUnivariateDistribution):
         if dist2 is not None:
             dist2 = dist2.copy()
 
-        print("A", label)
         if label is None:
-            print("B", dist1.label)
             if dist2 is None and dist1.label is not None:
                 label = '{}({})'.format(math, dist1.label)
             elif dist1.label is not None and dist2.label is not None:
