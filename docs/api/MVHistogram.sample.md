@@ -1,16 +1,20 @@
-### [MVHistogram](MVHistogram.md).sample (method)
+### [MVHistogram](MVHistogram.md).sample (function)
 
 
 ```py
 
-def sample(self, *args, **kwargs)
+def sample(self, size=None, dimension=None, seed=None, cache_sample=True)
 
 ```
 
 
 
-* `dimension`: (int, optional): dimension of the multivariate distribution
-    to sample.  If not provided or None, will default to [MVHistogram.dimension](MVHistogram.dimension.md).
-* `*args`, `**kwargs`: all additional arguments and keyword arguments
-    are passed on to [BaseDistribution.sample](BaseDistribution.sample.md).
+Arguments
+----------
+* `size`
+* `dimension`
+* `seed` (int, optional): seed to pass to np.random.seed
+    prior to sampling.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [MVHistogram.cached_sample](MVHistogram.cached_sample.md).
 

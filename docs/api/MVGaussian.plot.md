@@ -1,9 +1,9 @@
-### [MVGaussian](MVGaussian.md).plot (method)
+### [MVGaussian](MVGaussian.md).plot (function)
 
 
 ```py
 
-def plot(self, *args, **kwargs)
+def plot(self, **kwargs)
 
 ```
 

@@ -2,38 +2,58 @@
 
 
 A Uniform (or Boxcar) distribution gives equal weights to all values within
-the defined range and uses [numpy.random.uniform](https://docs.scipy.org/doc/numpy/reference/generated/numpy.random.uniform.html)
+the defined range and uses [scipy.stats.uniform](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.uniform.html)
 to sample values.
 
-Can be created from the top-level via the [npdists.uniform](npdists.uniform.md) or
-[npdists.boxcar](npdists.boxcar.md) convenience functions.
+Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
+[distl.boxcar](distl.boxcar.md) convenience functions.
 
 
 
 * [__init__](Uniform.__init__.md)
+* [cached_sample](Uniform.cached_sample.md)
+* [cdf](Uniform.cdf.md)
+* [clear_cached_sample](Uniform.clear_cached_sample.md)
 * [copy](Uniform.copy.md)
-* [dist_args](Uniform.dist_args.md)
-* [dist_func](Uniform.dist_func.md)
-* [distribution](Uniform.distribution.md)
+* [dist_constructor_argnames](Uniform.dist_constructor_argnames.md)
+* [dist_constructor_args](Uniform.dist_constructor_args.md)
+* [dist_constructor_func](Uniform.dist_constructor_func.md)
+* [dist_constructor_object](Uniform.dist_constructor_object.md)
+* [entropy](Uniform.entropy.md)
+* [expect](Uniform.expect.md)
+* [get_from_cache](Uniform.get_from_cache.md)
 * [get_wrap_at](Uniform.get_wrap_at.md)
 * [hash](Uniform.hash.md)
+* [interval](Uniform.interval.md)
+* [isf](Uniform.isf.md)
 * [label](Uniform.label.md)
-* [logp](Uniform.logp.md)
+* [logcdf](Uniform.logcdf.md)
+* [logpdf](Uniform.logpdf.md)
+* [logsf](Uniform.logsf.md)
 * [mean](Uniform.mean.md)
+* [median](Uniform.median.md)
+* [moment](Uniform.moment.md)
+* [pdf](Uniform.pdf.md)
 * [plot](Uniform.plot.md)
-* [plot_dist](Uniform.plot_dist.md)
+* [plot_cdf](Uniform.plot_cdf.md)
 * [plot_gaussian](Uniform.plot_gaussian.md)
+* [plot_pdf](Uniform.plot_pdf.md)
 * [plot_sample](Uniform.plot_sample.md)
+* [ppf](Uniform.ppf.md)
 * [sample](Uniform.sample.md)
-* [sample_args](Uniform.sample_args.md)
-* [sample_func](Uniform.sample_func.md)
+* [sf](Uniform.sf.md)
 * [std](Uniform.std.md)
 * [to](Uniform.to.md)
+* [to_delta](Uniform.to_delta.md)
 * [to_dict](Uniform.to_dict.md)
 * [to_file](Uniform.to_file.md)
 * [to_gaussian](Uniform.to_gaussian.md)
 * [to_histogram](Uniform.to_histogram.md)
 * [to_json](Uniform.to_json.md)
+* [to_si](Uniform.to_si.md)
+* [to_solar](Uniform.to_solar.md)
 * [unit](Uniform.unit.md)
+* [var](Uniform.var.md)
+* [width](Uniform.width.md)
 * [wrap](Uniform.wrap.md)
 * [wrap_at](Uniform.wrap_at.md)

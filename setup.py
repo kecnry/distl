@@ -5,16 +5,16 @@ from setuptools import setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setup(name='npdists',
+setup(name='distl',
       version='0.1.0-dev',
-      description='High-Level Wrappers for Probability Density Functions and Distributions using Numpy',
+      description='Simple Distributions: math operations, serializing, covariances',
       long_description=long_description,
       long_description_content_type="text/markdown",
       author='Kyle Conroy',
       author_email='kyleconroy@gmail.com',
-      url='https://www.github.com/kecnry/npdists',
-      # download_url = 'https://github.com/kecnry/npdists/tarball/1.0.0',
-      packages=['npdists'],
+      url='https://www.github.com/kecnry/distl',
+      # download_url = 'https://github.com/kecnry/distl/tarball/1.0.0',
+      packages=['distl'],
       classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Science/Research",

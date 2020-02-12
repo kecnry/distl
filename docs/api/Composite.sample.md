@@ -1,9 +1,9 @@
-### [Composite](Composite.md).sample (method)
+### [Composite](Composite.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={})
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}, as_univariate=False, cache_sample=True)
 
 ```
 
@@ -28,6 +28,15 @@ Arguments
     according to [Composite.unit](Composite.unit.md) not `unit`.
 * `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
     pass to underlying distributions.
+* `as_univariate` (bool, optional, default=False): whether to draw from
+    the flattend [Composite.pdf](Composite.pdf.md) rather than from the children distributions.
+    If True, any underlying covariances from [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md)
+    objects will be ignored.  This may be slightly faster, especially
+    with repeated calls.  Note that `as_univariate` is ignored for
+    [Composite](Composite.md) distributions with 'and' logic as these are always
+    sampled from the combined pdf.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [Composite.cached_sample](Composite.cached_sample.md).
 
 Returns
 ---------

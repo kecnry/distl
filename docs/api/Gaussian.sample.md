@@ -1,15 +1,23 @@
-### [Gaussian](Gaussian.md).sample (method)
+### [Gaussian](Gaussian.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None, cache_sample=True)
 
 ```
 
 
 
 Sample from the distribution.
+
+See also:
+
+* [Gaussian.pdf](Gaussian.pdf.md)
+* [Gaussian.cdf](Gaussian.cdf.md)
+* [Gaussian.ppf](Gaussian.ppf.md)
+* [Gaussian.plot_sample](Gaussian.plot_sample.md)
+* [Gaussian.plot](Gaussian.plot.md)
 
 Arguments
 -----------
@@ -28,6 +36,8 @@ Arguments
     according to [Gaussian.unit](Gaussian.unit.md) not `unit`.
 * `seed` (int, optional): seed to pass to np.random.seed
     prior to sampling.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [Gaussian.cached_sample](Gaussian.cached_sample.md).
 
 Returns
 ---------

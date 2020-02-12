@@ -9,16 +9,18 @@ def from_data(cls, data, bins=10, range=None, weights=None, label=None, unit=Non
 
 
 
-Create a [Histogram](Histogram.md) distribution from data.
+Create a [Histogram](Histogram.md) distribution from data.  Note that under-the-hood
+a linear interpolator is used between the bins for the pdf, cdf, and ppf
+functions (and for sampling).
 
 This can also be created from a function at the top-level as:
 
-* [npdists.histogram_from_data](npdists.histogram_from_data.md)
+* [distl.histogram_from_data](distl.histogram_from_data.md)
 
 See also:
 
 * [Histogram.__init__](Histogram.__init__.md)
-* [npdists.histogram_from_bins](npdists.histogram_from_bins.md)
+* [distl.histogram_from_bins](distl.histogram_from_bins.md)
 
 Arguments
 --------------

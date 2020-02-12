@@ -1,15 +1,23 @@
-### [Histogram](Histogram.md).sample (method)
+### [Histogram](Histogram.md).sample (function)
 
 
 ```py
 
-def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None)
+def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None, cache_sample=True)
 
 ```
 
 
 
 Sample from the distribution.
+
+See also:
+
+* [Histogram.pdf](Histogram.pdf.md)
+* [Histogram.cdf](Histogram.cdf.md)
+* [Histogram.ppf](Histogram.ppf.md)
+* [Histogram.plot_sample](Histogram.plot_sample.md)
+* [Histogram.plot](Histogram.plot.md)
 
 Arguments
 -----------
@@ -28,6 +36,8 @@ Arguments
     according to [Histogram.unit](Histogram.unit.md) not `unit`.
 * `seed` (int, optional): seed to pass to np.random.seed
     prior to sampling.
+* `cache_sample` (bool, optional, default=True): whether to override the
+    existing [Histogram.cached_sample](Histogram.cached_sample.md).
 
 Returns
 ---------

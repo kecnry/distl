@@ -1,39 +1,46 @@
-# npdists
+# distl
 
-**High-Level Wrappers for Probability Density Functions and Distributions using Numpy**
+**simplified and condensed distributions**
 
-[![badge](https://img.shields.io/badge/github-kecnry%2Fnpdists-blue.svg)](https://github.com/kecnry/npdists)
-[![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/npdists/)
-[![badge](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/npdists/blob/master/LICENSE)
-[![badge](https://travis-ci.org/kecnry/npdists.svg?branch=master)](https://travis-ci.org/kecnry/npdists)
-[![badge](https://readthedocs.org/projects/npdists/badge/?version=latest)](https://npdists.readthedocs.io/en/latest/?badge=latest)
+[![badge](https://img.shields.io/badge/github-kecnry%2Fdistl-blue.svg)](https://github.com/kecnry/distl)
+[![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/distl/)
+[![badge](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/distl/blob/master/LICENSE)
+[![badge](https://travis-ci.org/kecnry/distl.svg?branch=master)](https://travis-ci.org/kecnry/distl)
+[![badge](https://readthedocs.org/projects/distl/badge/?version=latest)](https://distl.readthedocs.io/en/latest/?badge=latest)
 
 
-**IMPORTANT**: **npdists** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please check back until an official release is ready.
+**IMPORTANT**: **distl** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please check back until an official release is ready.
 
+**distl** provides a python object-interface on top of several distribution (random variable) functions in [scipy.stats](https://docs.scipy.org/doc/scipy/reference/stats.html) and allows for:
+
+  - serialization of distributions (so they can be saved to disk or pickled and sent to processors within MPI)
+  - support for units and wrapping
+  - conversion between different types of distributions
+  - math between distributions, handling covariances from multivariate distributions wherever possible
+  - plotting convenience functions
 
 
 ## Getting Started
 
 ### Dependencies
 
-**npdists** requires the following dependencies:
+**distl** requires the following dependencies:
 
   - python 2.7+ or 3.6+
+  - scipy 1.0+
   - numpy 1.10+
 
 
 and the following optional dependencies:
 
   - matplotlib 2.2+ (required for plotting distributions)
-  - [corner](https://corner.readthedocs.io) (required for plotting multivariate distributions)
+  - [corner](https://corner.readthedocs.io) (required for plotting multivariate distributions and distribution collections)
   - astropy 1.0+ (required for units support)
-  - dill (required for saving/loading [Function Distributions](./api/Function.md))
 
 
-You can see the [Travis testing matrix](https://travis-ci.org/kecnry/npdists) for
+You can see the [Travis testing matrix](https://travis-ci.org/kecnry/distl) for
 details on what exact versions have been tested and ensured to work.  If you run
-into any issues with dependencies, please [submit an issue](https://github.com/kecnry/npdists/issues/new).
+into any issues with dependencies, please [submit an issue](https://github.com/kecnry/distl/issues/new).
 
 ### Installation
 
@@ -53,16 +60,16 @@ sudo python setup.py install
 
 ### Import
 
-Now from within python we can import the `npdists` package:
+Now from within python we can import the `distl` package:
 
 ```py
-import npdists
+import distl
 ```
 
 and then create, sample from, and plot our first distribution:
 
 ```py
-g = npdists.gaussian(10, 1)
+g = distl.gaussian(10, 1)
 print(g.sample())
 print(g.sample(10))
 g.plot(show=True)
@@ -71,20 +78,20 @@ g.plot(show=True)
 ## Supported Distribution Types
 
 Creation functions for the following distribution types are currently implemented
-and available at the [top-level of npdists](./api/npdists.md):
+and available at the [top-level of distl](./api/distl.md):
 
-* [delta](./api/npdists.delta.md)
-* [gaussian](./api/npdists.gaussian.md)
-* [normal](./api/npdists.normal.md) (shortcut to gaussian)
-* [uniform](./api/npdists.uniform.md)
-* [boxcar](./api/npdists.boxcar.md) (shortcut to uniform)
-* [histogram_from_data](./api/npdists.histogram_from_data.md) or [histogram_from_bins](./api/npdists.histogram_from_bins.md)
-* [mvgaussian](./api/npdists.mvgaussian.md)
-* [mvhistogram_from_data](./api/npdists.mvhistogram_from_data.md)
+* [delta](./api/distl.delta.md)
+* [gaussian](./api/distl.gaussian.md)
+* [normal](./api/distl.normal.md) (shortcut to gaussian)
+* [uniform](./api/distl.uniform.md)
+* [boxcar](./api/distl.boxcar.md) (shortcut to uniform)
+* [histogram_from_data](./api/distl.histogram_from_data.md) or [histogram_from_bins](./api/distl.histogram_from_bins.md)
+* [mvgaussian](./api/distl.mvgaussian.md)
+* [mvhistogram_from_data](./api/distl.mvhistogram_from_data.md)
 
 ## Converting Between Distribution Types
 
-Distributions within npdists allow for converting to other distribution types.
+Distributions within distl allow for converting to other distribution types.
 See the [API documention](./api/) for the appropriate distribution type
 and look for the `to_` methods to convert along with a description of the options
 and limitations.  Below is a summary of all implemented translation methods:
@@ -94,29 +101,45 @@ and limitations.  Below is a summary of all implemented translation methods:
     * [to_histogram](./api/Delta.to_histogram.md)
     * [to_uniform](./api/Delta.to_uniform.md)
 * [Gaussian](./api/Gaussian.md)
+    * [to_delta](./api/Gaussian.to_delta.md)
     * [to_histogram](./api/Gaussian.to_histogram.md)
     * [to_uniform](./api/Gaussian.to_uniform.md)
 * [Uniform](./api/Uniform.md)
+    * [to_delta](./api/Uniform.to_delta.md)
     * [to_gaussian](./api/Uniform.to_gaussian.md)
     * [to_histogram](./api/Uniform.to_histogram.md)
 * [Composite](./api/Composite.md)
     * [to_gaussian](./api/Composite.to_gaussian.md) (via histogram)
     * [to_histogram](./api/Composite.to_histogram.md)
     * [to_uniform](./api/Composite.to_uniform.md) (via histogram)
-* [Function](./api/Function.md)
-    * [to_gaussian](./api/Function.to_gaussian.md) (via histogram)
-    * [to_histogram](./api/Function.to_histogram.md)
-    * [to_uniform](./api/Function.to_uniform.md) (via histogram)
 * [Histogram](./api/Histogram.md)
+    * [to_delta](./api/Histogram.to_delta.md)
     * [to_gaussian](./api/Histogram.to_gaussian.md)
-    * [to_uniform](./api/Histogram.to_uniform.md)
+    * [to_uniform](./api/Histogram.to_uniform.md) (via to_gaussian)
 * [MVGaussian](./api/MVGaussian.md)
+    * [slice](./api/MVGaussian.slice.md) (to convert to [MVGaussianSlice](./api/MVGaussianSlice))
+    * [take_dimensions](./api/MVGaussian.take_dimensions.md) (returns another [MVGaussian](./api/MVGaussian.md))
+    * [to_univariate](./api/MVGaussian.to_univariate.md) (shortcut to to_gaussian)
     * [to_mvhistogram](./api/MVGaussian.to_mvhistogram.md)
-    * [to_histogram](./api/MVGaussian.to_histogram.md)
+    * [to_gaussian](./api/MVGaussian.to_gaussian.md)
+    * [to_histogram](./api/MVGaussian.to_histogram.md) (via to_gaussian)
+* [MVGaussianSlice](./api/MVGaussianSlice.md)
+    * [to_univariate](./api/MVGaussianSlice.to_univariate.md) (shortcut to to_gaussian)
+    * [to_delta](./api/MVGaussianSlice.to_delta.md)
+    * [to_gaussian](./api/MVGaussianSlice.to_gaussian.md)
+    * [to_histogram](./api/MVGaussianSlice.to_histogram.md) (via to_gaussian)
 * [MVHistogram](./api/MVHistogram.md)
+    * [slice](./api/MVHistogram.slice.md) (to convert to [MVHistogramSlice](./api/MVHistogramSlice))
+    * [take_dimensions](./api/MVHistogram.take_dimensions.md) (returns another [MVHistogram](./api/MVHistogram.md))
+    * [to_univariate](./api/MVHistogram.to_univariate.md) (shortcut to to_histogram)
     * [to_mvgaussian](./api/MVHistogram.to_mvgaussian.md)
+    * [to_gaussian](./api/MVHistogram.to_gaussian.md) (via to_histogram)
     * [to_histogram](./api/MVHistogram.to_histogram.md)
-
+* [MVHistogramSlice](./api/MVHistogramSlice.md)
+    * [to_univariate](./api/MVHistogramSlice.to_univariate.md) (shortcut to to_histogram)
+    * [to_delta](./api/MVHistogramSlice.to_delta.md)
+    * [to_gaussian](./api/MVHistogramSlice.to_gaussian.md) (via to_histogram)
+    * [to_histogram](./api/MVHistogramSlice.to_histogram.md)
 
 ## Sampling
 
@@ -124,7 +147,7 @@ To sample from any distribution, call the [sample](./api/BaseDistribution.sample
 optionally passing the number of desired samples.
 
 ```python
-g = npdists.gaussian(10, 2)
+g = distl.gaussian(10, 2)
 g.sample(10)
 ```
 
@@ -138,7 +161,7 @@ To ensure consistent results (when needed), pass `seed` to [sample](./api/BaseDi
 or set the random seed in numpy prior to sampling.
 
 ```python
-g = npdists.gaussian(10, 2)
+g = distl.gaussian(10, 2)
 g.sample(seed=1234)
 g.sample(seed=1234)
 np.random.seed(1234)
@@ -154,18 +177,35 @@ See [this seeding example](./examples/random_seed.md) for more details.
 To plot the distribution, call one of the following:
 
 * [plot](./api/BaseDistribution.plot.md)
-* [plot_dist](./api/BaseDistribution.plot_dist.md)
+* [plot_pdf](./api/BaseDistribution.plot_pdf.md)
+* [plot_cdf](./api/BaseDistribution.plot_cdf.md)
 * [plot_sample](./api/BaseDistribution.plot_sample.md)
 * [plot_gaussian](./api/BaseDistribution.plot_gaussian.md)
 
 ```py
-gh = npdists.gaussian(5, 3).to_histogram()
+gh = distl.gaussian(5, 3).to_histogram()
 out = gh.plot(200, show=True, plot_gaussian=True)
 ```
 
 ![png](./examples/plotting_files/plotting_19_0.png)
 
 See [these plotting examples](./examples/plotting.md) for more details.
+
+## Serializing
+
+```py
+g = distl.gaussian(5, 3)
+g = distl.from_dict(g.to_dict())
+```
+
+See the API docs on the following for more details:
+
+  - [to_dict](./api/BaseDistribution.to_dict.md)
+  - [from_dict](./api/distl.from_dict.md)
+  - [to_json](./api/BaseDistribution.to_json.md)
+  - [from_json](./api/distl.from_json.md)
+  - [to_file](./api/BaseDistribution.to_file.md)
+  - [from_file](./api/distl.from_file.md)
 
 
 ## Math with Distribution Objects
@@ -175,8 +215,8 @@ Any (supported) math operator between two Distribution objects, or between a Dis
 This means that in the following case `2 * g` is equivalent to `d * g`, but **not** `g + g`:
 
 ```py
-g = npdists.gaussian(10, 2)
-d = npdists.delta(2)
+g = distl.gaussian(10, 2)
+d = distl.delta(2)
 ```
 
 Currently supported operators include:
@@ -200,16 +240,43 @@ See [these units examples](./examples/units.md) for more details.
 ## Wrapping
 
 ```py
-g = npdists.gaussian(10, 2, wrap_at=12)
+g = distl.gaussian(10, 2, wrap_at=12)
 out = g.plot(show=True)
 ```
 ![png](./examples/wrapping_files/wrapping_2_0.png)
 
 See [these wrapping examples](./examples/wrapping.md) for more details.
 
-## Hard Limits
+## Slicing Multivariate Distributions
 
-**COMING SOON**
+```py
+mvg = distl.mvgaussian([5,10, 12],
+                       np.array([[ 2,  1, -1],
+                                 [ 1,  2,  1],
+                                 [-1,  1,  2]]),
+                       allow_singular=True,
+                       labels=['mvg_a', 'mvg_b', 'mvg_c'])
+mvg_a = mvg.slice('a')
+mvg_a.sample()
+mvg_a.plot(show=True)
+```
+
+See [these slicing examples](./examples/multivariate_slice.md) for more details.
+
+
+## Drawing and Computing Probabilities for Multiple Distributions via DistributionCollections
+
+```py
+g = distl.gaussian(10, 2, label='gaussian')
+u = distl.uniform(0, 5, label='uniform')
+dc = distl.DistributionCollection(g, u)
+dc.plot(show=True)
+```
+
+![png](./examples/collections_files/collections_14_0.png)
+
+See [these collections examples](./examples/collections.md) for more details.
+
 
 ## API Documentation
 

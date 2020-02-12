@@ -1,9 +1,9 @@
-### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).plot (method)
+### [BaseMultivariateDistribution](BaseMultivariateDistribution.md).plot (function)
 
 
 ```py
 
-def plot(self, *args, **kwargs)
+def plot(self, **kwargs)
 
 ```
 

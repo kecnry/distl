@@ -1,4 +1,4 @@
-### [MVGaussian](MVGaussian.md).get_wrap_at (method)
+### [MVGaussian](MVGaussian.md).get_wrap_at (function)
 
 
 ```py

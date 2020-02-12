@@ -1,9 +1,9 @@
-### [MVHistogram](MVHistogram.md).to_mvgaussian (method)
+### [MVHistogram](MVHistogram.md).to_mvgaussian (function)
 
 
 ```py
 
-def to_mvgaussian(self, N=100000.0)
+def to_mvgaussian(self, N=100000.0, allow_singular=False)
 
 ```
 
@@ -13,13 +13,15 @@ Convert the [MVHistogram](MVHistogram.md) distribution to an [MVGaussian](MVGaus
 
 See also:
 
-* [MVHistogram.means](MVHistogram.means.md)
-* [MVHistogram.get_covariances](MVHistogram.get_covariances.md)
+* [MVHistogram.calculate_means](MVHistogram.calculate_means.md)
+* [MVHistogram.calculate_covariances](MVHistogram.calculate_covariances.md)
 
 Arguments
 ---------
 * `N` (int, default=1e5): number of samples to use when calling
-    [MVHistogram.get_covariances](MVHistogram.get_covariances.md).
+    [MVHistogram.calculate_means](MVHistogram.calculate_means.md) and [MVHistogram.calculate_covariances](MVHistogram.calculate_covariances.md).
+* `allow_singular` (bool, optional, default=False): value to pass to
+    [MVGaussian](MVGaussian.md).
 
 Returns
 --------

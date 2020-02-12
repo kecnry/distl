@@ -1,14 +1,14 @@
 ```python
-import npdists
+import distl
 import numpy as np
 ```
 
 
 ```python
-g = npdists.gaussian(10, 2)
+g = distl.gaussian(10, 2)
 ```
 
-npdists obeys the seed set in `np.random.seed`.
+**distl** obeys the seed set in `np.random.seed`.
 
 
 ```python
@@ -19,7 +19,7 @@ g.sample()
 
 
 
-    10.942870327464986
+    8.255378595638142
 
 
 
@@ -32,7 +32,7 @@ g.sample()
 
 
 
-    10.942870327464986
+    8.255378595638142
 
 
 
@@ -46,7 +46,7 @@ g.sample(seed=1234)
 
 
 
-    10.942870327464986
+    8.255378595638142
 
 
 
@@ -58,7 +58,7 @@ g.sample()
 
 
 
-    7.618048610587071
+    10.62204778579605
 
 
 
@@ -77,7 +77,7 @@ h.sample()
 
 
 
-    8.57624521281888
+    11.062801594324343
 
 
 
@@ -89,7 +89,7 @@ h.sample(seed=1234)
 
 
 
-    8.7221165939664
+    7.253562541644463
 
 
 
@@ -101,15 +101,15 @@ h.sample(seed=1234)
 
 
 
-    8.7221165939664
+    7.253562541644463
 
 
 
-If you want a random seed to be used to multiple calls in the same execution, you can access a random array of integers via [get_random_seed](../api/npdists.get_random_seed.md) which can then be passed on to either np.random.seed or sample.
+If you want a random seed to be used to multiple calls in the same execution, you can access a random array of integers via [get_random_seed](../api/distl.get_random_seed.md) which can then be passed on to either np.random.seed or sample.
 
 
 ```python
-seed = npdists.get_random_seed()
+seed = distl.get_random_seed()
 ```
 
 
@@ -120,7 +120,7 @@ g.sample(seed=seed)
 
 
 
-    11.909988111967035
+    6.561067923451439
 
 
 
@@ -132,19 +132,19 @@ g.sample(seed=seed)
 
 
 
-    11.909988111967035
+    6.561067923451439
 
 
 
 
 ```python
-g.sample(seed=npdists.get_random_seed())
+g.sample(seed=distl.get_random_seed())
 ```
 
 
 
 
-    6.046845644083414
+    11.27810575248316
 
 
 

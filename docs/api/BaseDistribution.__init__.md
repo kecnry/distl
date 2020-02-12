@@ -1,9 +1,9 @@
-### [BaseDistribution](BaseDistribution.md).__init__ (method)
+### [BaseDistribution](BaseDistribution.md).__init__ (function)
 
 
 ```py
 
-def __init__(self, unit, label, wrap_at, dist_func, dist_args, sample_func, sample_args, *args)
+def __init__(self, dist_constructor_func, dist_constructor_argnames, *args)
 
 ```
 

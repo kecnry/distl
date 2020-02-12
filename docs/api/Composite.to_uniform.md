@@ -1,4 +1,4 @@
-### [Composite](Composite.md).to_uniform (method)
+### [Composite](Composite.md).to_uniform (function)
 
 
 ```py

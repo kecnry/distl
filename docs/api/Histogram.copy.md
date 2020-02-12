@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).copy (method)
+### [Histogram](Histogram.md).copy (function)
 
 
 ```py

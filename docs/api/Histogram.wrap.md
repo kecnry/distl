@@ -1,4 +1,4 @@
-### [Histogram](Histogram.md).wrap (method)
+### [Histogram](Histogram.md).wrap (function)
 
 
 ```py
