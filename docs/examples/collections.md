@@ -28,7 +28,7 @@ dc
 
 
 
-    <distl.distl.DistributionCollection at 0x7fede06a3910>
+    <distl.distl.DistributionCollection at 0x7fdbc336b510>
 
 
 
@@ -42,7 +42,7 @@ dc.sample()
 
 
 
-    array([7.94423774, 4.72145878])
+    array([7.94423774, 0.91006655])
 
 
 
@@ -83,9 +83,9 @@ dc.sample(size=3)
 
 
 
-    array([[ 7.82518743,  1.82379003],
-           [10.23970772,  1.19782394],
-           [10.14979313,  0.74741029]])
+    array([[11.73459776,  3.97822691],
+           [ 9.63509604,  0.39891307],
+           [11.18321653,  4.37293134]])
 
 
 
@@ -165,7 +165,7 @@ dc.sample()
 
 
 
-    array([ 9.67013996,  4.90442455,  5.19534466, 13.80264406])
+    array([ 8.76513324,  2.35866966,  3.10199761, 13.42241175])
 
 
 
@@ -248,6 +248,92 @@ g.pdf(10) * u.pdf(5) * mvg.to_univariate('mvg_a').pdf(5) * mvg.to_univariate('mv
 
 # Composite (math operators) distributions
 
+
+```python
+g1 = distl.gaussian(5, 2, label='g1')
+u = distl.gaussian(3, 5, label='u')
+g2 = distl.gaussian(25, 1, label='g2')
+#c = u*g2
+#c.label = 'c'
+
+dc = distl.DistributionCollection(g1, u*g2)
+```
+
+
+```python
+dc.sample()
+```
+
+
+
+
+    array([  3.93296911, -49.14810304])
+
+
+
+
+```python
+out = dc.plot(show=True)
+```
+
+
+![png](collections_files/collections_36_0.png)
+
+
+
+```python
+dc.labels
+```
+
+
+
+
+    ['g1', 'u * g2']
+
+
+
+
+```python
+dc.labels_unpacked
+```
+
+
+
+
+    ['g1', 'u', 'g2']
+
+
+
+Because the [DistributionCollection](../api/DistributionCollection.md) contains a [Composite](../api/Composite.md) distribution, we can either pass the two exposed values and `as_univariates=True` or the three underlying values without.
+
+**TODO**: as there aren't any covariances, as_univariates is a stupid name to use here.  And in this exact example isn't even really applicable since none of the children are also sampled.
+
+
+```python
+dc.pdf([6, 4*25], as_univariates=True)
+```
+
+
+
+
+    0.0005473965376841032
+
+
+
+
+```python
+dc.pdf([6, 4, 25])
+```
+
+
+
+
+    0.00549234105537757
+
+
+
+# Composites containing MultivariateSlice distributions
+
 Now let's consider a more complex example: let's sample from 'gaussian * mvg_a' and 'mvg_c'.  Here we want the covariance between 'mvg_a' and 'mvg_c' respected, even though there is a math operation on the result of 'mvg_a'.
 
 
@@ -258,38 +344,16 @@ Now let's consider a more complex example: let's sample from 'gaussian * mvg_a' 
 
 
 ```python
-#dc.sample()
+# dc.sample()
 ```
 
 
 ```python
-#out = dc.plot(show=True)
+# out = dc.plot(show=True)
 ```
 
 As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array.  However, in order to respect the covariances, the length of the input must match that of the underlying distributions that were sampled (see [labels_unpacked](../api/DistributionCollection.labels_unpacked.md) or [distributions_unpacked](../api/DistributionCollection.distributions_unpacked.md)).
 
-
-
-```python
-#dc.labels_unpacked
-```
-
-
-```python
-#dc.pdf([5, 10, 10])
-```
-
-As with the multivariate case above, we can pass `as_univariates=True` to instead calculate the pdf from the flattened univariate representations of each of the sampled parameters.  In this case, the passed samples much match the length of the exposed sampled parameters (see [labels](../api/DistributionCollection.labels.md) or [distributions](../api/DistributionCollection.distributions.md)).
-
-
-```python
-#dc.labels
-```
-
-
-```python
-#dc.pdf([5, 10])
-```
 
 
 ```python

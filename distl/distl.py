@@ -595,7 +595,7 @@ class BaseDistribution(object):
         else:
             dist = self
 
-        return Composite("sin", dist, label="sin({})".format(self.label) if self.label is not None else None)
+        return Composite("sin", dist)
 
     def cos(self):
         if self.unit is not None:
@@ -603,7 +603,7 @@ class BaseDistribution(object):
         else:
             dist = self
 
-        return Composite("cos", dist, label="cos({})".format(self.label) if self.label is not None else None)
+        return Composite("cos", dist)
 
     def tan(self):
         if self.unit is not None:
@@ -611,7 +611,7 @@ class BaseDistribution(object):
         else:
             dist = self
 
-        return Composite("tan", dist, label="tan({})".format(self.label) if self.label is not None else None)
+        return Composite("tan", dist)
 
     ### SAMPLE CACHING
     @property
@@ -3226,6 +3226,14 @@ class Composite(BaseUnivariateDistribution):
         dist1 = dist1.copy()
         if dist2 is not None:
             dist2 = dist2.copy()
+
+        print("A", label)
+        if label is None:
+            print("B", dist1.label)
+            if dist2 is None and dist1.label is not None:
+                label = '{}({})'.format(math, dist1.label)
+            elif dist1.label is not None and dist2.label is not None:
+                label = '{} {} {}'.format(dist1.label, _math_symbols.get(math, math), dist2.label)
 
         super(Composite, self).__init__(unit, label, wrap_at,
                                         _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
