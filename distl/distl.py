@@ -2882,7 +2882,7 @@ class DistributionCollection(object):
         dists = self.distributions if as_univariates else self.distributions_unpacked
 
         if len(values) != len(dists):
-            raise ValueError("values must be same length as self.{} (length={}).  To use self.{} instead, pass as_univariates={}".format('distributions' if as_univariates else 'distributions_unpacked', len(dists)), 'distributions' if not as_univariates else 'distributions_unpacked', not as_univariates)
+            raise ValueError("values must be same length as self.{} (length={}).  To use self.{} instead, pass as_univariates={}".format('distributions' if as_univariates else 'distributions_unpacked', len(dists), 'distributions' if not as_univariates else 'distributions_unpacked', not as_univariates))
 
         dists_unique = []
         dists_unique_hashes = []

@@ -4,13 +4,17 @@ import distl
 import numpy as np
 
 def test_univariates():
-    g = distl.gaussian(5, 10)
-    u = distl.normal(5, 10)
+    g = distl.gaussian(5, 10, label='gaussian')
+    u = distl.uniform(5, 10, label='uniform')
     dc = distl.DistributionCollection(g, u)
 
     assert(abs(dc.pdf([5, 7]) - (g.pdf(5) * u.pdf(7))) < 1e-6)
 
     dc = distl.from_dict(dc.to_dict())
+
+    assert_raises(ValueError, dc.pdf, None)
+
+    # test to make sure sampling and caching still work
     dc.sample()
     dc.pdf()
 
