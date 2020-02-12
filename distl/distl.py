@@ -3433,7 +3433,7 @@ class Composite(BaseUnivariateDistribution):
                             self.unit = dist1.unit
                         else:
                             # TODO: if they're convertible, we should handle the scaling automatically
-                            raise ValueError("units do not match")
+                            raise ValueError("units do not match for {} ({} and {})".format(_math_symbols.get(math, math), dist1.unit, dist2.unit))
                     elif hasattr(dist1.unit, math):
                         self.unit = getattr(dist1.unit, math)(dist2.unit)
                     else:
