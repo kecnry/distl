@@ -38,6 +38,7 @@
 * [sf](BaseMultivariateSliceDistribution.sf.md)
 * [std](BaseMultivariateSliceDistribution.std.md)
 * [to](BaseMultivariateSliceDistribution.to.md)
+* [to_delta](BaseMultivariateSliceDistribution.to_delta.md)
 * [to_dict](BaseMultivariateSliceDistribution.to_dict.md)
 * [to_file](BaseMultivariateSliceDistribution.to_file.md)
 * [to_histogram](BaseMultivariateSliceDistribution.to_histogram.md)

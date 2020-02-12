@@ -44,6 +44,7 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 * [sf](Delta.sf.md)
 * [std](Delta.std.md)
 * [to](Delta.to.md)
+* [to_delta](Delta.to_delta.md)
 * [to_dict](Delta.to_dict.md)
 * [to_file](Delta.to_file.md)
 * [to_gaussian](Delta.to_gaussian.md)

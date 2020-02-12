@@ -2184,6 +2184,38 @@ class BaseUnivariateDistribution(BaseDistribution):
 
 
     ### CONVERSION TO OTHER DISTRIBUTION TYPES
+    def to_delta(self, loc='median'):
+        """
+        Convert the <<class>> distribution to a <Delta> distribution at the
+        <<class>.median> (or <<class>.mean>).
+
+        Arguments
+        ------------
+        * `loc` (string or float, optional, default='median'):  If a float,
+            will create a delta function directly at that value.  If 'median' or
+            'mean' will use <<class>.median> or <<class>.mean>, respectively.
+            If 'sample', will draw a random sample from <<class>.sample>.
+            All other strings will raise a ValueError.
+
+        Returns
+        -----------
+        * a <Delta> object
+
+        Raises
+        ----------
+        * ValueError: if the value of `loc` is not one of 'median', 'mean', 'sample'
+        """
+        if isinstance(loc, str):
+            if loc not in ['median', 'mean', 'sample']:
+                raise ValueError("loc must be a float or one of 'median', 'mean', 'sample'")
+
+            loc = getattr(self, loc)()
+
+        elif not (isinstance(loc, float) or isinstance(loc, int)):
+            raise TypeError("loc must be a float or one of 'median', 'mean', 'sample'")
+
+        return Delta(loc=loc,
+                     unit=self.unit, label=self.label, wrap_at=self.wrap_at)
 
     def to_histogram(self, N=100000, bins=10, range=None, wrap_at=None):
         """

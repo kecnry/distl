@@ -101,6 +101,7 @@ and linearly interpolating between the bins, thereby losing all covariances.
 * [sf](Composite.sf.md)
 * [std](Composite.std.md)
 * [to](Composite.to.md)
+* [to_delta](Composite.to_delta.md)
 * [to_dict](Composite.to_dict.md)
 * [to_file](Composite.to_file.md)
 * [to_gaussian](Composite.to_gaussian.md)

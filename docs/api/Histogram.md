@@ -55,6 +55,7 @@ well as used when calling &lt;[class](class.md).sample&gt;.
 * [sf](Histogram.sf.md)
 * [std](Histogram.std.md)
 * [to](Histogram.to.md)
+* [to_delta](Histogram.to_delta.md)
 * [to_dict](Histogram.to_dict.md)
 * [to_file](Histogram.to_file.md)
 * [to_gaussian](Histogram.to_gaussian.md)

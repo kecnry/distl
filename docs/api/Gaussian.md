@@ -43,6 +43,7 @@ Can be created from the top-level via the [distl.gaussian](distl.gaussian.md) or
 * [sf](Gaussian.sf.md)
 * [std](Gaussian.std.md)
 * [to](Gaussian.to.md)
+* [to_delta](Gaussian.to_delta.md)
 * [to_dict](Gaussian.to_dict.md)
 * [to_file](Gaussian.to_file.md)
 * [to_histogram](Gaussian.to_histogram.md)

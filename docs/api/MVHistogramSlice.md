@@ -40,6 +40,7 @@
 * [sf](MVHistogramSlice.sf.md)
 * [std](MVHistogramSlice.std.md)
 * [to](MVHistogramSlice.to.md)
+* [to_delta](MVHistogramSlice.to_delta.md)
 * [to_dict](MVHistogramSlice.to_dict.md)
 * [to_file](MVHistogramSlice.to_file.md)
 * [to_histogram](MVHistogramSlice.to_histogram.md)

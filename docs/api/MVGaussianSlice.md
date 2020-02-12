@@ -40,6 +40,7 @@
 * [sf](MVGaussianSlice.sf.md)
 * [std](MVGaussianSlice.std.md)
 * [to](MVGaussianSlice.to.md)
+* [to_delta](MVGaussianSlice.to_delta.md)
 * [to_dict](MVGaussianSlice.to_dict.md)
 * [to_file](MVGaussianSlice.to_file.md)
 * [to_histogram](MVGaussianSlice.to_histogram.md)

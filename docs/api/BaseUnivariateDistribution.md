@@ -34,6 +34,7 @@
 * [sf](BaseUnivariateDistribution.sf.md)
 * [std](BaseUnivariateDistribution.std.md)
 * [to](BaseUnivariateDistribution.to.md)
+* [to_delta](BaseUnivariateDistribution.to_delta.md)
 * [to_dict](BaseUnivariateDistribution.to_dict.md)
 * [to_file](BaseUnivariateDistribution.to_file.md)
 * [to_histogram](BaseUnivariateDistribution.to_histogram.md)

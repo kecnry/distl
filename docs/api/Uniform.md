@@ -44,6 +44,7 @@ Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
 * [sf](Uniform.sf.md)
 * [std](Uniform.std.md)
 * [to](Uniform.to.md)
+* [to_delta](Uniform.to_delta.md)
 * [to_dict](Uniform.to_dict.md)
 * [to_file](Uniform.to_file.md)
 * [to_gaussian](Uniform.to_gaussian.md)
