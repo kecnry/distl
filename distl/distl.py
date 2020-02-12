@@ -2572,6 +2572,9 @@ class BaseMultivariateDistribution(BaseDistribution):
     def to_univariate(self, *args, **kwargs):
         raise NotImplementedError("to_univariate not implemented by {}".format(self.__class__.__name__))
 
+    def take_dimensions(self, dimensions):
+        raise NotImplementedError("take_dimensions not implemented by {}".format(self.__class__.__name__))
+
 
 class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
     def __init__(self, multivariate, dimension):
@@ -4013,6 +4016,7 @@ class MVGaussian(BaseMultivariateDistribution):
 
         See also:
 
+        * <MVGaussian.take_dimensions>
         * <<class>.to_histogram>
         * <<class>.to_gaussian>
         * <MVGaussianSlice.dimension>
@@ -4027,6 +4031,37 @@ class MVGaussian(BaseMultivariateDistribution):
         * <MVGaussianSlice> object
         """
         return MVGaussianSlice(self, dimension)
+
+    def take_dimensions(self, dimensions):
+        """
+        Take multiple dimensions from the multivariate distribution (and remove
+        all others), returning another <MVGaussian> object.
+
+        See also:
+
+        * <MVGaussian.slice>
+
+        Arguments
+        ----------
+        * `dimension` (list of strings or ints): the labels or indices of the
+            dimensions to include in the new distribution.
+
+        Returns
+        ----------
+        * <MVGaussian> object
+        """
+        if isinstance(dimensions, int) or isinstance(dimensions, str):
+            dimensions = [dimensions]
+
+        dimensions = [self._get_dimension_index(d) for d in dimensions]
+
+        mean = _np.asarray(self.mean)[dimensions]
+        cov = _np.asarray(self.cov)[dimensions, :][:, dimensions]
+
+        return MVGaussian(mean=mean, cov=cov,
+                          units=[self.units[d] for d in dimensions] if self.units is not None else None,
+                          labels=[self.labels[d] for d in dimensions] if self.labels is not None else None,
+                          wrap_ats=[self.wrap_ats[d] for d in dimensions] if self.wrap_ats is not None else None)
 
     def to_mvhistogram(self, N=1e6, bins=15, range=None):
         """
@@ -4281,6 +4316,37 @@ class MVHistogram(BaseMultivariateDistribution):
         * <MVHistogramSlice> object
         """
         return MVHistogramSlice(self, dimension)
+
+    def take_dimensions(self, dimensions):
+        """
+        Take multiple dimensions from the multivariate distribution (and remove
+        all others), returning another <MVHistogram> object.
+
+        See also:
+
+        * <MVHistogram.slice>
+
+        Arguments
+        ----------
+        * `dimension` (list of strings or ints): the labels or indices of the
+            dimensions to include in the new distribution.
+
+        Returns
+        ----------
+        * <MVHistogram> object
+        """
+        if isinstance(dimensions, int) or isinstance(dimensions, str):
+            dimensions = [dimensions]
+
+        dimensions = [self._get_dimension_index(d) for d in dimensions]
+
+        bins = _np.asarray(self.bins)[dimensions]
+        density = _np.sum(self.density, axis=tuple([d for d in range(self.ndimensions) if d not in dimensions]))
+
+        return MVHistogram(bins=bins, density=density,
+                           units=[self.units[d] for d in dimensions] if self.units is not None else None,
+                           labels=[self.labels[d] for d in dimensions] if self.labels is not None else None,
+                           wrap_ats=[self.wrap_ats[d] for d in dimensions] if self.wrap_ats is not None else None)
 
     def sample(self, size=None, dimension=None, seed=None, cache_sample=True):
         """

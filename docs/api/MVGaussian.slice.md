@@ -16,6 +16,7 @@ like a univariate distribution.
 
 See also:
 
+* [MVGaussian.take_dimensions](MVGaussian.take_dimensions.md)
 * [MVGaussian.to_histogram](MVGaussian.to_histogram.md)
 * [MVGaussian.to_gaussian](MVGaussian.to_gaussian.md)
 * [MVGaussianSlice.dimension](MVGaussianSlice.dimension.md)

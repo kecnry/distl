@@ -24,6 +24,7 @@
 * [plot_sample](MVGaussian.plot_sample.md)
 * [sample](MVGaussian.sample.md)
 * [slice](MVGaussian.slice.md)
+* [take_dimensions](MVGaussian.take_dimensions.md)
 * [to_dict](MVGaussian.to_dict.md)
 * [to_file](MVGaussian.to_file.md)
 * [to_gaussian](MVGaussian.to_gaussian.md)

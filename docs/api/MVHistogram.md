@@ -48,6 +48,7 @@ on that sample.
 * [plot_sample](MVHistogram.plot_sample.md)
 * [sample](MVHistogram.sample.md)
 * [slice](MVHistogram.slice.md)
+* [take_dimensions](MVHistogram.take_dimensions.md)
 * [to_dict](MVHistogram.to_dict.md)
 * [to_file](MVHistogram.to_file.md)
 * [to_gaussian](MVHistogram.to_gaussian.md)

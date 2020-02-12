@@ -22,6 +22,7 @@
 * [plot_pdf](BaseMultivariateDistribution.plot_pdf.md)
 * [plot_sample](BaseMultivariateDistribution.plot_sample.md)
 * [sample](BaseMultivariateDistribution.sample.md)
+* [take_dimensions](BaseMultivariateDistribution.take_dimensions.md)
 * [to_dict](BaseMultivariateDistribution.to_dict.md)
 * [to_file](BaseMultivariateDistribution.to_file.md)
 * [to_json](BaseMultivariateDistribution.to_json.md)

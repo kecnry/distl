@@ -25,7 +25,7 @@ mvg.sample()
 
 
 
-    array([ 5.28918573, 11.21208674, 12.92290101])
+    array([ 8.13858284, 10.35261798,  9.21403513])
 
 
 
@@ -37,11 +37,11 @@ mvg.sample(size=5)
 
 
 
-    array([[ 5.69256978, 12.65094467, 13.95837489],
-           [ 5.48324556,  8.00583062,  9.52258506],
-           [ 4.04494092,  7.86700014, 10.82205921],
-           [ 2.41793021,  8.99122719, 13.57329698],
-           [ 2.67232714, 10.60534095, 14.9330138 ]])
+    array([[ 1.28893149,  7.3480004 , 13.05906891],
+           [ 4.33293529, 10.34270443, 13.00976913],
+           [ 5.666064  , 10.69490313, 12.02883913],
+           [ 4.6536998 , 11.15947346, 13.50577366],
+           [ 5.24455424, 10.92066427, 12.67611003]])
 
 
 
@@ -96,7 +96,7 @@ mvh.calculate_means()
 
 
 
-    array([ 4.97142828,  9.97154187, 11.05755981])
+    array([ 4.96368473,  9.96922446, 11.05371179])
 
 
 
@@ -108,9 +108,9 @@ mvh.calculate_covariances()
 
 
 
-    array([[ 2.12439248,  0.99252033, -0.99530192],
-           [ 0.99252033,  2.12913431,  1.00080292],
-           [-0.99530192,  1.00080292,  2.1276206 ]])
+    array([[ 2.13461035,  0.9810571 , -0.99805398],
+           [ 0.9810571 ,  2.13494765,  1.0017221 ],
+           [-0.99805398,  1.0017221 ,  2.14112846]])
 
 
 
@@ -138,7 +138,7 @@ mvhg.mean
 
 
 
-    array([ 4.96348824,  9.96372407, 11.06157606])
+    array([ 4.96983076,  9.96986865, 11.05145188])
 
 
 
@@ -150,10 +150,77 @@ mvhg.cov
 
 
 
-    array([[ 2.14968705,  1.0014201 , -1.01230489],
-           [ 1.0014201 ,  2.11435132,  0.98121077],
-           [-1.01230489,  0.98121077,  2.12815416]])
+    array([[ 2.15068612,  0.98938779, -1.00598993],
+           [ 0.98938779,  2.14515829,  1.00431943],
+           [-1.00598993,  1.00431943,  2.14788639]])
 
+
+
+# Take Dimensions
+
+
+```python
+mvg_ac = mvg.take_dimensions(['a', 'c'])
+```
+
+
+```python
+mvg_ac.sample()
+```
+
+
+
+
+    array([ 3.90118612, 11.99159429])
+
+
+
+
+```python
+out = mvg_ac.plot(show=True)
+```
+
+
+![png](multivariate_files/multivariate_22_0.png)
+
+
+
+```python
+out = mvh.take_dimensions(['a', 'c']).plot(show=True)
+```
+
+
+![png](multivariate_files/multivariate_23_0.png)
+
+
+# Slicing
+
+Slicing allows taking a single dimension while retaining all underlying covariances such that the resulting distribution can undergo [math operations](./math.md), [and/or logic](./and_or.md), and included in [distribution collections](./collections.md).  For more details, see the [slice examples](./slice.md).
+
+
+```python
+mvg_a = mvg.slice('a')
+```
+
+
+```python
+mvg_a.sample()
+```
+
+
+
+
+    3.4155760454813677
+
+
+
+
+```python
+out = mvg_a.plot(show=True)
+```
+
+
+![png](multivariate_files/multivariate_27_0.png)
 
 
 
