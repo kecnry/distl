@@ -1,5 +1,5 @@
 from . import distl as _distl
-from .distl import DistributionCollection, from_dict, from_json, from_file, get_random_seed, _has_astropy, _units# , sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists,
+from .distl import DistributionCollection, from_dict, from_json, from_file, get_random_seed, _has_astropy, _units, __version__, version # , sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists,
 import numpy as _np
 from .distl import BaseDistribution # for isinstance checking
 import json as _json
@@ -12,10 +12,6 @@ else:
     _has_dill = True
 
 name = 'distl'
-__version__ = '0.1.0-dev'
-version = __version__
-
-
 
 def delta(value=0.0, unit=None, label=None, wrap_at=None):
     """

@@ -29,6 +29,8 @@ except ImportError:
 else:
     _has_astropy = True
 
+__version__ = '0.1.0-dev'
+version = __version__
 
 _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/', '__and__': '&', '__or__': '|'}
 
@@ -90,7 +92,7 @@ def from_dict(d):
     # performance issues, we could instead accept and ignore distl as
     # a keyword argument to __init__
     args = d.get('args', None)
-    kwargs = {k:v for k,v in d.items() if k not in ['distl', 'args']}
+    kwargs = {k:v for k,v in d.items() if k not in ['distl', 'distl.version', 'args']}
     if args is not None:
         dist = getattr(_sys.modules[__name__], classname)(*args, **kwargs)
     else:
@@ -431,7 +433,7 @@ class BaseDistribution(object):
     ### COPYING
 
     def __copy__(self):
-        return self.__class__(**{k:v for k,v in self.to_dict().items() if k not in ['distl']})
+        return self.__class__(**{k:v for k,v in self.to_dict().items() if k not in ['distl', 'distl.version']})
 
     def __deepcopy__(self, memo):
         return self.__copy__()
@@ -1439,6 +1441,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         """
         d = {k:_json_safe(v) for k,v in self._descriptors.items()}
         d['distl'] = self.__class__.__name__
+        d['distl.version'] = __version__
         if self.unit is not None:
             d['unit'] = str(self.unit.to_string())
         if self.label is not None:
@@ -2287,6 +2290,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         d = {k:_json_safe(v) for k,v in self._descriptors.items()}
         d['distl'] = self.__class__.__name__
+        d['distl.version'] = __version__
         if self.units is not None:
             d['units'] = str(self.units.to_string())
         if self.labels is not None:
@@ -2682,6 +2686,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
 
         d = {}
         d['distl'] = self.__class__.__name__
+        d['distl.version'] = __version__
         d['multivariate'] = self.multivariate.to_dict()
         d['dimension'] = self.dimension
         return d
@@ -2856,6 +2861,7 @@ class DistributionCollection(object):
 
         d = {}
         d['distl'] = self.__class__.__name__
+        d['distl.version'] = __version__
         d['args'] = [distribution.to_dict() for distribution in self.distributions]
         return d
 
