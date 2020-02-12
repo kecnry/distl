@@ -16,6 +16,7 @@
 * [get_from_cache](BaseMultivariateSliceDistribution.get_from_cache.md)
 * [get_wrap_at](BaseMultivariateSliceDistribution.get_wrap_at.md)
 * [hash](BaseMultivariateSliceDistribution.hash.md)
+* [hash_slice](BaseMultivariateSliceDistribution.hash_slice.md)
 * [interval](BaseMultivariateSliceDistribution.interval.md)
 * [isf](BaseMultivariateSliceDistribution.isf.md)
 * [label](BaseMultivariateSliceDistribution.label.md)

@@ -28,7 +28,7 @@ dc
 
 
 
-    <distl.distl.DistributionCollection at 0x7f9b655fea50>
+    <distl.distl.DistributionCollection at 0x7fede06a3910>
 
 
 
@@ -42,7 +42,7 @@ dc.sample()
 
 
 
-    array([7.94423774, 2.83035794])
+    array([7.94423774, 4.72145878])
 
 
 
@@ -83,9 +83,9 @@ dc.sample(size=3)
 
 
 
-    array([[6.59390867, 4.93961615],
-           [9.45640605, 1.96376037],
-           [7.02060242, 0.42956693]])
+    array([[ 7.82518743,  1.82379003],
+           [10.23970772,  1.19782394],
+           [10.14979313,  0.74741029]])
 
 
 
@@ -130,6 +130,8 @@ g.pdf(10) * u.pdf(5)
 
 # MultivariateSlice distributions
 
+Note that each distribution passed to a collection must be a univariate or multivariate-slice.  If attempting to pass a multivariate object without slicing to a single dimension, an error will be raised.
+
 First we'll create a [gaussian](../api/distl.gaussian.md), [uniform](../api/distl.uniform.md), and [multivariate gaussian](../api/distl.mvgaussian.md) distributions.
 
 
@@ -163,7 +165,7 @@ dc.sample()
 
 
 
-    array([12.51011783,  3.06575975,  7.07904016, 10.97771337])
+    array([ 9.67013996,  4.90442455,  5.19534466, 13.80264406])
 
 
 
@@ -176,7 +178,7 @@ out = dc.plot(show=True)
 ![png](collections_files/collections_23_0.png)
 
 
-As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array.  This time, the pdf will account for the covariance between 'mvg_a' and 'mvg_c', by default.  As 'mvg_b' is not included, no value will be assumed, but rather will be marginalized over (via [take_dimensions](../api/BaseMultivariateDistribution.take_dimensions.md)).
+As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array.  This time, the pdf will account for the covariance between 'mvg_a' and 'mvg_c', by default.  As 'mvg_b' is not included, no value will be assumed, but rather will be marginalized over (via [take_dimensions](../api/BaseMultivariateDistribution.take_dimensions.md), see [multivariate examples](./multivariate.md) for more details).
 
 
 ```python
@@ -198,7 +200,21 @@ dc.pdf([10, 5, 5, 11])
 
 
 
-    0.011253953951963828
+    0.0026266653362734885
+
+
+
+which could be computed manually as:
+
+
+```python
+g.pdf(10) * u.pdf(5) * mvg.take_dimensions(['mvg_a', 'mvg_c']).pdf([5, 11])
+```
+
+
+
+
+    0.0026266653362734885
 
 
 
@@ -212,7 +228,21 @@ dc.pdf([10, 5, 5, 11], as_univariates=True)
 
 
 
-    0.011253953951963828
+    0.0024724446692818785
+
+
+
+which could be computed manually as:
+
+
+```python
+g.pdf(10) * u.pdf(5) * mvg.to_univariate('mvg_a').pdf(5) * mvg.to_univariate('mvg_c').pdf(11)
+```
+
+
+
+
+    0.0024724446692818785
 
 
 

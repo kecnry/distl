@@ -28,7 +28,7 @@ g.sample()
 
 
 
-    8.301950998373297
+    11.332076597084288
 
 
 
@@ -40,7 +40,7 @@ g.cached_sample
 
 
 
-    8.301950998373297
+    11.332076597084288
 
 
 
@@ -52,7 +52,7 @@ g.pdf()
 
 
 
-    0.1391076736349794
+    0.1597908955461661
 
 
 
@@ -66,7 +66,7 @@ g.sample(size=2)
 
 
 
-    array([ 9.83866389, 11.45079051])
+    array([9.35848147, 7.24415696])
 
 
 
@@ -78,7 +78,7 @@ g.cached_sample
 
 
 
-    array([ 9.83866389, 11.45079051])
+    array([9.35848147, 7.24415696])
 
 
 
@@ -90,7 +90,7 @@ g.pdf()
 
 
 
-    array([0.19882318, 0.15332662])
+    array([0.18946917, 0.07719508])
 
 
 
@@ -130,7 +130,7 @@ mvg.sample()
 
 
 
-    array([ 5.95120439, 11.7635396 , 12.8123352 ])
+    array([ 5.3859635 , 10.93056563, 12.54460213])
 
 
 
@@ -156,7 +156,7 @@ mvg.pdf()
 
 
 
-    0.024340482001559628
+    0.042635218783073005
 
 
 
@@ -170,8 +170,8 @@ mvg.sample(size=2)
 
 
 
-    array([[ 4.41475233, 10.85247649, 13.43772416],
-           [ 4.37431024,  8.48164916, 11.10733892]])
+    array([[ 2.76742435,  9.38944791, 13.62202357],
+           [ 2.36562364,  8.24483222, 12.87920858]])
 
 
 
@@ -183,8 +183,8 @@ mvg.cached_sample
 
 
 
-    array([[ 4.41475233, 10.85247649, 13.43772416],
-           [ 4.37431024,  8.48164916, 11.10733892]])
+    array([[ 2.76742435,  9.38944791, 13.62202357],
+           [ 2.36562364,  8.24483222, 12.87920858]])
 
 
 
@@ -196,7 +196,7 @@ mvg.pdf()
 
 
 
-    array([0.03145482, 0.02963568])
+    array([0.01401196, 0.0087788 ])
 
 
 
@@ -217,7 +217,7 @@ mvg_a.sample()
 
 
 
-    5.28368877637045
+    3.946561462870087
 
 
 
@@ -229,7 +229,7 @@ mvg_a.cached_sample
 
 
 
-    5.28368877637045
+    3.946561462870087
 
 
 
@@ -241,7 +241,7 @@ mvg_a.multivariate.cached_sample
 
 
 
-    array([ 5.28368878,  9.21794452, 10.93425575])
+    array([ 3.94656146, 10.32990559, 13.38334412])
 
 
 
@@ -255,7 +255,7 @@ mvg_a.pdf()
 
 
 
-    0.2764758084352122
+    0.21375061128376946
 
 
 
@@ -269,7 +269,7 @@ mvg_a.multivariate.pdf()
 
 
 
-    0.03911929302710746
+    0.0314761680375048
 
 
 
@@ -283,7 +283,7 @@ mvg_a.sample(size=2)
 
 
 
-    array([6.29865519, 6.88451019])
+    array([4.07785012, 4.9677323 ])
 
 
 
@@ -295,7 +295,7 @@ mvg_a.cached_sample
 
 
 
-    array([ 6.29865519, 11.08697687, 11.78832168])
+    array([ 4.07785012,  8.93353492, 11.8556848 ])
 
 
 
@@ -307,7 +307,7 @@ mvg_a.pdf()
 
 
 
-    array([1.85048293e-01, 2.67671818e-05, 2.80014335e-06])
+    array([2.28070104e-01, 5.89479008e-03, 2.22530711e-06])
 
 
 
@@ -331,7 +331,7 @@ c.sample()
 
 
 
-    23.44816323551863
+    15.608052592721844
 
 
 
@@ -343,7 +343,7 @@ c.cached_sample
 
 
 
-    23.44816323551863
+    15.608052592721844
 
 
 
@@ -357,7 +357,7 @@ c.pdf()
 
 
 
-    0.04197821858381385
+    0.05083716890928076
 
 
 
@@ -382,7 +382,7 @@ c.cached_sample_children
 
 
 
-    array([10.91396087,  2.14845586])
+    array([10.29250217,  1.5164488 ])
 
 
 
@@ -394,7 +394,7 @@ c.cached_sample_children[0] * c.cached_sample_children[1]
 
 
 
-    23.44816323551863
+    15.608052592721844
 
 
 
@@ -408,7 +408,7 @@ c.dist1.pdf(c.cached_sample_children[0]), c.dist2.pdf(c.cached_sample_children[1
 
 
 
-    (0.17969374889690237, 0.5)
+    (0.19734922501458502, 0.5)
 
 
 
@@ -422,7 +422,7 @@ c.dist1.pdf(c.cached_sample_children[0]) * c.dist2.pdf(c.cached_sample_children[
 
 
 
-    0.08984687444845119
+    0.09867461250729251
 
 
 
@@ -436,7 +436,7 @@ c.sample(size=2)
 
 
 
-    array([23.44816324, 12.95003355])
+    array([15.60805259, 25.26113546])
 
 
 
@@ -448,7 +448,7 @@ c.cached_sample
 
 
 
-    array([23.44816324, 12.95003355])
+    array([15.60805259, 25.26113546])
 
 
 
@@ -460,8 +460,8 @@ c.cached_sample_children
 
 
 
-    array([[10.91396087,  9.19345783],
-           [ 2.14845586,  1.40861402]])
+    array([[10.29250217,  8.88896506],
+           [ 1.5164488 ,  2.84185339]])
 
 
 
@@ -480,7 +480,7 @@ dc
 
 
 
-    <distl.distl.DistributionCollection at 0x7fa191ac1710>
+    <distl.distl.DistributionCollection at 0x7fc8e32887d0>
 
 
 
@@ -492,7 +492,7 @@ dc.sample()
 
 
 
-    array([11.27173285,  6.6477602 , 32.49904246])
+    array([13.42024694,  8.34727334, 34.32207751])
 
 
 
@@ -506,7 +506,7 @@ dc.cached_sample
 
 
 
-    array([11.27173285,  6.6477602 , 32.49904246])
+    array([13.42024694,  8.34727334, 34.32207751])
 
 
 
@@ -532,7 +532,7 @@ dc.cached_sample_unpacked
 
 
 
-    array([11.27173285,  6.6477602 , 11.27173285,  2.88323392])
+    array([13.42024694,  8.34727334, 13.42024694,  2.5574848 ])
 
 
 
@@ -558,7 +558,7 @@ dc.cached_sample_unpacked[2] * dc.cached_sample_unpacked[3], dc.cached_sample[2]
 
 
 
-    (32.49904245599096, 32.49904245599096)
+    (34.322077510277275, 34.322077510277275)
 
 
 
@@ -577,19 +577,43 @@ Now if we rely on the cached values when calling [pdf](../api/DistributionCollec
 
 
 ```python
+dc.cached_sample
+```
+
+
+
+
+    array([13.42024694,  8.34727334, 34.32207751])
+
+
+
+
+```python
+dc.cached_sample_unpacked
+```
+
+
+
+
+    array([13.42024694,  8.34727334, 13.42024694,  2.5574848 ])
+
+
+
+
+```python
 dc.pdf()
 ```
 
 
 
 
-    0.011658887736809443
+    0.0003960120741313228
 
 
 
-To avoid this behavior and instead treat each of the three sampled values in their univariate forms, you can explicitly pass the non-unpacked cache (distl recognized that the length matches the sampled values directly and computes using the flattend univariates instead).
+To avoid this behavior and instead treat each of the three sampled values in their univariate forms, you can pass `as_univariates=True`.
 
-**NOTE**: if you're passing values manually to `pdf`, the length of the passed array must agree with `as_univariates`.  In some cases (like this one) the lengths are different and so an error will be raised if they're in disagreement.  But in other cases the lengths can be the same, and so the behavior will rely on the value of `as_univariates` which defaults to `False`.  See [collections examples](./collections.md) for more details.
+**NOTE**: if you're passing values manually to `pdf`, the length of the passed array must agree with `as_univariates`.  In some cases (like this one) the lengths are different and so an error will be raised if they're in disagreement.  But in other cases the lengths can be the same, and so the behavior will rely on the value of `as_univariates` which defaults to `False`.  See [collections examples](./collections.md) for more details and a more in-depth discussion on the behavior or `as_univariates`.
 
 
 ```python
@@ -599,6 +623,6 @@ dc.pdf(as_univariates=True)
 
 
 
-    0.00032474896167878573
+    7.425763147857967e-06
 
 

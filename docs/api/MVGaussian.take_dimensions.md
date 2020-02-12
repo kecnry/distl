@@ -15,6 +15,7 @@ all others), returning another [MVGaussian](MVGaussian.md) object.
 See also:
 
 * [MVGaussian.slice](MVGaussian.slice.md)
+* [MVGaussian.to_univariate](MVGaussian.to_univariate.md)
 
 Arguments
 ----------
@@ -23,5 +24,5 @@ Arguments
 
 Returns
 ----------
-* [MVGaussian](MVGaussian.md) object
+* [MVGaussian](MVGaussian.md) object or [Gaussian](Gaussian.md) if only one dimension provided
 

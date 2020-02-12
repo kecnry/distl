@@ -18,6 +18,7 @@
 * [get_from_cache](MVHistogramSlice.get_from_cache.md)
 * [get_wrap_at](MVHistogramSlice.get_wrap_at.md)
 * [hash](MVHistogramSlice.hash.md)
+* [hash_slice](MVHistogramSlice.hash_slice.md)
 * [interval](MVHistogramSlice.interval.md)
 * [isf](MVHistogramSlice.isf.md)
 * [label](MVHistogramSlice.label.md)

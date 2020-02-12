@@ -623,14 +623,14 @@ class BaseDistribution(object):
 
     def get_from_cache(self, x=None, unit=None):
         if x is not None:
-            return x
+            return _np.asarray(x)
         if self.cached_sample is None:
             raise ValueError("No cache exists: must provide value for x or call .sample() to create a cache first")
 
         if unit is not None:
-            return (self.cached_sample * self.unit).to(unit).value
+            return (_np.asarray(self.cached_sample) * self.unit).to(unit).value
 
-        return self.cached_sample
+        return _np.asarray(self.cached_sample)
 
 
     ### PROPERTIES/METHODS THAT EXPOSE UNDERLYING SCIPY.STATS FUNCTIONALITY
@@ -2652,6 +2652,13 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         return self.multivariate.hash
 
     @property
+    def hash_slice(self):
+        """
+        """
+        # return hash(frozenset({k:v for k,v in self.to_dict().items() if k not in ['dimension']}))
+        return hash(str({k:v for k,v in self.to_dict().items()}))
+
+    @property
     def unit(self):
         """
         Access the unit of the multivariate distribution corresponsing to the
@@ -2866,12 +2873,14 @@ class DistributionCollection(object):
         return _np.asarray([d.cached_sample for d in self.distributions_unpacked])
 
     def _method_on_values(self, method, npmethod, values, as_univariates):
-        values, dists = self._get_unique_values_dists(self._get_cached_values(values, as_univariates), as_univariates)
-        # print("_method_on_values(method={}, npmethod={}, values={}) dists={}".format(method, npmethod, values, dists))
+        values_dict, dists_dict = self._get_unique_values_dists(self._get_cached_values(values, as_univariates), as_univariates)
+
+        # print("*** values_dict", values_dict)
+        # print("*** dists_dict", dists_dict)
 
         # npmethod: one of 'product', 'sum', etc
         # method: one of 'pdf', 'cdf', 'logpdf', 'logcdf', etc
-        return getattr(_np, npmethod)([getattr(dist, method)(value) for dist, value in zip(dists, values)])
+        return getattr(_np, npmethod)([getattr(dist, method)(value if len(value) > 1 else value[0]) for dist, value in zip(dists_dict.values(), values_dict.values())])
 
     def _get_cached_values(self, values, as_univariates):
         if values is None:
@@ -2879,7 +2888,7 @@ class DistributionCollection(object):
             if values is None:
                 raise ValueError("no cached values available.  Must past values or call .sample()")
 
-        return values
+        return _np.asarray(values)
 
     def _get_unique_values_dists(self, values, as_univariates):
         dists = self.distributions if as_univariates else self.distributions_unpacked
@@ -2887,18 +2896,38 @@ class DistributionCollection(object):
         if len(values) != len(dists):
             raise ValueError("values must be same length as self.{} (length={}).  To use self.{} instead, pass as_univariates={}".format('distributions' if as_univariates else 'distributions_unpacked', len(dists), 'distributions' if not as_univariates else 'distributions_unpacked', not as_univariates))
 
-        dists_unique = []
-        dists_unique_hashes = []
-        values_unique = []
-        for dist, value in zip(dists, values):
-            # we could cheat here and do
-            if dist.hash not in dists_unique_hashes:
-                dists_unique_hashes.append(dist.hash)
-                dists_unique.append(dist)
-                values_unique.append(value)
+        dists_dict = {}
+        values_dict = {}
+        dims_dict = {}
+        for dist_orig, v in zip(dists, values):
+            if not as_univariates and isinstance(dist_orig, BaseMultivariateSliceDistribution):
+                d = dist_orig.multivariate
+            else:
+                d = dist_orig
 
-        return values_unique, dists_unique
+            # if as_univariates then we want MVSlices with the same parent MV to be treated separately
+            take_dimensions = not as_univariates and isinstance(dist_orig, BaseMultivariateSliceDistribution)
 
+
+            hash = dist_orig.hash_slice if isinstance(dist_orig, BaseMultivariateSliceDistribution) and not take_dimensions else dist_orig.hash
+            # print("***", dist_orig.label, hash)
+            if hash not in dists_dict.keys():
+                dists_dict[hash] = d
+                values_dict[hash] = [v]
+                if take_dimensions:
+                    dims_dict[hash] = [dist_orig.dimension]
+            elif not isinstance(dist_orig, BaseMultivariateSliceDistribution):
+                # duplicate entry
+                continue
+            else:
+                values_dict[hash].append(v)
+                if take_dimensions:
+                    dims_dict[hash].append(dist_orig.dimension)
+
+        for hash, dims in dims_dict.items():
+            dists_dict[hash] = dists_dict[hash].take_dimensions(dims)
+
+        return values_dict, dists_dict
 
     def pdf(self, values=None, as_univariates=False):
         """
@@ -3257,9 +3286,9 @@ class Composite(BaseUnivariateDistribution):
                 return self.dist1.hash
             else:
                 # NOTE (IMPORTANT): then we are going to "forget" these when
-                # nesting ComposisteDistributions
+                # nesting CompositeDistributions
                 # return super(CompositeDistribution, self).hash()
-                return [self.dist1.hash, self.dist2.hash]
+                return "{},{}".format(self.dist1.hash, self.dist2.hash)
         else:
             return self.dist1.hash
 
@@ -4040,6 +4069,7 @@ class MVGaussian(BaseMultivariateDistribution):
         See also:
 
         * <MVGaussian.slice>
+        * <MVGaussian.to_univariate>
 
         Arguments
         ----------
@@ -4048,12 +4078,15 @@ class MVGaussian(BaseMultivariateDistribution):
 
         Returns
         ----------
-        * <MVGaussian> object
+        * <MVGaussian> object or <Gaussian> if only one dimension provided
         """
         if isinstance(dimensions, int) or isinstance(dimensions, str):
             dimensions = [dimensions]
 
         dimensions = [self._get_dimension_index(d) for d in dimensions]
+
+        if len(dimensions) == 1:
+            return self.to_univariate(dimensions[0])
 
         mean = _np.asarray(self.mean)[dimensions]
         cov = _np.asarray(self.cov)[dimensions, :][:, dimensions]
@@ -4325,6 +4358,7 @@ class MVHistogram(BaseMultivariateDistribution):
         See also:
 
         * <MVHistogram.slice>
+        * <MVHistogram.to_univariate>
 
         Arguments
         ----------
@@ -4333,12 +4367,15 @@ class MVHistogram(BaseMultivariateDistribution):
 
         Returns
         ----------
-        * <MVHistogram> object
+        * <MVHistogram> object or <Histogram> if only one dimension provided
         """
         if isinstance(dimensions, int) or isinstance(dimensions, str):
             dimensions = [dimensions]
 
         dimensions = [self._get_dimension_index(d) for d in dimensions]
+
+        if len(dimensions) == 1:
+            return self.to_univariate(dimensions[0])
 
         bins = _np.asarray(self.bins)[dimensions]
         density = _np.sum(self.density, axis=tuple([d for d in range(self.ndimensions) if d not in dimensions]))

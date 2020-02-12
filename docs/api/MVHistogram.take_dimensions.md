@@ -10,11 +10,12 @@ def take_dimensions(self, dimensions)
 
 
 Take multiple dimensions from the multivariate distribution (and remove
-all others), returning another [MVGaussian](MVGaussian.md) object.
+all others), returning another [MVHistogram](MVHistogram.md) object.
 
 See also:
 
-* [MVGaussian.slice](MVGaussian.slice.md)
+* [MVHistogram.slice](MVHistogram.slice.md)
+* [MVHistogram.to_univariate](MVHistogram.to_univariate.md)
 
 Arguments
 ----------
@@ -23,5 +24,5 @@ Arguments
 
 Returns
 ----------
-* [MVGaussian](MVGaussian.md) object
+* [MVHistogram](MVHistogram.md) object or [Histogram](Histogram.md) if only one dimension provided
 

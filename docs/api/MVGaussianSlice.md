@@ -16,6 +16,7 @@
 * [get_from_cache](MVGaussianSlice.get_from_cache.md)
 * [get_wrap_at](MVGaussianSlice.get_wrap_at.md)
 * [hash](MVGaussianSlice.hash.md)
+* [hash_slice](MVGaussianSlice.hash_slice.md)
 * [interval](MVGaussianSlice.interval.md)
 * [isf](MVGaussianSlice.isf.md)
 * [label](MVGaussianSlice.label.md)
