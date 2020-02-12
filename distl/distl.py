@@ -2611,7 +2611,7 @@ class BaseMultivariateDistribution(BaseDistribution):
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
 
-            return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=self.labels, **kwargs)
+            return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=[self._xlabel(dim) for dim in range(self.ndimensions)], **kwargs)
 
     def plot(self, **kwargs):
         """
@@ -3247,7 +3247,7 @@ class DistributionCollection(object):
             raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
 
-        return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=self.labels, **kwargs)
+        return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=[dist._xlabel() for dist in self.distributions], **kwargs)
 
     def plot(self, **kwargs):
         """
