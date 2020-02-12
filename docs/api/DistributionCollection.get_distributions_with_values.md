@@ -1,22 +1,17 @@
-### [DistributionCollection](DistributionCollection.md).logcdf (function)
+### [DistributionCollection](DistributionCollection.md).get_distributions_with_values (function)
 
 
 ```py
 
-def logcdf(self, values=None, as_univariates=False)
+def get_distributions_with_values(self, values=None, as_univariates=False)
 
 ```
 
 
 
-Compute the logcdf of drawing `values` from the stored distributions.
-
-See also:
-
-* [DistributionCollection.pdf](DistributionCollection.pdf.md)
-* [DistributionCollection.logpdf](DistributionCollection.logpdf.md)
-* [DistributionCollection.cdf](DistributionCollection.cdf.md)
-* [DistributionCollection.get_distributions_with_values](DistributionCollection.get_distributions_with_values.md)
+Expose the distributions and the values that will be applied when
+calling [DistributionCollection.pdf](DistributionCollection.pdf.md), [DistributionCollection.logpdf](DistributionCollection.logpdf.md),
+[DistributionCollection.cdf](DistributionCollection.cdf.md), or [DistributionCollection.logcdf](DistributionCollection.logcdf.md)
 
 Arguments
 ------------
@@ -35,9 +30,5 @@ Arguments
 
 Returns
 ----------
-* float or array of floats
-
-Raises
-----------
-* ValueError: if `values` is None, but no cached samples are available.
+* dictionary of distribution: value (list or float) pairs
 

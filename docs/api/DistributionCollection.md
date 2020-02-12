@@ -12,6 +12,7 @@ simultaneously, respecting all underlying covariances whenever possible.
 * [cdf](DistributionCollection.cdf.md)
 * [distributions](DistributionCollection.distributions.md)
 * [distributions_unpacked](DistributionCollection.distributions_unpacked.md)
+* [get_distributions_with_values](DistributionCollection.get_distributions_with_values.md)
 * [labels](DistributionCollection.labels.md)
 * [labels_unpacked](DistributionCollection.labels_unpacked.md)
 * [logcdf](DistributionCollection.logcdf.md)

@@ -9,6 +9,15 @@ def logpdf(self, values=None, as_univariates=False)
 
 
 
+Compute the logpdf of drawing `values` from the stored distributions.
+
+See also:
+
+* [DistributionCollection.pdf](DistributionCollection.pdf.md)
+* [DistributionCollection.cdf](DistributionCollection.cdf.md)
+* [DistributionCollection.logcdf](DistributionCollection.logcdf.md)
+* [DistributionCollection.get_distributions_with_values](DistributionCollection.get_distributions_with_values.md)
+
 Arguments
 ------------
 * `values` (list, tuple, array or None, optional, default=None): list of

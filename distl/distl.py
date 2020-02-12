@@ -2873,14 +2873,9 @@ class DistributionCollection(object):
         return _np.asarray([d.cached_sample for d in self.distributions_unpacked])
 
     def _method_on_values(self, method, npmethod, values, as_univariates):
-        values_dict, dists_dict = self._get_unique_values_dists(self._get_cached_values(values, as_univariates), as_univariates)
+        dist_values_dict = self.get_distributions_with_values(values, as_univariates)
+        return getattr(_np, npmethod)([getattr(dist, method)(value) for dist, value in dist_values_dict.items()])
 
-        # print("*** values_dict", values_dict)
-        # print("*** dists_dict", dists_dict)
-
-        # npmethod: one of 'product', 'sum', etc
-        # method: one of 'pdf', 'cdf', 'logpdf', 'logcdf', etc
-        return getattr(_np, npmethod)([getattr(dist, method)(value if len(value) > 1 else value[0]) for dist, value in zip(dists_dict.values(), values_dict.values())])
 
     def _get_cached_values(self, values, as_univariates):
         if values is None:
@@ -2890,7 +2885,33 @@ class DistributionCollection(object):
 
         return _np.asarray(values)
 
-    def _get_unique_values_dists(self, values, as_univariates):
+    def get_distributions_with_values(self, values=None, as_univariates=False):
+        """
+        Expose the distributions and the values that will be applied when
+        calling <DistributionCollection.pdf>, <DistributionCollection.logpdf>,
+        <DistributionCollection.cdf>, or <DistributionCollection.logcdf>
+
+        Arguments
+        ------------
+        * `values` (list, tuple, array or None, optional, default=None): list of
+            values in same length and order as <DistributionCollection.distributions> or
+            <DistributionCollection.distributions_unpacked> (see `as_univariates`).
+            If not provided or None, the latest values from <DistributionCollection.sample>
+            will be assumed (respecting the value of `as_univariates`).  If no cached
+            samples are available, a ValueError will be raised.
+        * `as_univariates` (bool, optional, default=False): whether `values` corresponds
+            to the passed distributions (<DistributionCollection.distributions>)
+            or the underlying unpacked distributions (<DistributionCollection.distributions_unpacked>).
+            If the former (`as_univariates=False`), covariances will be respected
+            from any underlying multivariate distributions.  If the latter
+            (`as_univariates=True`) covariances will be ignored.
+
+        Returns
+        ----------
+        * dictionary of distribution: value (list or float) pairs
+        """
+        # values_dict, dists_dict = self._get_unique_values_dists(self._get_cached_values(values, as_univariates), as_univariates)
+        values = self._get_cached_values(values, as_univariates)
         dists = self.distributions if as_univariates else self.distributions_unpacked
 
         if len(values) != len(dists):
@@ -2918,7 +2939,8 @@ class DistributionCollection(object):
                     dims_dict[hash] = [dist_orig.dimension]
             elif not isinstance(dist_orig, BaseMultivariateSliceDistribution):
                 # duplicate entry
-                continue
+                if values_dict[hash][0] != v:
+                    raise ValueError("All passed values for {} must be identical".format(d if d.label is None else d.label))
             else:
                 values_dict[hash].append(v)
                 if take_dimensions:
@@ -2927,16 +2949,56 @@ class DistributionCollection(object):
         for hash, dims in dims_dict.items():
             dists_dict[hash] = dists_dict[hash].take_dimensions(dims)
 
-        return values_dict, dists_dict
+
+        return {dists_dict.get(hash): values_dict.get(hash) if len(values_dict.get(hash)) > 1 else values_dict.get(hash)[0] for hash in values_dict.keys()}
 
     def pdf(self, values=None, as_univariates=False):
         """
+        Compute the pdf of drawing `values` from the stored distributions.
+
+        See also:
+
+        * <DistributionCollection.logpdf>
+        * <DistributionCollection.cdf>
+        * <DistributionCollection.logcdf>
+        * <DistributionCollection.get_distributions_with_values>
+
+        Arguments
+        ------------
+        * `values` (list, tuple, array or None, optional, default=None): list of
+            values in same length and order as <DistributionCollection.distributions> or
+            <DistributionCollection.distributions_unpacked> (see `as_univariates`).
+            If not provided or None, the latest values from <DistributionCollection.sample>
+            will be assumed (respecting the value of `as_univariates`).  If no cached
+            samples are available, a ValueError will be raised.
+        * `as_univariates` (bool, optional, default=False): whether `values` corresponds
+            to the passed distributions (<DistributionCollection.distributions>)
+            or the underlying unpacked distributions (<DistributionCollection.distributions_unpacked>).
+            If the former (`as_univariates=False`), covariances will be respected
+            from any underlying multivariate distributions.  If the latter
+            (`as_univariates=True`) covariances will be ignored.
+
+        Returns
+        ----------
+        * float or array of floats
+
+        Raises
+        ----------
+        * ValueError: if `values` is None, but no cached samples are available.
         """
         return self._method_on_values('pdf', 'product', values, as_univariates)
 
 
     def logpdf(self, values=None, as_univariates=False):
         """
+        Compute the logpdf of drawing `values` from the stored distributions.
+
+        See also:
+
+        * <DistributionCollection.pdf>
+        * <DistributionCollection.cdf>
+        * <DistributionCollection.logcdf>
+        * <DistributionCollection.get_distributions_with_values>
 
         Arguments
         ------------
@@ -2965,12 +3027,74 @@ class DistributionCollection(object):
 
     def cdf(self, values=None, as_univariates=False):
         """
+        Compute the cdf of drawing `values` from the stored distributions.
+
+        See also:
+
+        * <DistributionCollection.pdf>
+        * <DistributionCollection.logpdf>
+        * <DistributionCollection.logcdf>
+        * <DistributionCollection.get_distributions_with_values>
+
+        Arguments
+        ------------
+        * `values` (list, tuple, array or None, optional, default=None): list of
+            values in same length and order as <DistributionCollection.distributions> or
+            <DistributionCollection.distributions_unpacked> (see `as_univariates`).
+            If not provided or None, the latest values from <DistributionCollection.sample>
+            will be assumed (respecting the value of `as_univariates`).  If no cached
+            samples are available, a ValueError will be raised.
+        * `as_univariates` (bool, optional, default=False): whether `values` corresponds
+            to the passed distributions (<DistributionCollection.distributions>)
+            or the underlying unpacked distributions (<DistributionCollection.distributions_unpacked>).
+            If the former (`as_univariates=False`), covariances will be respected
+            from any underlying multivariate distributions.  If the latter
+            (`as_univariates=True`) covariances will be ignored.
+
+        Returns
+        ----------
+        * float or array of floats
+
+        Raises
+        ----------
+        * ValueError: if `values` is None, but no cached samples are available.
         """
         return self._method_on_values('cdf', 'product', values, as_univariates)
 
 
     def logcdf(self, values=None, as_univariates=False):
         """
+        Compute the logcdf of drawing `values` from the stored distributions.
+
+        See also:
+
+        * <DistributionCollection.pdf>
+        * <DistributionCollection.logpdf>
+        * <DistributionCollection.cdf>
+        * <DistributionCollection.get_distributions_with_values>
+
+        Arguments
+        ------------
+        * `values` (list, tuple, array or None, optional, default=None): list of
+            values in same length and order as <DistributionCollection.distributions> or
+            <DistributionCollection.distributions_unpacked> (see `as_univariates`).
+            If not provided or None, the latest values from <DistributionCollection.sample>
+            will be assumed (respecting the value of `as_univariates`).  If no cached
+            samples are available, a ValueError will be raised.
+        * `as_univariates` (bool, optional, default=False): whether `values` corresponds
+            to the passed distributions (<DistributionCollection.distributions>)
+            or the underlying unpacked distributions (<DistributionCollection.distributions_unpacked>).
+            If the former (`as_univariates=False`), covariances will be respected
+            from any underlying multivariate distributions.  If the latter
+            (`as_univariates=True`) covariances will be ignored.
+
+        Returns
+        ----------
+        * float or array of floats
+
+        Raises
+        ----------
+        * ValueError: if `values` is None, but no cached samples are available.
         """
         return self._method_on_values('logcdf', 'sum', values, as_univariates)
 

@@ -28,7 +28,7 @@ dc
 
 
 
-    <distl.distl.DistributionCollection at 0x7fdbc336b510>
+    <distl.distl.DistributionCollection at 0x7fe97ddf9710>
 
 
 
@@ -42,7 +42,7 @@ dc.sample()
 
 
 
-    array([7.94423774, 0.91006655])
+    array([7.94423774, 4.8739681 ])
 
 
 
@@ -83,9 +83,9 @@ dc.sample(size=3)
 
 
 
-    array([[11.73459776,  3.97822691],
-           [ 9.63509604,  0.39891307],
-           [11.18321653,  4.37293134]])
+    array([[ 7.3767617 ,  4.55944708],
+           [11.11033046,  4.25906124],
+           [ 8.93462853,  4.08293737]])
 
 
 
@@ -102,8 +102,6 @@ out = dc.plot(show=True)
 
 Additionally, we can access [pdf](../api/DistributionCollection.pdf.md), [logpdf](../api/DistributionCollection.logpdf.md), [cdf](../api/DistributionCollection.cdf.md), and [logcdf](../api/DistributionCollection.logcdf.md). These all take a single argument which must be a list/tuple/array with the same length as the number of distributions.
 
-In the case of univariate distributions, pdf and cdf will be simply the product of the values from the children distributions, and logpdf and logcdf the sums.  However, this is where subtle complications come into place with [Composite](../api/Composite.md) and Multivariate distributions, which we'll see in the next few sections.
-
 
 ```python
 dc.pdf([10, 5])
@@ -115,6 +113,23 @@ dc.pdf([10, 5])
     0.039894228040143274
 
 
+
+To see the underlying distributions and the values that will be passed to the `pdf` method on each of those distributions, we can pass the same arguments to [get_distributions_with_values](../api/DistributionCollection.get_distributions_with_values.md).
+
+
+```python
+dc.get_distributions_with_values([10,5])
+```
+
+
+
+
+    {<distl.gaussian loc=10.0 scale=2.0 label=gaussian>: 10,
+     <distl.uniform low=0.0 high=5.0 label=uniform>: 5}
+
+
+
+From this we can see that, in the case of univariate distributions, pdf and cdf will be simply the product of the values from the children distributions, and logpdf and logcdf the sums.  However, this is where subtle complications come into place with [Composite](../api/Composite.md) and Multivariate distributions, which we'll see in the next few sections.
 
 
 ```python
@@ -165,7 +180,7 @@ dc.sample()
 
 
 
-    array([ 8.76513324,  2.35866966,  3.10199761, 13.42241175])
+    array([ 9.20602564,  3.69812336,  7.34977964, 10.8233113 ])
 
 
 
@@ -175,7 +190,7 @@ out = dc.plot(show=True)
 ```
 
 
-![png](collections_files/collections_23_0.png)
+![png](collections_files/collections_26_0.png)
 
 
 As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array.  This time, the pdf will account for the covariance between 'mvg_a' and 'mvg_c', by default.  As 'mvg_b' is not included, no value will be assumed, but rather will be marginalized over (via [take_dimensions](../api/BaseMultivariateDistribution.take_dimensions.md), see [multivariate examples](./multivariate.md) for more details).
@@ -208,6 +223,21 @@ which could be computed manually as:
 
 
 ```python
+dc.get_distributions_with_values([10, 5, 5, 11])
+```
+
+
+
+
+    {<distl.gaussian loc=10.0 scale=2.0 label=gaussian>: 10,
+     <distl.uniform low=0.0 high=5.0 label=uniform>: 5,
+     <distl.mvgaussian mean=[ 5 12] cov=[[ 2 -1]
+      [-1  2]] allow_singular=False labels=['mvg_a', 'mvg_c']>: [5, 11]}
+
+
+
+
+```python
 g.pdf(10) * u.pdf(5) * mvg.take_dimensions(['mvg_a', 'mvg_c']).pdf([5, 11])
 ```
 
@@ -236,6 +266,25 @@ which could be computed manually as:
 
 
 ```python
+dc.get_distributions_with_values([10, 5, 5, 11], as_univariates=True)
+```
+
+
+
+
+    {<distl.gaussian loc=10.0 scale=2.0 label=gaussian>: 10,
+     <distl.uniform low=0.0 high=5.0 label=uniform>: 5,
+     <distl.mvgaussianslice dimension=0 mean=[5, 10, 12] cov=[[ 2  1 -1]
+      [ 1  2  1]
+      [-1  1  2]] allow_singular=True label=mvg_a)>: 5,
+     <distl.mvgaussianslice dimension=2 mean=[5, 10, 12] cov=[[ 2  1 -1]
+      [ 1  2  1]
+      [-1  1  2]] allow_singular=True label=mvg_c)>: 11}
+
+
+
+
+```python
 g.pdf(10) * u.pdf(5) * mvg.to_univariate('mvg_a').pdf(5) * mvg.to_univariate('mvg_c').pdf(11)
 ```
 
@@ -256,7 +305,7 @@ g2 = distl.gaussian(25, 1, label='g2')
 #c = u*g2
 #c.label = 'c'
 
-dc = distl.DistributionCollection(g1, u*g2)
+dc = distl.DistributionCollection(g1, u, u*g2)
 ```
 
 
@@ -267,7 +316,7 @@ dc.sample()
 
 
 
-    array([  3.93296911, -49.14810304])
+    array([  3.77343385,  16.8844598 , 424.4930817 ])
 
 
 
@@ -277,8 +326,10 @@ out = dc.plot(show=True)
 ```
 
 
-![png](collections_files/collections_36_0.png)
+![png](collections_files/collections_41_0.png)
 
+
+Because the [DistributionCollection](../api/DistributionCollection.md) contains a [Composite](../api/Composite.md) distribution, we can either pass the two exposed values and `as_univariates=True` or the three underlying values without.
 
 
 ```python
@@ -288,9 +339,51 @@ dc.labels
 
 
 
-    ['g1', 'u * g2']
+    ['g1', 'u', 'u * g2']
 
 
+
+
+```python
+dc.pdf([6, 4, 4*25], as_univariates=True)
+```
+
+
+
+
+    4.315591165838451e-05
+
+
+
+
+```python
+dc.get_distributions_with_values([6, 4, 4*25], as_univariates=True)
+```
+
+
+
+
+    {<distl.gaussian loc=5.0 scale=2.0 label=g1>: 6,
+     <distl.gaussian loc=3.0 scale=5.0 label=u>: 4,
+     <distl.composite {u}*{g2} unit=None>: 100}
+
+
+
+
+```python
+g1.pdf(6) * u.pdf(4) * (u*g2).pdf(4*25)
+```
+
+
+
+
+    4.315591165838451e-05
+
+
+
+If not passing `as_univariates=True`, then we must pass a value for each of the unpacked underlying distributions.  Note that here 'u' is both an independent distribution as well as part of 'u * g2' so must be sent twice (and *must* be sent as the same value or an error will be raised).
+
+Note that under-the-hood the separate passed values for 'u' are checked to make sure they're identical, but are then only included once in the returned probability.
 
 
 ```python
@@ -300,29 +393,45 @@ dc.labels_unpacked
 
 
 
-    ['g1', 'u', 'g2']
+    ['g1', 'u', 'u', 'g2']
 
 
-
-Because the [DistributionCollection](../api/DistributionCollection.md) contains a [Composite](../api/Composite.md) distribution, we can either pass the two exposed values and `as_univariates=True` or the three underlying values without.
-
-**TODO**: as there aren't any covariances, as_univariates is a stupid name to use here.  And in this exact example isn't even really applicable since none of the children are also sampled.
 
 
 ```python
-dc.pdf([6, 4*25], as_univariates=True)
+# raises a ValueError
+# dc.pdf([6, 4, 5, 25])
+```
+
+
+```python
+dc.pdf([6, 4, 4, 25])
 ```
 
 
 
 
-    0.0005473965376841032
+    0.00549234105537757
 
 
 
 
 ```python
-dc.pdf([6, 4, 25])
+dc.get_distributions_with_values([6, 4, 4, 25])
+```
+
+
+
+
+    {<distl.gaussian loc=5.0 scale=2.0 label=g1>: 6,
+     <distl.gaussian loc=3.0 scale=5.0 label=u>: 4,
+     <distl.gaussian loc=25.0 scale=1.0 label=g2>: 25}
+
+
+
+
+```python
+g1.pdf(6) * u.pdf(4) * g2.pdf(25)
 ```
 
 
