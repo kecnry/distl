@@ -185,6 +185,12 @@ def _json_safe(v):
     else:
         return v
 
+def _all_in_types(objects, types):
+    return _np.all([_np.any([isinstance(o, t) for t in types]) for o in objects])
+
+def _any_in_types(objects, types):
+    return _np.any([_np.any([isinstance(o, t) for t in types]) for o in objects])
+
 ################## VALIDATORS ###################
 
 # these all must accept a single value and return a boolean if it matches the condition as well as any alterations to the value
@@ -425,7 +431,7 @@ class BaseDistribution(object):
     ### COPYING
 
     def __copy__(self):
-        return self.__class__(unit=self.unit, label=self.label, **self._descriptors)
+        return self.__class__(**{k:v for k,v in self.to_dict().items() if k not in ['distl']})
 
     def __deepcopy__(self, memo):
         return self.__copy__()
@@ -507,22 +513,22 @@ class BaseDistribution(object):
     ### MATH AND COMPARISON OPERATORS
 
     def __lt__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return self.__float__() < other.__float__()
         return self.__float__() < other
 
     def __le__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return self.__float__() <= other.__float__()
         return self.__float__() <= other
 
     def __gt__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return self.__float__() > other.__float__()
         return self.__float__() > other
 
     def __ge__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return self.__float__() >= other.__float__()
         return self.__float__() >= other
 
@@ -532,7 +538,7 @@ class BaseDistribution(object):
             copy.unit = other
             return copy
 
-        elif isinstance(other, BaseDistribution):
+        elif _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__mul__", self, other)
         elif isinstance(other, float) or isinstance(other, int):
             return self.__mul__(Delta(other))
@@ -543,7 +549,7 @@ class BaseDistribution(object):
         return self.__mul__(other)
 
     def __div__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__div__", self, other)
         elif isinstance(other, float) or isinstance(other, int):
             return self.__div__(Delta(other))
@@ -551,7 +557,7 @@ class BaseDistribution(object):
             raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
 
     def __rdiv__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__rdiv__", self, other)
         elif isinstance(other, float) or isinstance(other, int):
             return self.__rdiv__(Delta(other))
@@ -559,7 +565,7 @@ class BaseDistribution(object):
             raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
 
     def __add__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__add__", self, other)
         elif isinstance(other, float) or isinstance(other, int):
             return self.__add__(Delta(other))
@@ -570,7 +576,7 @@ class BaseDistribution(object):
     #     return self.__add__(other)
 
     def __sub__(self, other):
-        if isinstance(other, BaseDistribution):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__sub__", self, other)
         elif isinstance(other, float) or isinstance(other, int):
             return self.__sub__(Delta(other))
@@ -578,18 +584,24 @@ class BaseDistribution(object):
             raise TypeError("cannot subtract {} by type {}".format(self.__class__.__name__), type(other))
 
     def __and__(self, other):
-        if not isinstance(other, BaseDistribution):
+        if _any_in_types((self, other), (BaseMultivariateSliceDistribution,)):
+            raise TypeError("cannot use & (and) logic with MultivariateSlice distributions as covariances can not be maintained.  Use to_univariate() before applying & (and) logic")
+
+        if not _all_in_types((self, other), (BaseUnivariateDistribution,)):
             raise TypeError("cannot use & (and) logic between types {} and {}".format(self.__class__.__name__, type(other)))
 
         return Composite("__and__", self, other)
 
     def __or__(self, other):
-        if not isinstance(other, BaseDistribution):
+        if not _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use | (or) logic between types {} and {}".format(self.__class__.__name__, type(other)))
 
         return Composite("__or__", self, other)
 
     def sin(self):
+        if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
+            raise TypeError("cannot use sin with type {}".format(self.__class__.__name__))
+
         if self.unit is not None:
             dist = self.to(_units.rad)
         else:
@@ -598,6 +610,9 @@ class BaseDistribution(object):
         return Composite("sin", dist)
 
     def cos(self):
+        if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
+            raise TypeError("cannot use cos with type {}".format(self.__class__.__name__))
+
         if self.unit is not None:
             dist = self.to(_units.rad)
         else:
@@ -606,6 +621,9 @@ class BaseDistribution(object):
         return Composite("cos", dist)
 
     def tan(self):
+        if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
+            raise TypeError("cannot use tan with type {}".format(self.__class__.__name__))
+
         if self.unit is not None:
             dist = self.to(_units.rad)
         else:
@@ -3351,6 +3369,11 @@ class Composite(BaseUnivariateDistribution):
         if dist2 is not None:
             dist2 = dist2.copy()
 
+        if isinstance(dist1, dict):
+            dist1 = from_dict(dist1)
+        if isinstance(dist2, dict):
+            dist2 = from_dict(dist2)
+
         if label is None:
             if dist2 is None and dist1.label is not None:
                 label = '{}({})'.format(math, dist1.label)
@@ -3576,7 +3599,7 @@ class Composite(BaseUnivariateDistribution):
             return getattr(_np, math)(dist1.sample(size=size, seed=seed, cache_sample=cache_sample, as_quantity=_has_astropy and self.unit not in [None, _units.dimensionless_unscaled]))
 
 
-    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}, cache_sample=True):
+    def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={}, as_univariate=False, cache_sample=True):
         """
         Sample from the distribution.
 
@@ -3597,6 +3620,13 @@ class Composite(BaseUnivariateDistribution):
             according to <<class>.unit> not `unit`.
         * `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
             pass to underlying distributions.
+        * `as_univariate` (bool, optional, default=False): whether to draw from
+            the flattend <<class>.pdf> rather than from the children distributions.
+            If True, any underlying covariances from <BaseMultivariateSliceDistribution>
+            objects will be ignored.  This may be slightly faster, especially
+            with repeated calls.  Note that `as_univariate` is ignored for
+            <Composite> distributions with 'and' logic as these are always
+            sampled from the combined pdf.
         * `cache_sample` (bool, optional, default=True): whether to override the
             existing <<class>.cached_sample>.
 
@@ -3605,17 +3635,13 @@ class Composite(BaseUnivariateDistribution):
         * float or array: float if `size=None`, otherwise a numpy array with
             shape defined by `size`.
         """
-        if self.math in ['__and__']:
+        if as_univariate or self.math in ['__and__']:
             # fallback on using the interpolated combined pdf/cdf/ppf
 
-            # TODO: technically we could support sample_from_children with a
-            # while loop... but that is likely more expensive:
-            # while True:
-            #     sampled_value = dist1.rvs()
-            #     chance = dist2.pdf(sampled_value)
-            #     q = _np.random.random()
-            #     if q <= chance:
-            #         return sample_value
+            # TODO: test if doing this will cause issues with caching expecting the children to have cache filled
+            self.dist1.clear_cached_sample()
+            if self.dist2 is not None:
+                self.dist2.clear_cached_sample()
             return super(Composite, self).sample(size=size, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at, seed=seed, cache_sample=cache_sample)
         else:
             # NOTE: even though in these cases we sample from the underlying children

@@ -77,6 +77,8 @@ out = g2.plot(show=True)
 ![png](and_or_files/and_or_11_0.png)
 
 
+Note that trying to apply an 'and' operator where either of the distributions is a [multivariate slice](./multivariate_slice.md) will fail with an error as covariances cannot be guaranteed to be preserved.  Instead you'll have to convert to a univariate manually first with [MultivariateSlice.to_univariate](../api/BaseMultivariateSlice.to_univariate.md).
+
 ## OR
 
 
@@ -134,7 +136,7 @@ out = u1_or_u2.plot_pdf(show=True)
 ```
 
 
-![png](and_or_files/and_or_18_0.png)
+![png](and_or_files/and_or_19_0.png)
 
 
 
@@ -143,7 +145,7 @@ out = u1_or_u2.plot_cdf(show=True)
 ```
 
 
-![png](and_or_files/and_or_19_0.png)
+![png](and_or_files/and_or_20_0.png)
 
 
 
@@ -154,8 +156,8 @@ u1_or_u2.sample(size=10)
 
 
 
-    array([3.61710052, 1.03040697, 0.66153236, 0.51544002, 4.92112349,
-           2.75002783, 5.21850369, 6.44485613, 3.61343152, 3.02781617])
+    array([3.45101347, 1.99161164, 1.23957025, 1.0690838 , 3.62931654,
+           4.44894492, 5.08941398, 7.45128414, 5.55152966, 6.96525364])
 
 
 
@@ -165,7 +167,7 @@ out = u1_or_u2.plot(show=True)
 ```
 
 
-![png](and_or_files/and_or_21_0.png)
+![png](and_or_files/and_or_22_0.png)
 
 
 
@@ -176,7 +178,7 @@ u1_or_u2.to_histogram().pdf(3.5)
 
 
 
-    0.20021990967463832
+    0.2023023452604038
 
 
 
@@ -198,7 +200,7 @@ out = (g1 | g2).plot(show=True)
 ```
 
 
-![png](and_or_files/and_or_24_0.png)
+![png](and_or_files/and_or_25_0.png)
 
 
 
@@ -207,7 +209,7 @@ out = ((g1 | g2) | (u1 | u2)).plot(show=True)
 ```
 
 
-![png](and_or_files/and_or_25_0.png)
+![png](and_or_files/and_or_26_0.png)
 
 
 ## AND
@@ -223,7 +225,7 @@ out = u1_and_u2.plot(show=True)
 ```
 
 
-![png](and_or_files/and_or_28_0.png)
+![png](and_or_files/and_or_29_0.png)
 
 
 
@@ -249,7 +251,7 @@ out = g1_and_g2.plot(show=True)
 ```
 
 
-![png](and_or_files/and_or_31_0.png)
+![png](and_or_files/and_or_32_0.png)
 
 
 
@@ -258,7 +260,7 @@ out = g1_and_g2.plot_cdf(show=True)
 ```
 
 
-![png](and_or_files/and_or_32_0.png)
+![png](and_or_files/and_or_33_0.png)
 
 
 
@@ -267,7 +269,7 @@ out = ((u1 & u2) | (g1 & g2)).plot(show=True)
 ```
 
 
-![png](and_or_files/and_or_33_0.png)
+![png](and_or_files/and_or_34_0.png)
 
 
 
