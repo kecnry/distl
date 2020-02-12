@@ -15,6 +15,7 @@ setup(name='distl',
       url='https://www.github.com/kecnry/distl',
       # download_url = 'https://github.com/kecnry/distl/tarball/1.0.0',
       packages=['distl'],
+      install_requires=['numpy>=1.10','scipy>=0.17'],
       classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Science/Research",
