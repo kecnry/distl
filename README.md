@@ -5,7 +5,7 @@
 [![badge](https://img.shields.io/badge/github-kecnry%2Fdistl-blue.svg)](https://github.com/kecnry/distl)
 [![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/distl/)
 [![badge](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/distl/blob/master/LICENSE)
-[![badge](https://travis-ci.org/kecnry/distl.svg?branch=master)](https://travis-ci.org/kecnry/distl)
+[![badge](https://travis-ci.com/kecnry/distl.svg?branch=master)](https://travis-ci.com/kecnry/distl)
 [![badge](https://readthedocs.org/projects/distl/badge/?version=latest)](https://distl.readthedocs.io/en/latest/?badge=latest)
 
 **IMPORTANT**: **distl** is currently still under development, is not yet well-tested, and is subject to significant API changes.  Please keep posted until an official release is ready.
@@ -38,7 +38,7 @@ and the following optional dependencies:
   - astropy 1.0+ (required for units support)
 
 
-You can see the [Travis testing matrix](https://travis-ci.org/kecnry/distl) for
+You can see the [Travis testing matrix](https://travis-ci.com/kecnry/distl) for
 details on what exact versions have been tested and ensured to work.  If you run
 into any issues with dependencies, please [submit an issue](https://github.com/kecnry/distl/issues/new).
 

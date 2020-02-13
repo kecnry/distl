@@ -2883,6 +2883,7 @@ class DistributionCollection(object):
         if not _np.all([is_distribution_univariate_or_slice(distribution)[0] for distribution in distributions]):
             raise TypeError('distributions must be a list of distribution objects (where each must be a univariate or multivariate-slice)')
 
+        # TODO: clear caches?
         self._dists = [is_distribution_univariate_or_slice(distribution)[1] for distribution in distributions]
 
     @property
@@ -2929,6 +2930,7 @@ class DistributionCollection(object):
         return _np.asarray([d.cached_sample for d in self.distributions_unpacked])
 
     def _method_on_values(self, method, npmethod, values, as_univariates):
+        # TODO: add support for units?
         dist_values_dict = self.get_distributions_with_values(values, as_univariates)
         return getattr(_np, npmethod)([getattr(dist, method)(value) for dist, value in dist_values_dict.items()])
 
