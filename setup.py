@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='distl',
-      version='0.1.0-dev',
+      version='0.1.0.dev1',
       description='Simple Distributions: math operations, serializing, covariances',
       long_description=long_description,
       long_description_content_type="text/markdown",

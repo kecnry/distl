@@ -29,7 +29,7 @@ except ImportError:
 else:
     _has_astropy = True
 
-__version__ = '0.1.0-dev'
+__version__ = '0.1.0.dev1'
 version = __version__
 
 _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-', '__div__': '/', '__and__': '&', '__or__': '|'}
