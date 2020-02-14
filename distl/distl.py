@@ -3880,7 +3880,7 @@ class Histogram(BaseUnivariateDistribution):
         --------
         * a <Uniform> object
         """
-        return self.to_gaussian(label=self.label, unit=self.unit).to_uniform(sigma=sigma)
+        return self.to_gaussian().to_uniform(sigma=sigma)
 
 class Delta(BaseUnivariateDistribution):
     """
@@ -4756,7 +4756,7 @@ class MVHistogram(BaseMultivariateDistribution):
                          label=self.labels[dimension] if self.labels is not None else None,
                          wrap_at=self.wrap_ats[dimension] if self.wrap_ats is not None else None)
 
-    def to_gaussian(self, dimension, size):
+    def to_gaussian(self, dimension):
         """
         Convert the <MVHistogram> distribution to a <Gaussian> univariate distribution.
 

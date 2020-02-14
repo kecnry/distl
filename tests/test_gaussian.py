@@ -14,12 +14,38 @@ def test_create_errors():
     assert_raises(TypeError, distl.gaussian, 0, 1, 1)
 
 def test_conversions():
-    distl.gaussian().to_histogram()
-    distl.gaussian().to_uniform()
+    g = distl.gaussian()
+    g.to_histogram()
+    g.to_uniform()
+    g.to_delta()
+    g.to_delta(loc='mean')
+    g.to_delta(loc='median')
+    g.to_delta(loc='sample')
 
 def test_sample():
-    distl.gaussian().sample()
-    distl.gaussian().pdf(0)
+    g = distl.gaussian()
+    g.sample()
+    g.pdf(0)
+    g.logpdf(0)
+    g.cdf(0)
+    g.logcdf(0)
+    g.sf(0)
+    g.logsf(0)
+    g.isf(0)
+
+    g.moment(1)
+    g.entropy()
+
+    # g.expect(...)
+
+    g.median()
+    g.mean()
+    g.var()
+    g.std()
+    g.interval(0.99)
+
+
+
     distl.gaussian().ppf(0.5)
 
 def test_json():

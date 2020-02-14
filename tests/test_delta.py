@@ -3,26 +3,22 @@ from nose.tools import assert_raises
 import distl
 
 def test_create():
-    g = distl.uniform(5, 10)
-    g = distl.boxcar(5, 10)
+    d = distl.delta(1)
 
 def test_create_errors():
     # passing string
-    assert_raises(ValueError, distl.uniform, 0, "a")
+    assert_raises(ValueError, distl.delta, "a")
 
     # too many args
-    assert_raises(TypeError, distl.uniform, 0, 1, 1)
+    assert_raises(TypeError, distl.delta, 0, 1)
 
 def test_conversions():
-    distl.uniform().to_histogram()
-    distl.uniform().to_gaussian()
-    distl.uniform().to_delta()
-    distl.uniform().to_delta(loc='mean')
-    distl.uniform().to_delta(loc='median')
-    distl.uniform().to_delta(loc='sample')
+    distl.delta().to_histogram()
+    distl.delta().to_gaussian()
+    distl.delta().to_uniform()
 
 def test_sample():
-    d = distl.uniform()
+    d = distl.delta()
     d.sample()
     d.pdf(0)
     d.logpdf(0)
@@ -46,7 +42,7 @@ def test_sample():
     d.ppf(0.5)
 
 def test_json():
-    distl.from_dict(distl.uniform().to_dict())
+    distl.from_dict(distl.delta().to_dict())
 
 
 if __name__ == '__main__':
