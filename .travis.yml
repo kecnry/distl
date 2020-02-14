@@ -73,7 +73,8 @@ install:
     - python setup.py install --user
 
 script:
-    - nosetests --with-coverage --cover-package=distl -v -s -d -w tests/;
+    - cd tests;
+    - nosetests --with-coverage --cover-package=distl -v -s -d;
 
 after_success:
     - codecov
