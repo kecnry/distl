@@ -13,7 +13,7 @@ dist: trusty
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - PIP_DEPENDENCIES='nose'
+        - PIP_DEPENDENCIES='nose codecov'
         - CONDA_DEPENDENCIES='matplotlib scipy'
         - PYTHON_VERSION=2.7
         - NUMPY_VERSION=1.10
@@ -73,4 +73,7 @@ install:
     - python setup.py install --user
 
 script:
-    - nosetests -v -s -d -w tests/;
+    - nosetests -v -s -d -w --with-coverage --cover-package=distl tests/;
+
+after_success:
+    - codecov
