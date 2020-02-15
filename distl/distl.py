@@ -2826,7 +2826,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
 
     ### SAMPLING & PLOTTING
 
-    def sample(self, size=None, seed=None, cache_sample=True):
+    def sample(self, size=None, wrap_at=None, seed=None, cache_sample=True):
         """
         Sample the underlying <<class>.multivariate> distribution in the dimension
         defined in <<class>.dimension>.
@@ -2836,6 +2836,15 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         return self.multivariate.sample(size=size, seed=seed, dimension=self.dimension, cache_sample=cache_sample)
 
     def plot_sample(self, *args, **kwargs):
+        if hasattr(self, 'bins'):
+            # for MVHistogramSlice, we want to take the correct bins to pass on
+            # to plotting so we don't access the ndimensional MVHistogram.bins
+            kwargs.setdefault('bins', self.bins)
+            # if wrap_at or (hasattr(self, 'wrap_at') and self.wrap_at):
+            #     kwargs.setdefault('bins', len(self.bins))
+            # else:
+            #     kwargs.setdefault('bins', self.bins)
+
         return self.multivariate.plot_sample(*args, dimension=self.dimension, **kwargs)
 
     def to_univariate(self):
