@@ -3380,8 +3380,8 @@ class Composite(BaseUnivariateDistribution):
         fit to the pdf and integrated to create the cdf (which is inverted to
         create the ppf function).  Each of these are then linearly interpolated
         to create the underlying scipy.stats object.  This object is then used
-        for sampling as well as accessing the <<class>.pdf>, <<class>.cdf>,
-        <<class>.ppf>, etc.  For this reason, the and operator does not support
+        for sampling as well as accessing the <Composite.pdf>, <Composite.cdf>,
+        <Composite.ppf>, etc.  For this reason, the and operator does not support
         retaining covariances at all.
 
     * |: the pdfs and cdfs of the two underlying distributions are sampled over their
@@ -3391,8 +3391,8 @@ class Composite(BaseUnivariateDistribution):
         object is then used for any call to the underlying call EXCEPT for sampling.
         Sampling is handled by randomly choosing which child distribution to sample
         from and then sampling from that distribution.  Or operators are therefore
-        able to retain covariances for <<class>.sample>, but not for any calls
-        to <<class>.pdf>, <<class>.cdf>, or <<class>.ppf>.
+        able to retain covariances for <Composite.sample>, but not for any calls
+        to <Composite.pdf>, <Composite.cdf>, or <Composite.ppf>.
 
     * all others: sampling is handled by sampling the underyling children and
         therefore can retain covariances.  The pdfs, cdfs, and ppfs are
@@ -3788,8 +3788,8 @@ class Histogram(BaseUnivariateDistribution):
     a pdf (which is normalized to an integral of 1).  A numerical integral
     of the bins is then performed to create the cdf (again, normalized to 1)
     and inverted to create the ppf.  Each of these are then interpolated
-    whenever accessing <<class>.pdf>, <<class>.cdf>, <<class>.ppf>, etc as
-    well as used when calling <<class>.sample>.
+    whenever accessing <Histogram.pdf>, <Histogram.cdf>, <Histogram.ppf>, etc as
+    well as used when calling <Histogram.sample>.
     """
     def __init__(self, bins, density, unit=None, label=None, wrap_at=None):
         """
@@ -4428,10 +4428,10 @@ class MVHistogram(BaseMultivariateDistribution):
     in which to sample, as well as the relative location in the bin.  The selected
     bin is then artificially subdivided by the same shape grid as the original
     binning and linearly interpolated based on the remainder to return a single
-    value for <<class>.sample>.
+    value for <MVHistogram.sample>.
 
-    * Means and covariances (see <<class>.calculate_means_covariances>,
-    <<class>.calculate_means>, <<class>.calculate_covariances>) are calculated
+    * Means and covariances (see <MVHistogram.calculate_means_covariances>,
+    <MVHistogram.calculate_means>, <MVHistogram.calculate_covariances>) are calculated
     by sampling (with a default size of 1e5), and determining the mean and covariances
     on that sample.
 

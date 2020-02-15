@@ -10,10 +10,10 @@ cdf is then linearly interpolated to find the index of the unraveled bins
 in which to sample, as well as the relative location in the bin.  The selected
 bin is then artificially subdivided by the same shape grid as the original
 binning and linearly interpolated based on the remainder to return a single
-value for &lt;[class](class.md).sample&gt;.
+value for [MVHistogram.sample](MVHistogram.sample.md).
 
-* Means and covariances (see &lt;[class](class.md).calculate_means_covariances&gt;,
-&lt;[class](class.md).calculate_means&gt;, &lt;[class](class.md).calculate_covariances&gt;) are calculated
+* Means and covariances (see [MVHistogram.calculate_means_covariances](MVHistogram.calculate_means_covariances.md),
+[MVHistogram.calculate_means](MVHistogram.calculate_means.md), [MVHistogram.calculate_covariances](MVHistogram.calculate_covariances.md)) are calculated
 by sampling (with a default size of 1e5), and determining the mean and covariances
 on that sample.
 
