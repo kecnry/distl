@@ -226,21 +226,21 @@ def is_math(value):
     valid_maths += ['__and__', '__or__']
     return value in valid_maths, value
 
-def is_callable(value):
-    """must be a callable function"""
-    if isinstance(value, str):
-        # try to "undill"
-        if _has_dill:
-            value = _dill.loads(value)
-        else:
-            raise ImportError("'dill' package required to load functions")
-    return hasattr(value, 'func_name'), value
+# def is_callable(value):
+#     """must be a callable function"""
+#     if isinstance(value, str):
+#         # try to "undill"
+#         if _has_dill:
+#             value = _dill.loads(value)
+#         else:
+#             raise ImportError("'dill' package required to load functions")
+#     return hasattr(value, 'func_name'), value
 
-def is_callable_or_none(value):
-    if value is None:
-        return True, value
-    else:
-        return is_callable(value)
+# def is_callable_or_none(value):
+#     if value is None:
+#         return True, value
+#     else:
+#         return is_callable(value)
 
 def is_unit(value):
     """must be an astropy unit"""
