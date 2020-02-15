@@ -13,7 +13,7 @@ dist: trusty
 env:
     global:
         # Set defaults to avoid repeating in most cases
-        - PIP_DEPENDENCIES='nose codecov'
+        - PIP_DEPENDENCIES='nose codecov corner'
         - CONDA_DEPENDENCIES='matplotlib scipy'
         - PYTHON_VERSION=2.7
         - NUMPY_VERSION=1.10
