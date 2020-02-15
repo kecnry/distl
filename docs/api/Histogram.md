@@ -15,8 +15,8 @@ The densities at each bin-midpoint are linearly interpolated to create
 a pdf (which is normalized to an integral of 1).  A numerical integral
 of the bins is then performed to create the cdf (again, normalized to 1)
 and inverted to create the ppf.  Each of these are then interpolated
-whenever accessing &lt;[class](class.md).pdf&gt;, &lt;[class](class.md).cdf&gt;, &lt;[class](class.md).ppf&gt;, etc as
-well as used when calling &lt;[class](class.md).sample&gt;.
+whenever accessing [Histogram.pdf](Histogram.pdf.md), [Histogram.cdf](Histogram.cdf.md), [Histogram.ppf](Histogram.ppf.md), etc as
+well as used when calling [Histogram.sample](Histogram.sample.md).
 
 
 

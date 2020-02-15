@@ -3,7 +3,7 @@
 
 ```py
 
-def sample(self, size=None, seed=None, cache_sample=True)
+def sample(self, size=None, wrap_at=None, seed=None, cache_sample=True)
 
 ```
 

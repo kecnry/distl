@@ -43,8 +43,8 @@ Limitations and treatment "under-the-hood":
 fit to the pdf and integrated to create the cdf (which is inverted to
 create the ppf function).  Each of these are then linearly interpolated
 to create the underlying scipy.stats object.  This object is then used
-for sampling as well as accessing the &lt;[class](class.md).pdf&gt;, &lt;[class](class.md).cdf&gt;,
-&lt;[class](class.md).ppf&gt;, etc.  For this reason, the and operator does not support
+for sampling as well as accessing the [Composite.pdf](Composite.pdf.md), [Composite.cdf](Composite.cdf.md),
+[Composite.ppf](Composite.ppf.md), etc.  For this reason, the and operator does not support
 retaining covariances at all.
 
 * |: the pdfs and cdfs of the two underlying distributions are sampled over their
@@ -54,8 +54,8 @@ linearly interpolated to create the underlying scipy.stats object.  This
 object is then used for any call to the underlying call EXCEPT for sampling.
 Sampling is handled by randomly choosing which child distribution to sample
 from and then sampling from that distribution.  Or operators are therefore
-able to retain covariances for &lt;[class](class.md).sample&gt;, but not for any calls
-to &lt;[class](class.md).pdf&gt;, &lt;[class](class.md).cdf&gt;, or &lt;[class](class.md).ppf&gt;.
+able to retain covariances for [Composite.sample](Composite.sample.md), but not for any calls
+to [Composite.pdf](Composite.pdf.md), [Composite.cdf](Composite.cdf.md), or [Composite.ppf](Composite.ppf.md).
 
 * all others: sampling is handled by sampling the underyling children and
 therefore can retain covariances.  The pdfs, cdfs, and ppfs are

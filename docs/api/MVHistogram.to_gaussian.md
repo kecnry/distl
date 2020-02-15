@@ -3,7 +3,7 @@
 
 ```py
 
-def to_gaussian(self, dimension, size)
+def to_gaussian(self, dimension)
 
 ```
 

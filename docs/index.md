@@ -4,8 +4,10 @@
 
 [![badge](https://img.shields.io/badge/github-kecnry%2Fdistl-blue.svg)](https://github.com/kecnry/distl)
 [![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/distl/)
+![badge](https://img.shields.io/badge/python-2.7+%20%7C%203.6+-blue.svg)
 [![badge](https://img.shields.io/badge/license-GPL3-blue.svg)](https://github.com/kecnry/distl/blob/master/LICENSE)
 [![badge](https://travis-ci.com/kecnry/distl.svg?branch=master)](https://travis-ci.com/kecnry/distl)
+[![badge](https://img.shields.io/codecov/c/github/kecnry/distl)](https://codecov.io/gh/kecnry/distl)
 [![badge](https://readthedocs.org/projects/distl/badge/?version=latest)](https://distl.readthedocs.io/en/latest/?badge=latest)
 
 
