@@ -255,10 +255,7 @@ def _test_methods_properties(d):
         np.cos(d)
         np.tan(d)
 
-        d.sample()
         if 'Histogram' not in d.__class__.__name__:
-            # using cache
-            d.pdf()
             # passing value
             d.pdf(0)
             d.logpdf(0)
@@ -281,6 +278,8 @@ def _test_methods_properties(d):
         d.interval(0.99)
 
 
+
+
     else:
         raise NotImplementedError("tests for class {} not implemented".format(d.__class__.__name__))
 
@@ -290,7 +289,12 @@ def _test_methods_properties(d):
     d.to_dict()
 
     d.sample()
-
+    # TODO: need to fix caching for MVHistogramSlice
+    if d.__class__.__name__ not in ['MVHistogramSlice', 'MVHistogram']:
+        d.pdf()
+        d.logpdf()
+        d.cdf()
+        d.logcdf()
 
 def _test_plotting(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
