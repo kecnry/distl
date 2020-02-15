@@ -311,6 +311,22 @@ def is_iterable(value):
     """must be an iterable (list, array, tuple)"""
     return isinstance(value, _np.ndarray) or isinstance(value, list) or isinstance(value, tuple), value
 
+def is_1d_array(value):
+    try:
+        value = _np.asarray(value)
+    except:
+        return False, value
+    else:
+        return len(value.shape)==1, value
+
+def is_nd_array(value):
+    try:
+        value = _np.asarray(value)
+    except:
+        return False, value
+    else:
+        return len(value.shape) > 1, value
+
 def is_square_matrix(value):
     """must be a square 2D matrix"""
     if isinstance(value, list):
@@ -3800,7 +3816,7 @@ class Histogram(BaseUnivariateDistribution):
         """
         super(Histogram, self).__init__(unit, label, wrap_at,
                                         _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
-                                        ('bins', bins, is_iterable), ('density', density, is_iterable))
+                                        ('bins', bins, is_1d_array), ('density', density, is_1d_array))
 
     @classmethod
     def from_data(cls, data, bins=10, range=None, weights=None,
@@ -4416,7 +4432,7 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         super(MVHistogram, self).__init__(units, labels, wrap_ats,
                                           None, None,
-                                          ('bins', bins, is_iterable), ('density', density, is_iterable))
+                                          ('bins', bins, is_nd_array), ('density', density, is_nd_array))
 
     @classmethod
     def from_data(cls, data, bins=10, range=None, weights=None,
