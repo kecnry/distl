@@ -17,6 +17,10 @@ def test_univariates():
     # test to make sure sampling and caching still work
     dc.sample()
     dc.pdf()
+    dc.pdf([6, 4])
+    dc.logpdf()
+    dc.cdf()
+    dc.logcdf()
 
 def test_mvslice():
     g = distl.gaussian(10, 2, label='gaussian')
@@ -37,6 +41,8 @@ def test_mvslice():
     dc = distl.from_dict(dc.to_dict())
     dc.sample()
     dc.pdf()
+    dc.pdf([6, 4, 2])
+    dc.plot()
 
     # passing the wrong shape to pdf should raise a ValueError
     assert_raises(ValueError, dc.pdf, [1,1])

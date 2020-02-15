@@ -8,6 +8,9 @@ from collections import OrderedDict
 
 from . import stats_custom as _stats_custom
 
+if _sys.version_info[0] > 2:
+    unicode = str
+
 try:
     import matplotlib.pyplot as _plt
 except ImportError:
@@ -77,7 +80,7 @@ def from_dict(d):
     ----------
     * The appropriate distribution object.
     """
-    if isinstance(d, str):
+    if isinstance(d, str) or isinstance(d, unicode):
         return from_json(d)
 
     if not isinstance(d, dict):
@@ -172,7 +175,7 @@ def to_unit(unit):
     """
     Convert a string to an astropy unit object
     """
-    if isinstance(unit, str):
+    if isinstance(unit, str) or isinstance(unit, unicode):
         unit = _units.Unit(unit)
 
 def _json_safe(v):
@@ -493,13 +496,7 @@ class BaseDistribution(object):
         --------
         * string
         """
-        try:
-            return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
-        except:
-            if _has_dill:
-                return _dill.dumps(self)
-            else:
-                raise ImportError("dumping file requires 'dill' package")
+        return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
 
     def to_file(self, filename, **kwargs):
         """
@@ -1503,7 +1500,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
     @unit.setter
     def unit(self, unit):
-        if isinstance(unit, str):
+        if isinstance(unit, str) or isinstance(unit, unicode):
             unit = _units.Unit(unit)
 
         if not (unit is None or isinstance(unit, _units.Unit) or isinstance(unit, _units.CompositeUnit) or isinstance(unit, _units.IrreducibleUnit)):
@@ -2311,7 +2308,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
         if self.units is not None:
-            d['units'] = str(self.units.to_string())
+            d['units'] = [u.to_string() if u is not None else None for u in self.units]
         if self.labels is not None:
             d['labels'] = self.labels
         if self.wrap_ats is not None:
@@ -2319,7 +2316,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         return d
 
     def _get_dimension_index(self, dimension):
-        if isinstance(dimension, str):
+        if isinstance(dimension, str) or isinstance(dimension, unicode):
             if dimension not in self.labels:
                 raise ValueError("dimension must be one of {}".format(self.labels))
 
@@ -2352,7 +2349,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
     @labels.setter
     def labels(self, labels):
-        if isinstance(labels, str):
+        if isinstance(labels, str) or isinstance(labels, unicode):
             raise NotImplementedError()
             # labels = [label for _ in range(self._ndimensions_available)]
 
@@ -2407,7 +2404,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         units = [to_unit(u) for u in units]
 
 
-        if not np.all([unit is None or isinstance(unit, _units.Unit) or isinstance(unit, _units.CompositeUnit) or isinstance(unit, _units.IrreducibleUnit) for unit in units]):
+        if not _np.all([unit is None or isinstance(unit, _units.Unit) or isinstance(unit, _units.CompositeUnit) or isinstance(unit, _units.IrreducibleUnit) for unit in units]):
             raise TypeError("units must be a list of type astropy.units.Unit")
 
         self._units = units
@@ -2817,6 +2814,8 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
     ### SAMPLE CACHING
     @property
     def cached_sample(self):
+        if self.multivariate.cached_sample is None:
+            return None
         return self.multivariate.cached_sample[self.dimension]
 
     def clear_cached_sample(self):
@@ -4304,7 +4303,7 @@ class MVGaussian(BaseMultivariateDistribution):
         ----------
         * <MVGaussian> object or <Gaussian> if only one dimension provided
         """
-        if isinstance(dimensions, int) or isinstance(dimensions, str):
+        if isinstance(dimensions, int) or isinstance(dimensions, str) or isinstance(dimensions, unicode):
             dimensions = [dimensions]
 
         dimensions = [self._get_dimension_index(d) for d in dimensions]
@@ -4460,12 +4459,12 @@ class MVHistogram(BaseMultivariateDistribution):
 
         return cls(_np.asarray(bin_edges), hist, units=units, labels=labels, wrap_ats=wrap_ats)
 
-    def pdf(self, x):
+    def pdf(self, x, unit=None):
         # TODO: N-dimension interpolation of (self.bins, self.density)
         raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
 
-    def logpdf(self, x):
-        raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+    def logpdf(self, x, unit=None):
+        raise NotImplementedError("logpdf not supported for {} distribution".format(self.__class__.__name__))
 
     @property
     def _cdf_per_bin(self):
@@ -4473,12 +4472,12 @@ class MVHistogram(BaseMultivariateDistribution):
         cdf /= float(cdf[-1])
         return cdf
 
-    def cdf(self, x):
+    def cdf(self, x, unit=None):
         # TODO: N-dimensional interpolation of (self.bins, self._cdf_per_bin)
-        raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+        raise NotImplementedError("cdf not supported for {} distribution".format(self.__class__.__name__))
 
-    def logcdf(self, x):
-        raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+    def logcdf(self, x, unit=None):
+        raise NotImplementedError("logcdf not supported for {} distribution".format(self.__class__.__name__))
 
     def _ppf(self, q, dimension=None):
         # this is hidden because although it does work for random drawing, I'm
@@ -4593,7 +4592,7 @@ class MVHistogram(BaseMultivariateDistribution):
         ----------
         * <MVHistogram> object or <Histogram> if only one dimension provided
         """
-        if isinstance(dimensions, int) or isinstance(dimensions, str):
+        if isinstance(dimensions, int) or isinstance(dimensions, str) or isinstance(dimensions, unicode):
             dimensions = [dimensions]
 
         dimensions = [self._get_dimension_index(d) for d in dimensions]
@@ -4813,6 +4812,20 @@ class MVHistogramSlice(BaseMultivariateSliceDistribution):
     @property
     def dist_constructor_args(self):
         return _hist_pdf_cdf_ppf_callables(self.bins, self.density)
+
+    # def pdf(self, x, unit=None):
+    #     # TODO: N-dimension interpolation of (self.bins, self.density)
+    #     raise NotImplementedError("pdf not supported for {} distribution".format(self.__class__.__name__))
+    #
+    # def logpdf(self, x, unit=None):
+    #     raise NotImplementedError("logpdf not supported for {} distribution".format(self.__class__.__name__))
+    #
+    # def cdf(self, x, unit=None):
+    #     # TODO: N-dimensional interpolation of (self.bins, self._cdf_per_bin)
+    #     raise NotImplementedError("cdf not supported for {} distribution".format(self.__class__.__name__))
+    #
+    # def logcdf(self, x, unit=None):
+    #     raise NotImplementedError("logcdf not supported for {} distribution".format(self.__class__.__name__))
 
     @property
     def bins(self):

@@ -11,14 +11,17 @@ def test_gaussian():
     # too many args
     assert_raises(TypeError, distl.gaussian, 0, 1, 1)
 
-    d = distl.gaussian(unit=u.solRad)
-    d_with_unit = distl.gaussian(unit='solRad')
+    d = distl.gaussian(unit=u.deg)
+    d.to(u.rad)
+    d.to('rad')
+    d_with_unit = distl.gaussian(unit='deg')
     d_with_label = distl.gaussian(label='mylabel')
+    d_with_wrap_at = distl.gaussian(10, 2, wrap_at=12)
     d = distl.gaussian(5, 10)
     d = distl.normal(5, 10)
     d = d.copy()
 
-    for d in [d, d_with_unit, d_with_label]:
+    for d in [d, d_with_unit, d_with_label, d_with_wrap_at]:
         _test_conversions(d)
         _test_methods_properties(d)
         _test_plotting(d)
@@ -85,10 +88,11 @@ def test_composite():
     d = d*u
     d = d.copy()
 
-    _test_conversions(d)
-    _test_methods_properties(d)
-    _test_plotting(d)
-    _test_json(d)
+    for dist in [d*u, d+u, d|u, d&u, np.sin(u)]:
+        _test_conversions(dist)
+        _test_methods_properties(dist)
+        _test_plotting(dist)
+        _test_json(dist)
 
 def test_mvgaussian():
     d = distl.mvgaussian([5,10, 12],
@@ -98,12 +102,15 @@ def test_mvgaussian():
                            allow_singular=True,
                            labels=['a', 'b', 'c'])
 
-    d = d.copy()
+    d_with_units = d.copy()
+    d_with_units.units = ['solRad', 'deg', 'kg']
 
-    _test_conversions(d)
-    _test_methods_properties(d)
-    _test_plotting(d)
-    _test_json(d)
+
+    for d in [d, d_with_units]:
+        _test_conversions(d)
+        _test_methods_properties(d)
+        _test_plotting(d)
+        _test_json(d)
 
 def test_mvgaussianslice():
     d = distl.mvgaussian([5,10, 12],
@@ -191,6 +198,10 @@ def _test_methods_properties(d):
         d.units
         d.wrap_ats
 
+        if d.__class__.__name__ not in ['MVGaussian']:
+            d.calculate_means()
+            d.calculate_covariances()
+
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
         if isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
             d.dimension
@@ -204,12 +215,18 @@ def _test_methods_properties(d):
 
             d.ppf(0.5)
 
+
+
             # TODO: support changing units for MVSlices?
-            d.unit = 'cm'
-            d.to('m')
-            d.to_si()
-            d.to_solar()
-            d.unit = None
+            d * u.solRad
+
+            d2 = d.copy()
+            d2.unit = 'cm'
+            d2.to('m')
+            d2.to_si()
+            d2.to_solar()
+            d2.sample(as_quantity=True, unit='km')
+            d2.unit = None
 
 
         d.__repr__()
@@ -238,10 +255,16 @@ def _test_methods_properties(d):
         np.cos(d)
         np.tan(d)
 
-        d.pdf(0)
-        d.logpdf(0)
-        d.cdf(0)
-        d.logcdf(0)
+        d.sample()
+        if 'Histogram' not in d.__class__.__name__:
+            # using cache
+            d.pdf()
+            # passing value
+            d.pdf(0)
+            d.logpdf(0)
+            d.cdf(0)
+            d.logcdf(0)
+
         d.sf(0)
         d.logsf(0)
         d.isf(0)
@@ -274,9 +297,10 @@ def _test_plotting(d):
         pass
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
-        d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
-        d.plot_pdf()
-        d.plot_cdf()
+        if 'Histogram' not in d.__class__.__name__:
+            d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
+            d.plot_pdf()
+            d.plot_cdf()
         if not isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
             if d.__class__.__name__ not in ['Gaussian']:
                 d.plot(plot_gaussian=True)
@@ -286,6 +310,8 @@ def _test_plotting(d):
         raise NotImplementedError("tests for class {} not implemented".format(d.__class__.__name__))
 
     d.plot()
+    d.plot(color='blue')
+    d.plot(plot_sample_kwargs={'color': 'blue'})
     d.plot_sample()
 
 
@@ -295,6 +321,8 @@ def _test_json(d):
 
     distl.from_dict(d.to_json())
     distl.from_json(d.to_dict())
+
+    distl.from_file(d.to_file('tmp.distl'))
 
 
 if __name__ == '__main__':
