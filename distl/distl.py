@@ -413,8 +413,8 @@ class BaseDistribution(object):
         else:
             try:
                 return super(BaseDistribution, self).__getattr__(name)
-            except AttributeError:
-                raise AttributeError("{} does not have attribute {}".format(self.__class__.__name__.lower(), name))
+            except AttributeError as err:
+                raise AttributeError("{} could not get attribute {}.  Original error: {}".format(self.__class__.__name__.lower(), name, err))
 
     def __setattr__(self, name, value):
         """
@@ -433,8 +433,8 @@ class BaseDistribution(object):
         else:
             try:
                 return super(BaseDistribution, self).__setattr__(name, value)
-            except AttributeError:
-                raise AttributeError("{} does not have attribute '{}'".format(self.__class__.__name__.lower(), name))
+            except AttributeError as err:
+                raise AttributeError("{} could not set attribute '{}'.  Original error: {}".format(self.__class__.__name__.lower(), name, err))
 
     ### REPRESENTATIONS
 
