@@ -1479,8 +1479,11 @@ class BaseUnivariateDistribution(BaseDistribution):
 
     @label.setter
     def label(self, label):
-        if not (label is None or isinstance(label, str)):
-            raise TypeError("label must be of type str")
+        if label is not None:
+            try:
+                label = str(label)
+            except:
+                raise TypeError("label must be of type str")
 
         self._label = label
 
