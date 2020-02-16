@@ -87,6 +87,7 @@ and linearly interpolating between the bins, thereby losing all covariances.
 * [logcdf](Composite.logcdf.md)
 * [logpdf](Composite.logpdf.md)
 * [logsf](Composite.logsf.md)
+* [math](Composite.math.md)
 * [mean](Composite.mean.md)
 * [median](Composite.median.md)
 * [moment](Composite.moment.md)

@@ -9,7 +9,7 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed={},
 
 
 
-Sample from the distribution.
+Sample from the [Composite](Composite.md) distribution.
 
 Arguments
 -----------

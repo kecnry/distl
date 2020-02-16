@@ -21,6 +21,7 @@ on that sample.
 
 
 * [__init__](MVHistogram.__init__.md)
+* [bins](MVHistogram.bins.md)
 * [cached_sample](MVHistogram.cached_sample.md)
 * [calculate_covariances](MVHistogram.calculate_covariances.md)
 * [calculate_means](MVHistogram.calculate_means.md)
@@ -28,6 +29,7 @@ on that sample.
 * [cdf](MVHistogram.cdf.md)
 * [clear_cached_sample](MVHistogram.clear_cached_sample.md)
 * [copy](MVHistogram.copy.md)
+* [density](MVHistogram.density.md)
 * [dist_constructor_argnames](MVHistogram.dist_constructor_argnames.md)
 * [dist_constructor_args](MVHistogram.dist_constructor_args.md)
 * [dist_constructor_func](MVHistogram.dist_constructor_func.md)

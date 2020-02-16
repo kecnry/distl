@@ -77,7 +77,7 @@ If we multiply in the other order, we'll get a [Composite distribution](../api/C
 print(d*g)
 ```
 
-    <distl.delta loc=2.0>*<distl.gaussian loc=10.0 scale=2.0>
+    <distl.delta loc=2.0> * <distl.gaussian loc=10.0 scale=2.0>
 
 
 
@@ -96,7 +96,7 @@ Note that since the floats/integers are treated as distributions, `2*g` is **not
 print(g+g)
 ```
 
-    <distl.gaussian loc=10.0 scale=2.0>+<distl.gaussian loc=10.0 scale=2.0>
+    <distl.gaussian loc=10.0 scale=2.0> + <distl.gaussian loc=10.0 scale=2.0>
 
 
 

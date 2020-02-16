@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, *distributions)
+def __init__(self, *dists)
 
 ```
 

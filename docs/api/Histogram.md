@@ -21,10 +21,12 @@ well as used when calling [Histogram.sample](Histogram.sample.md).
 
 
 * [__init__](Histogram.__init__.md)
+* [bins](Histogram.bins.md)
 * [cached_sample](Histogram.cached_sample.md)
 * [cdf](Histogram.cdf.md)
 * [clear_cached_sample](Histogram.clear_cached_sample.md)
 * [copy](Histogram.copy.md)
+* [density](Histogram.density.md)
 * [dist_constructor_argnames](Histogram.dist_constructor_argnames.md)
 * [dist_constructor_args](Histogram.dist_constructor_args.md)
 * [dist_constructor_func](Histogram.dist_constructor_func.md)

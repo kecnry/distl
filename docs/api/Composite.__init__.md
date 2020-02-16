@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, math, dist1, dist2=None, unit=None, label=None, wrap_at=None)
+def __init__(self, math, dists, unit=None, label=None, wrap_at=None)
 
 ```
 
@@ -16,12 +16,11 @@ directly.  See examples on the [Composite](Composite.md) overview page.
 
 Arguments
 ----------
-* `math`: operator to be used between the two distributions.  Must
+* `math`: operator to be used between the `dists`.  Must
     be a valid and implemented operator.
-* `dist1` ([BaseDistribution](BaseDistribution.md))
-* `dist2` ([BaseDistribution](BaseDistribution.md), optional, default=None): the second
-    distribution is required for most operators.  Some operators
-    (e.g. sin, cos, tan) only take one distribution as an argument.
+* `dists` (list of distribution objects): distribution objects
+    to apply `math` operator.  Some operators (e.g. sin, cos, tan) only
+    take one distribution as an argument, but most require 2 or more.
 * `unit` (astropy.units object, optional): the units of the provided values.
 * `label` (string, optional): a label for the distribution.  This is used
     for the x-label while plotting the distribution, as well as a shorthand

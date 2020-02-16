@@ -28,7 +28,7 @@ dc
 
 
 
-    <distl.distl.DistributionCollection at 0x7ff07ce0ab50>
+    <distl.distl.DistributionCollection at 0x7f7106373090>
 
 
 
@@ -42,15 +42,15 @@ dc.sample()
 
 
 
-    array([7.94423774, 3.38651017])
+    array([7.94423774, 4.82428537])
 
 
 
-If ever unsure, we can access the underlying distribution objects via the [distributions](../api/DistributionCollection.distributions.md) or [labels](../api/DistributionCollection.labels.md) properties.
+If ever unsure, we can access the underlying distribution objects via the [dists](../api/DistributionCollection.dists.md) or [labels](../api/DistributionCollection.labels.md) properties.
 
 
 ```python
-dc.distributions
+dc.dists
 ```
 
 
@@ -83,9 +83,9 @@ dc.sample(size=3)
 
 
 
-    array([[9.37163392, 3.36311296],
-           [9.62300195, 4.40946774],
-           [8.02432764, 4.95818353]])
+    array([[ 8.23561226,  2.80621119],
+           [10.84212204,  4.7611796 ],
+           [11.47347495,  0.78735796]])
 
 
 
@@ -180,7 +180,7 @@ dc.sample()
 
 
 
-    array([11.74876632,  2.66770994,  5.0344299 , 11.82708121])
+    array([12.15966564,  1.30710094,  3.50626537, 11.9352359 ])
 
 
 
@@ -316,7 +316,7 @@ dc.sample()
 
 
 
-    array([  4.4615435 ,   7.92079606, 180.5834499 ])
+    array([   6.13359899,   -6.12284311, -150.50768913])
 
 
 
@@ -351,7 +351,7 @@ dc.pdf([6, 4, 4*25], as_univariates=True)
 
 
 
-    4.2881196747751065e-05
+    4.321436464559148e-05
 
 
 
@@ -365,7 +365,7 @@ dc.get_distributions_with_values([6, 4, 4*25], as_univariates=True)
 
     {<distl.gaussian loc=5.0 scale=2.0 label=g1>: 6,
      <distl.gaussian loc=3.0 scale=5.0 label=u>: 4,
-     <distl.composite {u}*{g2} unit=None>: 100}
+     <distl.composite {u} * {g2} unit=None>: 100}
 
 
 
@@ -377,7 +377,7 @@ g1.pdf(6) * u.pdf(4) * (u*g2).pdf(4*25)
 
 
 
-    4.2881196747751065e-05
+    4.321436464559148e-05
 
 
 

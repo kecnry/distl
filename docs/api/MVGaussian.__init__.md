@@ -9,7 +9,7 @@ def __init__(self, mean=0.0, cov=1.0, allow_singular=False, units=None, labels=N
 
 
 
-A Multivariate Gaussian distribution uses [scipy.stats.norm](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.multivariate_normal.html)
+A Multivariate Gaussian distribution uses [scipy.stats.multivariate_normal](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.multivariate_normal.html)
 to sample values from a multivariate gaussian/normal function.
 
 This can also be created from a function at the top-level as:
@@ -18,10 +18,10 @@ This can also be created from a function at the top-level as:
 
 Arguments
 --------------
-* `mean` (float or int, default=0.0): the central value of the gaussian
-    distribution.
-* `cov` (float or int, default=1.0): the scale (sigma) of the gaussian
-    distribution.
+* `mean` (float or int, default=0.0): the central value of the
+    multivariate gaussian distribution.
+* `cov` (float or int, default=1.0): the covariance matrix of the multivariate
+    gaussian distribution.
 * `allow_singular` (bool, optional, default=False): passed directly to
     scipy (see link above).
 * `units` (list of astropy.units objects, optional): the units of the provided values.

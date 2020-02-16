@@ -27,6 +27,7 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 * [interval](Delta.interval.md)
 * [isf](Delta.isf.md)
 * [label](Delta.label.md)
+* [loc](Delta.loc.md)
 * [logcdf](Delta.logcdf.md)
 * [logpdf](Delta.logpdf.md)
 * [logsf](Delta.logsf.md)
