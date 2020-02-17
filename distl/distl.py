@@ -3612,7 +3612,13 @@ class Composite(BaseUnivariateDistribution):
             # calls to pdf/cdf/ppf will still need to merge and interpolate
             # and will ignore these covariances.
 
-            sample =  self._sample_from_children(self.math, self.dists, size=size, seed=seed, cache_sample=cache_sample)
+            sample = self._sample_from_children(self.math, self.dists, size=size, seed=seed, cache_sample=cache_sample)
+
+            if isinstance(sample, _units.Quantity):
+                if sample.unit is None or sample.unit in [_units.dimensionless_unscaled]:
+                    sample = sample.value
+                else:
+                    sample = sample.to(self.unit).value
 
             if cache_sample:
                 self._cached_sample = sample

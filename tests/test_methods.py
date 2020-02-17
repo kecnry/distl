@@ -291,6 +291,7 @@ def _test_methods_properties(d):
     d.to_json()
     d.to_dict()
 
+    d.sample(size=2)
     d.sample()
     # TODO: need to fix caching for MVHistogramSlice
     # TODO: need to fix MVGaussian support in Python 2 on travis

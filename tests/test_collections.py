@@ -15,6 +15,7 @@ def test_univariates():
     assert_raises(ValueError, dc.pdf, None)
 
     # test to make sure sampling and caching still work
+    dc.sample(size=2)
     dc.sample()
     dc.pdf()
     dc.pdf([6, 4])
@@ -39,6 +40,7 @@ def test_mvslice():
     dc.labels
 
     dc = distl.from_dict(dc.to_dict())
+    dc.sample(size=2)
     dc.sample()
     dc.pdf()
     dc.pdf([6, 4, 2])
