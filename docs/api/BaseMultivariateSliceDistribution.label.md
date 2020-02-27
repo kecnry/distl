@@ -4,7 +4,7 @@
 
 
 Access the label of the multivariate distribution corresponsing to the
-sliced dimension
+sliced dimension, or the overridden value for this [BaseMultivariateSliceDistribution](BaseMultivariateSliceDistribution.md).
 
 See also:
 

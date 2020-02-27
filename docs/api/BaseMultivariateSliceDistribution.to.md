@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [BaseMultivariateSliceDistribution.unit](BaseMultivariateSliceDistribution.unit.md)
+* [BaseMultivariateSliceDistribution.to_si](BaseMultivariateSliceDistribution.to_si.md)
+* [BaseMultivariateSliceDistribution.to_solar](BaseMultivariateSliceDistribution.to_solar.md)
 
 Arguments
 ------------

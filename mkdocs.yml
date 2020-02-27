@@ -30,6 +30,9 @@ nav:
         - Uniform: api/Uniform.md
         - Histogram: api/Histogram.md
         - Composite: api/Composite.md
+        - Delta Around: api/Delta_Around.md
+        - Uniform Around: api/Uniform_Around.md
+        - Gaussian_Around: api/Gaussian_Around.md
         - Multivariate Gaussian: api/MVGaussian.md
         - Multivariate Gaussian Slice: api/MVGaussianSlice.md
         - Multivariate Histogram: api/MVHistogram.md

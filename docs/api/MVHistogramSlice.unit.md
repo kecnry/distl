@@ -4,7 +4,7 @@
 
 
 Access the unit of the multivariate distribution corresponsing to the
-sliced dimension
+sliced dimension, or the overridden value for this [MVHistogramSlice](MVHistogramSlice.md).
 
 See also:
 

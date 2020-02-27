@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, multivariate, dimension)
+def __init__(self, multivariate, dimension, unit=None, label=None, wrap_at=None)
 
 ```
 

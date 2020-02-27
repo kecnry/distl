@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [Histogram.unit](Histogram.unit.md)
+* [Histogram.to_si](Histogram.to_si.md)
+* [Histogram.to_solar](Histogram.to_solar.md)
 
 Arguments
 ------------

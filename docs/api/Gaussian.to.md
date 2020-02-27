@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [Gaussian.unit](Gaussian.unit.md)
+* [Gaussian.to_si](Gaussian.to_si.md)
+* [Gaussian.to_solar](Gaussian.to_solar.md)
 
 Arguments
 ------------

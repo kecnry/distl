@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [Uniform.unit](Uniform.unit.md)
+* [Uniform.to_si](Uniform.to_si.md)
+* [Uniform.to_solar](Uniform.to_solar.md)
 
 Arguments
 ------------

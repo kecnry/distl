@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [MVGaussianSlice.unit](MVGaussianSlice.unit.md)
+* [MVGaussianSlice.to_si](MVGaussianSlice.to_si.md)
+* [MVGaussianSlice.to_solar](MVGaussianSlice.to_solar.md)
 
 Arguments
 ------------

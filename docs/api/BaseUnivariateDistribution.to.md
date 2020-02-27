@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [BaseUnivariateDistribution.unit](BaseUnivariateDistribution.unit.md)
+* [BaseUnivariateDistribution.to_si](BaseUnivariateDistribution.to_si.md)
+* [BaseUnivariateDistribution.to_solar](BaseUnivariateDistribution.to_solar.md)
 
 Arguments
 ------------

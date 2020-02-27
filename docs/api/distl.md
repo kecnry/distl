@@ -2,10 +2,12 @@
 
 * [boxcar](distl.boxcar.md)
 * [delta](distl.delta.md)
+* [delta_around](distl.delta_around.md)
 * [from_dict](distl.from_dict.md)
 * [from_file](distl.from_file.md)
 * [from_json](distl.from_json.md)
 * [gaussian](distl.gaussian.md)
+* [gaussian_around](distl.gaussian_around.md)
 * [get_random_seed](distl.get_random_seed.md)
 * [histogram_from_bins](distl.histogram_from_bins.md)
 * [histogram_from_data](distl.histogram_from_data.md)
@@ -13,3 +15,4 @@
 * [mvhistogram_from_data](distl.mvhistogram_from_data.md)
 * [normal](distl.normal.md)
 * [uniform](distl.uniform.md)
+* [uniform_around](distl.uniform_around.md)

@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [Delta.unit](Delta.unit.md)
+* [Delta.to_si](Delta.to_si.md)
+* [Delta.to_solar](Delta.to_solar.md)
 
 Arguments
 ------------

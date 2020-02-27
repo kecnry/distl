@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [Composite.unit](Composite.unit.md)
+* [Composite.to_si](Composite.to_si.md)
+* [Composite.to_solar](Composite.to_solar.md)
 
 Arguments
 ------------

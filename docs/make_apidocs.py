@@ -114,10 +114,12 @@ if __name__ == '__main__':
     fms = api_docs(distl, skip=[], members=[pydoc.inspect.isfunction])
 
     skip_methods = ['sin', 'cos', 'tan']
+    fms = api_docs(distl._distl.BaseDistlObject, skip=skip_methods)
     fms = api_docs(distl._distl.BaseDistribution, skip=skip_methods)
     fms = api_docs(distl._distl.BaseUnivariateDistribution, skip=skip_methods)
     fms = api_docs(distl._distl.BaseMultivariateDistribution, skip=skip_methods)
     fms = api_docs(distl._distl.BaseMultivariateSliceDistribution, skip=skip_methods)
+    fms = api_docs(distl._distl.BaseAroundGenerator, skip=skip_methods)
 
     fms = api_docs(distl._distl.Composite, skip=skip_methods)
     fms = api_docs(distl._distl.DistributionCollection, skip=skip_methods)
@@ -132,3 +134,7 @@ if __name__ == '__main__':
     fms = api_docs(distl._distl.MVGaussianSlice, skip=skip_methods)
     fms = api_docs(distl._distl.MVHistogram, skip=skip_methods)
     fms = api_docs(distl._distl.MVHistogramSlice, skip=skip_methods)
+
+    fms = api_docs(distl._distl.Gaussian_Around, skip=skip_methods)
+    fms = api_docs(distl._distl.Uniform_Around, skip=skip_methods)
+    fms = api_docs(distl._distl.Delta_Around, skip=skip_methods)

@@ -16,6 +16,8 @@ set and/or use units.
 See also:
 
 * [MVHistogramSlice.unit](MVHistogramSlice.unit.md)
+* [MVHistogramSlice.to_si](MVHistogramSlice.to_si.md)
+* [MVHistogramSlice.to_solar](MVHistogramSlice.to_solar.md)
 
 Arguments
 ------------

@@ -165,6 +165,51 @@ def test_mvhistogramslice():
     _test_plotting(d)
     _test_json(d)
 
+def test_gaussian_around():
+    d = distl.gaussian_around(scale=1)
+    assert_raises(ValueError, d.sample)
+
+    _test_json(d)
+
+    d.sample(value=5)
+    d(5)
+    d.value = 5
+    d()
+
+    _test_methods_properties(d)
+    _test_plotting(d)
+    _test_json(d)
+
+def test_uniform_around():
+    d = distl.uniform_around(width=1)
+    assert_raises(ValueError, d.sample)
+
+    _test_json(d)
+
+    d.sample(value=5)
+    d(5)
+    d.value = 5
+    d()
+
+    _test_methods_properties(d)
+    _test_plotting(d)
+    _test_json(d)
+
+def test_delta_around():
+    d = distl.delta_around()
+    assert_raises(ValueError, d.sample)
+
+    _test_json(d)
+
+    d.sample(value=5)
+    d(5)
+    d.value = 5
+    d()
+
+    _test_methods_properties(d)
+    _test_plotting(d)
+    _test_json(d)
+
 def _test_conversions(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
         if d.__class__.__name__ not in ['MVHistogram']:
@@ -193,7 +238,7 @@ def _test_conversions(d):
             d.to_delta(loc='median')
             d.to_delta(loc='sample')
     else:
-        raise NotImplementedError("tests for class {} not implemented".format(d.__class__.__name__))
+        raise NotImplementedError("test_conversions for class {} not implemented".format(d.__class__.__name__))
 
 def _test_methods_properties(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
@@ -281,10 +326,16 @@ def _test_methods_properties(d):
         d.interval(0.99)
 
 
+    elif isinstance(d, distl._distl.BaseAroundGenerator):
+        d.label
+        d.unit
+        d.wrap_at
+        d.value
 
+        d.pdf(0)
 
     else:
-        raise NotImplementedError("tests for class {} not implemented".format(d.__class__.__name__))
+        raise NotImplementedError("test_methods_properties for class {} not implemented".format(d.__class__.__name__))
 
     d.copy()
     d.hash
@@ -295,7 +346,8 @@ def _test_methods_properties(d):
     d.sample()
     # TODO: need to fix caching for MVHistogramSlice
     # TODO: need to fix MVGaussian support in Python 2 on travis
-    if d.__class__.__name__ not in ['MVHistogramSlice', 'MVHistogram', 'MVGaussian']:
+    # TODO: cache the underyling frozen distribution for BaseAroundGenerators and then provide better error message when cache clears
+    if d.__class__.__name__ not in ['MVHistogramSlice', 'MVHistogram', 'MVGaussian'] and not isinstance(d, distl._distl.BaseAroundGenerator):
         d.pdf()
         d.logpdf()
         d.cdf()
@@ -315,8 +367,11 @@ def _test_plotting(d):
                 d.plot(plot_gaussian=True)
                 d.plot_gaussian()
 
+    elif isinstance(d, distl._distl.BaseAroundGenerator):
+        pass
+
     else:
-        raise NotImplementedError("tests for class {} not implemented".format(d.__class__.__name__))
+        raise NotImplementedError("test_plotting for class {} not implemented".format(d.__class__.__name__))
 
     d.plot()
     d.plot(color='blue')
@@ -344,3 +399,7 @@ if __name__ == '__main__':
     test_mvgaussianslice()
     test_mvhistogram()
     test_mvhistogramslice()
+
+    test_gaussian_around()
+    test_uniform_around()
+    test_delta_around()
