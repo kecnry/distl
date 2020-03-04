@@ -2235,7 +2235,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
     def __str__(self):
         if self.labels is not None:
-            return "{"+self.labels+"}"
+            return "{"+", ".join(self.labels)+"}"
         else:
             return self.__repr__()
 
