@@ -5216,6 +5216,15 @@ class BaseAroundGenerator(BaseDistlObject):
     def plot(self, *args, **kwargs):
         return self.__call__(value=kwargs.pop('value', None)).plot(*args, **kwargs)
 
+    def plot_pdf(self, *args, **kwargs):
+        return self.__call__(value=kwargs.pop('value', None)).plot_pdf(*args, **kwargs)
+
+    def plot_cdf(self, *args, **kwargs):
+        return self.__call__(value=kwargs.pop('value', None)).plot_cdf(*args, **kwargs)
+
+    def plot_sample(self, *args, **kwargs):
+        return self.__call__(value=kwargs.pop('value', None)).plot_sample(*args, **kwargs)
+
     def pdf(self, *args, **kwargs):
         return self.__call__(value=kwargs.pop('value', None)).pdf(*args, **kwargs)
 
