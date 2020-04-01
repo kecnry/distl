@@ -3418,6 +3418,10 @@ class Composite(BaseUnivariateDistribution):
         ---------
         * a <Composite> object.
         """
+        # we need to make sure to set math before dists, so we'll do that manually
+        # first (we'll also pass it again in the super init so that the descriptors
+        # can be set properly)
+        self.math = math
         super(Composite, self).__init__(unit, label, wrap_at,
                                         _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
                                         math=math, dists=dists)
