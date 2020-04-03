@@ -52,6 +52,7 @@ Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
 * [to_gaussian](Uniform.to_gaussian.md)
 * [to_histogram](Uniform.to_histogram.md)
 * [to_json](Uniform.to_json.md)
+* [to_samples](Uniform.to_samples.md)
 * [to_si](Uniform.to_si.md)
 * [to_solar](Uniform.to_solar.md)
 * [unit](Uniform.unit.md)

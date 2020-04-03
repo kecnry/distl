@@ -63,6 +63,7 @@ well as used when calling [Histogram.sample](Histogram.sample.md).
 * [to_gaussian](Histogram.to_gaussian.md)
 * [to_histogram](Histogram.to_histogram.md)
 * [to_json](Histogram.to_json.md)
+* [to_samples](Histogram.to_samples.md)
 * [to_si](Histogram.to_si.md)
 * [to_solar](Histogram.to_solar.md)
 * [to_uniform](Histogram.to_uniform.md)

@@ -108,6 +108,7 @@ and linearly interpolating between the bins, thereby losing all covariances.
 * [to_gaussian](Composite.to_gaussian.md)
 * [to_histogram](Composite.to_histogram.md)
 * [to_json](Composite.to_json.md)
+* [to_samples](Composite.to_samples.md)
 * [to_si](Composite.to_si.md)
 * [to_solar](Composite.to_solar.md)
 * [to_uniform](Composite.to_uniform.md)

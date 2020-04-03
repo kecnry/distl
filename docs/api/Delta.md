@@ -51,6 +51,7 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 * [to_gaussian](Delta.to_gaussian.md)
 * [to_histogram](Delta.to_histogram.md)
 * [to_json](Delta.to_json.md)
+* [to_samples](Delta.to_samples.md)
 * [to_si](Delta.to_si.md)
 * [to_solar](Delta.to_solar.md)
 * [to_uniform](Delta.to_uniform.md)

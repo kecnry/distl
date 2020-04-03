@@ -39,6 +39,7 @@
 * [to_file](BaseUnivariateDistribution.to_file.md)
 * [to_histogram](BaseUnivariateDistribution.to_histogram.md)
 * [to_json](BaseUnivariateDistribution.to_json.md)
+* [to_samples](BaseUnivariateDistribution.to_samples.md)
 * [to_si](BaseUnivariateDistribution.to_si.md)
 * [to_solar](BaseUnivariateDistribution.to_solar.md)
 * [unit](BaseUnivariateDistribution.unit.md)

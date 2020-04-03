@@ -2,7 +2,7 @@
 
 
 Create a [Uniform](Uniform.md) distribution which will always be centered to the face-value
-of the parameter.  All methods of the underlying [Uniform](Uniform.md) distribution are
+of the parameter.  Some methods of the underlying [Uniform](Uniform.md) distribution are
 available, but must either have [Uniform_Around.value](Uniform_Around.value.md) set or passed as
 a keyword-argument.  Calling the object with a value will also return
 the underlying "frozen" [Uniform](Uniform.md) distribution (see [Uniform_Around.to_uniform](Uniform_Around.to_uniform.md)).
@@ -25,6 +25,12 @@ ua(7).sample()
 * [copy](Uniform_Around.copy.md)
 * [hash](Uniform_Around.hash.md)
 * [label](Uniform_Around.label.md)
+* [pdf](Uniform_Around.pdf.md)
+* [plot](Uniform_Around.plot.md)
+* [plot_cdf](Uniform_Around.plot_cdf.md)
+* [plot_pdf](Uniform_Around.plot_pdf.md)
+* [plot_sample](Uniform_Around.plot_sample.md)
+* [sample](Uniform_Around.sample.md)
 * [to](Uniform_Around.to.md)
 * [to_dict](Uniform_Around.to_dict.md)
 * [to_file](Uniform_Around.to_file.md)
