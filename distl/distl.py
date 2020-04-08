@@ -311,7 +311,7 @@ def is_nd_array(value):
     else:
         if len(value.shape) > 1:
             return value
-        raise TypeError("must be a 1d array")
+        raise TypeError("must be an nd array, shape={}".format(value.shape))
 
 def is_square_matrix(value):
     if isinstance(value, list):
@@ -5535,7 +5535,7 @@ class MVSamples(BaseMultivariateDistribution):
         --------------
         * `samples` (np.array object with shape (nsamples, <MVSamples.ndimensions>)):
             the samples.
-        * `weights` (np.array object with shape (nsamples, <MVSamples.ndimensions>) or None, optional, default=None):
+        * `weights` (np.array object with shape (nsamples) or None, optional, default=None):
             weights for each entry in `samples`
         * `bw_method` (string, float, or None, optional, default=None): passed
             directly to scipy.stats.gaussian_kde.  Only used for methods that
@@ -5581,7 +5581,7 @@ class MVSamples(BaseMultivariateDistribution):
         if value is None:
             self._weights = None
         else:
-            self._weights = is_nd_array(value)
+            self._weights = is_1d_array(value)
 
     @property
     def bw_method(self):
@@ -5682,7 +5682,7 @@ class MVSamples(BaseMultivariateDistribution):
         samples = _np.asarray(self.samples)[:,dimensions]
 
         return MVSamples(samples=samples,
-                           weights=[self.weights[d] for d in dimensions] if self.weights is not None else None,
+                           weights=self.weights,
                            bw_method=self.bw_method,
                            units=[self.units[d] for d in dimensions] if self.units is not None else None,
                            labels=[self.labels[d] for d in dimensions] if self.labels is not None else None,
@@ -5725,7 +5725,7 @@ class MVSamples(BaseMultivariateDistribution):
         if seed is not None:
             _np.random.seed(seed)
 
-        sample_ind = _np.random.choice(self.nsamples, size=size, replace=True, p=self.weights)
+        sample_ind = _np.random.choice(self.nsamples, size=size if size is not None else 1, replace=True, p=self.weights)
         sample = self.samples[sample_ind]
 
         if cache_sample:
@@ -5734,6 +5734,7 @@ class MVSamples(BaseMultivariateDistribution):
         if dimension is not None:
             dimension = self._get_dimension_index(dimension)
             sample = sample[:, dimension]
+
 
         # TODO: units, as_quantity, wrapping
         if size is None:
@@ -5853,7 +5854,7 @@ class MVSamples(BaseMultivariateDistribution):
         dimension = self._get_dimension_index(dimension)
 
         return Samples(self.samples[:, dimension],
-                       weights=self.weights[dimension] if self.weights is not None else None,
+                       weights=self.weights,
                        bw_method=self.bw_method,
                        unit=self.units[dimension] if self.units is not None else None,
                        label=self.labels[dimension] if self.labels is not None else None,

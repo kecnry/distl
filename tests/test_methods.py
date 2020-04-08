@@ -415,7 +415,7 @@ def _test_plotting(d):
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
         if d.__class__.__name__ not in ['Histogram', 'MVHistogram']:
             d.plot_pdf()
-        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples']:
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
             d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
             d.plot_cdf()
         if not isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
