@@ -3,7 +3,7 @@
 
 ```py
 
-def cdf(self, x=None, unit=None)
+def cdf(self, *args, **kwargs)
 
 ```
 

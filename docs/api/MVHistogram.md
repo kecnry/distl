@@ -58,6 +58,7 @@ on that sample.
 * [to_json](MVHistogram.to_json.md)
 * [to_mvgaussian](MVHistogram.to_mvgaussian.md)
 * [to_mvsamples](MVHistogram.to_mvsamples.md)
+* [to_samples](MVHistogram.to_samples.md)
 * [to_univariate](MVHistogram.to_univariate.md)
 * [units](MVHistogram.units.md)
 * [wrap_ats](MVHistogram.wrap_ats.md)

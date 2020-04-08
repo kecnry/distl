@@ -3,13 +3,14 @@
 
 ```py
 
-def median(self, unit=None, as_quantity=False, wrap_at=None)
+def median(self, unit=None, as_quantity=False, wrap_at=None, N=1000000)
 
 ```
 
 
 
-Expose the median of the [Samples.samples](Samples.samples.md)
+Expose the median of the samples ([Samples.samples](Samples.samples.md) if [Samples.weights](Samples.weights.md)
+is not provided, otherwise `N` draws from [Samples.sample](Samples.sample.md))
 
 See also:
 
@@ -30,6 +31,8 @@ Arguments
     will use the value from [Samples.wrap_at](Samples.wrap_at.md).  Note: wrapping is
     computed before changing units, so `wrap_at` must be provided
     according to [Samples.unit](Samples.unit.md) not `unit`.
+* `N` (int, optional, default=1e6): number of samples to draw before
+    computing `median`.  Only applicable if [Samples.weights](Samples.weights.md) is not None.
 
 Returns
 ---------

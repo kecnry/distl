@@ -9,7 +9,9 @@ def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=Non
 
 
 
-Sample from the distribution.
+Sample from the samples [Samples.samples](Samples.samples.md) given [Samples.weights](Samples.weights.md).
+
+Under-the-hood this calls numpy.random.choice with `replace=True`.
 
 See also:
 

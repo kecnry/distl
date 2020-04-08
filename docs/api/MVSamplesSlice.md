@@ -1,7 +1,7 @@
 ## MVSamplesSlice (class)
 
 * [__init__](MVSamplesSlice.__init__.md)
-* [bins](MVSamplesSlice.bins.md)
+* [bw_method](MVSamplesSlice.bw_method.md)
 * [cached_sample](MVSamplesSlice.cached_sample.md)
 * [cdf](MVSamplesSlice.cdf.md)
 * [change_slice_dimension](MVSamplesSlice.change_slice_dimension.md)
@@ -51,5 +51,6 @@
 * [to_univariate](MVSamplesSlice.to_univariate.md)
 * [unit](MVSamplesSlice.unit.md)
 * [var](MVSamplesSlice.var.md)
+* [weights](MVSamplesSlice.weights.md)
 * [wrap](MVSamplesSlice.wrap.md)
 * [wrap_at](MVSamplesSlice.wrap_at.md)

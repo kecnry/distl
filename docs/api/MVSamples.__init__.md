@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, samples, bins=20, units=None, labels=None, wrap_ats=None)
+def __init__(self, samples, weights=None, bw_method=None, units=None, labels=None, wrap_ats=None)
 
 ```
 
@@ -19,8 +19,11 @@ Arguments
 --------------
 * `samples` (np.array object with shape (nsamples, [MVSamples.ndimensions](MVSamples.ndimensions.md))):
     the samples.
-* `bins` (int, optional, default=20): number of bins to use when binning
-    into a histogram.
+* `weights` (np.array object with shape (nsamples, [MVSamples.ndimensions](MVSamples.ndimensions.md)) or None, optional, default=None):
+    weights for each entry in `samples`
+* `bw_method` (string, float, or None, optional, default=None): passed
+    directly to scipy.stats.gaussian_kde.  Only used for methods that
+    rely on the KDE.
 * `units` (list of astropy.units objects, optional): the units of the provided values.
 * `labels` (list of strings, optional): labels for each dimension in the
     distribution.  This is used

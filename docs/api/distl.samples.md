@@ -3,7 +3,7 @@
 
 ```py
 
-def samples(samples, unit=None, label=None, wrap_at=None)
+def samples(samples, weights=None, bw_method=None, unit=None, label=None, wrap_at=None)
 
 ```
 

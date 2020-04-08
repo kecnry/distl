@@ -11,11 +11,8 @@ def interval(self, alpha, unit=None, as_quantity=False, wrap_at=None)
 
 Expose the range that contains alpha percent of the distribution.
 
-See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.interval.html)
-
-This method is just a wrapper around the scipy.stats method on
-[Samples.dist_constructor_object](Samples.dist_constructor_object.md) with unit-conversions, support for
-quantity objects, and wrapping done on the returned result.
+For [Samples](Samples.md), this directly calls [Samples.ppf](Samples.ppf.md) for 0.5 - alpha/2 and
+0.5 + alpha/2.
 
 Arguments
 ----------

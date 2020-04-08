@@ -357,15 +357,18 @@ def _test_methods_properties(d):
             # passing value
             d.pdf(0)
             d.logpdf(0)
+
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
             d.cdf(0)
             d.logcdf(0)
 
-        d.sf(0)
-        d.logsf(0)
-        d.isf(0)
+        if d.__class__.__name__ not in ['Samples', 'MVSamples', 'MVSamplesSlice']:
+            d.sf(0)
+            d.logsf(0)
+            d.isf(0)
 
-        d.moment(1)
-        d.entropy()
+            d.moment(1)
+            d.entropy()
 
         # d.expect(...)
 
@@ -400,17 +403,20 @@ def _test_methods_properties(d):
     if d.__class__.__name__ not in ['MVHistogramSlice', 'MVHistogram', 'MVSamples', 'MVSamplesSlice', 'MVGaussian'] and not isinstance(d, distl._distl.BaseAroundGenerator):
         d.pdf()
         d.logpdf()
-        d.cdf()
-        d.logcdf()
+
+        if d.__class__.__name__ not in ['Samples']:
+            d.cdf()
+            d.logcdf()
 
 def _test_plotting(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
         pass
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
-        if 'Histogram' not in d.__class__.__name__:
-            d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram']:
             d.plot_pdf()
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples']:
+            d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
             d.plot_cdf()
         if not isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
             if d.__class__.__name__ not in ['Gaussian']:

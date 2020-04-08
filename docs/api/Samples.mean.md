@@ -9,7 +9,9 @@ def mean(self, unit=None, as_quantity=False, wrap_at=None)
 
 
 
-Expose the mean of [Samples.samples](Samples.samples.md).
+Expose the mean of the [Samples.samples](Samples.samples.md) given the [Samples.weights](Samples.weights.md)
+
+Under-the-hood this uses numpy.average (as numpy.mean does not support weights)
 
 See also:
 

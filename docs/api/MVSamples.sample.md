@@ -9,6 +9,9 @@ def sample(self, size=None, dimension=None, seed=None, cache_sample=True)
 
 
 
+Sample from the  samples ([MVSamples.samples](MVSamples.samples.md) if [MVSamples.weights](MVSamples.weights.md)
+is not provided, otherwise [MVSamples.samples_weighted](MVSamples.samples_weighted.md))
+
 Arguments
 ----------
 * `size`

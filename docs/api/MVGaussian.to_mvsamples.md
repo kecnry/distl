@@ -3,7 +3,7 @@
 
 ```py
 
-def to_mvsamples(self, N=1000000.0, bins=15, range=None)
+def to_mvsamples(self, N=1000000.0)
 
 ```
 

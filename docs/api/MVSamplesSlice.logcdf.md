@@ -3,7 +3,7 @@
 
 ```py
 
-def logcdf(self, x=None, unit=None)
+def logcdf(self, *args, **kwargs)
 
 ```
 

@@ -17,6 +17,7 @@ and passes the resulting array to [Samples.__init__](Samples.__init__.md).
 Arguments
 -----------
 * `N` (int, optional, default=100000): number of samples to sample.
+
 * `wrap_at` (float or None, optional, default=None): value to set for
     `wrap_at` of the returned [Histogram](Histogram.md).  If None or not provided,
     will default to [BaseUnivariateDistribution.wrap_at](BaseUnivariateDistribution.wrap_at.md).

@@ -4,13 +4,21 @@
 
 Treatment under-the-hood:
 
+* [MVSamples.sample](MVSamples.sample.md), [MVSamples.calculate_means](MVSamples.calculate_means.md), [MVSamples.calculate_covariances](MVSamples.calculate_covariances.md)
+act directly on the stored array in [MVSamples.samples](MVSamples.samples.md), unless
+[MVSamples.weights](MVSamples.weights.md) are provided, in which case will act on a drawn sample
+from [MVSamples.sample](MVSamples.sample.md) (with the exception of [MVSamples.mean](MVSamples.mean.md) which calls
+numpy.average under-the-hood and passes [MVSamples.samples](MVSamples.samples.md) and [MVSamples.weights](MVSamples.weights.md)).
 
+* all other methods requiring a probability to be computed ([MVSamples.pdf](MVSamples.pdf.md) etc)
+rely on a KDE with [MVSamples.samples](MVSamples.samples.md), [MVSamples.weights](MVSamples.weights.md), and [MVSamples.bw_method](MVSamples.bw_method.md).
+See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html
 
 
 
 
 * [__init__](MVSamples.__init__.md)
-* [bins](MVSamples.bins.md)
+* [bw_method](MVSamples.bw_method.md)
 * [cached_sample](MVSamples.cached_sample.md)
 * [calculate_covariances](MVSamples.calculate_covariances.md)
 * [calculate_means](MVSamples.calculate_means.md)
@@ -25,6 +33,7 @@ Treatment under-the-hood:
 * [get_from_cache](MVSamples.get_from_cache.md)
 * [get_wrap_at](MVSamples.get_wrap_at.md)
 * [hash](MVSamples.hash.md)
+* [interval](MVSamples.interval.md)
 * [labels](MVSamples.labels.md)
 * [logcdf](MVSamples.logcdf.md)
 * [logpdf](MVSamples.logpdf.md)
@@ -36,6 +45,7 @@ Treatment under-the-hood:
 * [plot_gaussian](MVSamples.plot_gaussian.md)
 * [plot_pdf](MVSamples.plot_pdf.md)
 * [plot_sample](MVSamples.plot_sample.md)
+* [ppf](MVSamples.ppf.md)
 * [sample](MVSamples.sample.md)
 * [samples](MVSamples.samples.md)
 * [slice](MVSamples.slice.md)
@@ -50,4 +60,5 @@ Treatment under-the-hood:
 * [to_samples](MVSamples.to_samples.md)
 * [to_univariate](MVSamples.to_univariate.md)
 * [units](MVSamples.units.md)
+* [weights](MVSamples.weights.md)
 * [wrap_ats](MVSamples.wrap_ats.md)

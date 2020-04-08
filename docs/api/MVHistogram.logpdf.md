@@ -3,7 +3,7 @@
 
 ```py
 
-def logpdf(self, x, unit=None)
+def logpdf(self, x=None, unit=None)
 
 ```
 

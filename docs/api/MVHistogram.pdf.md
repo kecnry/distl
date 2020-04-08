@@ -3,7 +3,7 @@
 
 ```py
 
-def pdf(self, x, unit=None)
+def pdf(self, x=None, unit=None)
 
 ```
 

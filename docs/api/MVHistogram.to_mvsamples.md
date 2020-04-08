@@ -3,7 +3,7 @@
 
 ```py
 
-def to_mvsamples(self, N=1000000.0, bins=15, range=None)
+def to_mvsamples(self, N=1000000.0, range=None)
 
 ```
 
@@ -18,8 +18,6 @@ Arguments
 -----------
 * `N` (int, optional, default=1e6): number of samples to use for
     the histogram.
-* `bins` (int, optional, default=15): number of bins to use for the
-    histogram.
 
 Returns
 --------

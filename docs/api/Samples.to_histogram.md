@@ -3,7 +3,7 @@
 
 ```py
 
-def to_histogram(self, bins=None, wrap_at=None)
+def to_histogram(self, bins=20, wrap_at=None)
 
 ```
 

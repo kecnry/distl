@@ -12,11 +12,9 @@ def ppf(self, q, unit=None, as_quantity=False, wrap_at=None)
 Expose the percent point function (ppf; iverse of cdf - percentiles) at
 values of `q`.
 
-See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.ppf.html)
-
-This method is just a wrapper around the scipy.stats method on
-[Samples.dist_constructor_object](Samples.dist_constructor_object.md) with unit-conversions, support for
-quantity objects, and wrapping done on the returned result.
+For [Samples](Samples.md), this is done manually by sorting all [Samples.samples](Samples.samples.md)
+and mapping `q` onto the range of the sum of [Samples.weights](Samples.weights.md) to select
+the appropriate entry from [Samples.samples](Samples.samples.md).
 
 See also:
 

@@ -3,7 +3,7 @@
 
 ```py
 
-def mvsamples(samples, units=None, labels=None, wrap_ats=None)
+def mvsamples(samples, weights=None, bw_method=None, units=None, labels=None, wrap_ats=None)
 
 ```
 

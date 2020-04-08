@@ -6,16 +6,19 @@ A Samples distribution stores individual samples and draws randomly from them.
 Treatment under-the-hood:
 
 * [Samples.sample](Samples.sample.md), [Samples.mean](Samples.mean.md), [Samples.median](Samples.median.md), [Samples.std](Samples.std.md), and
-[Samples.var](Samples.var.md) act directly on the stored array in [Samples.samples](Samples.samples.md).
-* all other methods act on a histogram generated on-the-fly (but not stored),
-using [Samples.samples](Samples.samples.md) and [Samples.bins](Samples.bins.md).  See [Samples.to_histogram](Samples.to_histogram.md)
-and [Histogram](Histogram.md) for more details.
+[Samples.var](Samples.var.md) act directly on the stored array in [Samples.samples](Samples.samples.md), unless
+[Samples.weights](Samples.weights.md) are provided, in which case will act on a drawn sample
+from [Samples.sample](Samples.sample.md) (with the exception of [Samples.mean](Samples.mean.md) which calls
+numpy.average under-the-hood and passes [Samples.samples](Samples.samples.md) and [Samples.weights](Samples.weights.md)).
 
+* all other methods requiring a probability to be computed ([Samples.pdf](Samples.pdf.md) etc)
+rely on a KDE with [Samples.samples](Samples.samples.md), [Samples.weights](Samples.weights.md), and [Samples.bw_method](Samples.bw_method.md).
+See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html
 
 
 
 * [__init__](Samples.__init__.md)
-* [bins](Samples.bins.md)
+* [bw_method](Samples.bw_method.md)
 * [cached_sample](Samples.cached_sample.md)
 * [cdf](Samples.cdf.md)
 * [clear_cached_sample](Samples.clear_cached_sample.md)
@@ -63,5 +66,6 @@ and [Histogram](Histogram.md) for more details.
 * [to_uniform](Samples.to_uniform.md)
 * [unit](Samples.unit.md)
 * [var](Samples.var.md)
+* [weights](Samples.weights.md)
 * [wrap](Samples.wrap.md)
 * [wrap_at](Samples.wrap_at.md)
