@@ -3944,7 +3944,7 @@ class Samples(BaseUnivariateDistribution):
     and <Histogram> for more details.
 
     """
-    def __init__(self, samples, bins=20, unit=None, label=None, wrap_at=None):
+    def __init__(self, samples, weights=None, bins=20, unit=None, label=None, wrap_at=None):
         """
         Create a <Samples> distribution from samples.
 
@@ -3976,7 +3976,7 @@ class Samples(BaseUnivariateDistribution):
         super(Samples, self).__init__(unit, label, wrap_at,
                                       # None, None,
                                       _stats_custom.generic_pdf_cdf_ppf, ('_pdf_cdf_ppf_callables'),
-                                      samples=samples, bins=bins)
+                                      samples=samples, weights=weights, bins=bins)
 
     @property
     def nsamples(self):
@@ -3994,6 +3994,32 @@ class Samples(BaseUnivariateDistribution):
     @samples.setter
     def samples(self, value):
         self._samples = is_1d_array(value)
+
+
+    @property
+    def samples_weighted(self):
+        """
+        """
+        if self.weights is None or np.all(self.weights==1):
+            return self.samples
+
+        rescaled_weights = self.weights/min(self.weights) * 1e6
+
+        return np.concatenate([np.full(int(w), s) for s,w in zip(self.samples, rescaled_weights)])
+
+    @property
+    def weights(self):
+        """
+        weights for each entry in <Samples.samples>
+        """
+        return self._weights
+
+    @weights.setter
+    def weights(self, value):
+        if value is None:
+            self._weights = None
+        else:
+            self._weights = is_1d_array(value)
 
     @property
     def bins(self):
@@ -4023,7 +4049,7 @@ class Samples(BaseUnivariateDistribution):
         ---------
         * a <Histogram> object
         """
-        hist, bin_edges = _np.histogram(self.samples, bins=bins if bins is not None else self.bins, density=True)
+        hist, bin_edges = _np.histogram(self.samples, weights=self.weights, bins=bins if bins is not None else self.bins, density=True)
 
         return Histogram(bin_edges, hist, label=self.label, unit=self.unit, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
 
@@ -4085,7 +4111,7 @@ class Samples(BaseUnivariateDistribution):
         ---------
         * (float) median of the distribution in units `unit`.
         """
-        median = _np.median(self.samples)
+        median = _np.median(self.samples_weighted)
 
         return self._return_with_units(self.wrap(median, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
@@ -4117,7 +4143,7 @@ class Samples(BaseUnivariateDistribution):
         ---------
         * (float) mean of the distribution in units `unit`.
         """
-        mean = _np.mean(self.samples)
+        mean = _np.mean(self.samples_weighted)
 
         return self._return_with_units(self.wrap(mean, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
@@ -4149,7 +4175,7 @@ class Samples(BaseUnivariateDistribution):
         ---------
         * (float) variance of the distribution in units `unit`.
         """
-        var = _np.var(self.samples)
+        var = _np.var(self.samples_weighted)
 
         return self._return_with_units(self.wrap(var, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
@@ -4181,7 +4207,7 @@ class Samples(BaseUnivariateDistribution):
         ---------
         * (float) standard deviation of the distribution in units `unit`.
         """
-        std = _np.std(self.samples)
+        std = _np.std(self.samples_weighted)
 
         return self._return_with_units(self.wrap(std, wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
@@ -4233,8 +4259,9 @@ class Samples(BaseUnivariateDistribution):
 
         qs = _np.random.random(size=size)
         qs = _np.random.rand(size if size is not None else 1)
-        qints = _np.asarray(qs*self.nsamples, dtype='int')
-        sample = self.samples[qints]
+        samples_weighted = self.samples_weighted
+        qints = _np.asarray(qs*len(samples_weighted), dtype='int')
+        sample = samples_weighted[qints]
 
         if cache_sample:
             self._cached_sample = sample
@@ -5405,7 +5432,7 @@ class MVSamples(BaseMultivariateDistribution):
 
 
     """
-    def __init__(self, samples, bins=20, units=None, labels=None, wrap_ats=None):
+    def __init__(self, samples, weights=None, bins=20, units=None, labels=None, wrap_ats=None):
         """
         Create an <MVSamples> distribution from samples (eg. chains from MCMC).
 
@@ -5435,7 +5462,7 @@ class MVSamples(BaseMultivariateDistribution):
         """
         super(MVSamples, self).__init__(units, labels, wrap_ats,
                                         None, None,
-                                        samples=samples, bins=bins)
+                                        samples=samples, weights=weights, bins=bins)
 
     @property
     def samples(self):
@@ -5447,6 +5474,32 @@ class MVSamples(BaseMultivariateDistribution):
     @samples.setter
     def samples(self, value):
         self._samples = is_nd_array(value)
+
+    @property
+    def samples_weighted(self):
+        """
+        """
+        if self.weights is None or np.all(self.weights==1):
+            return self.samples
+
+        rescaled_weights = self.weights/min(self.weights) * 1e6
+
+        # TODO: not sure if this will work over generic dimensionality
+        return np.concatenate([np.full(int(w), s) for s,w in zip(self.samples, rescaled_weights)])
+
+    @property
+    def weights(self):
+        """
+        weights for each entry in <Samples.samples>
+        """
+        return self._weights
+
+    @weights.setter
+    def weights(self, value):
+        if value is None:
+            self._weights = None
+        else:
+            self._weights = is_nd_array(value)
 
     @property
     def bins(self):
@@ -5558,6 +5611,8 @@ class MVSamples(BaseMultivariateDistribution):
         samples = _np.asarray(self.samples)[:,dimensions]
 
         return MVSamples(samples=samples,
+                           weights=[self.weights[d] for d in dimensions] if self.weights is not None else None,
+                           bins=self.bins if self.bins is not None else None,
                            units=[self.units[d] for d in dimensions] if self.units is not None else None,
                            labels=[self.labels[d] for d in dimensions] if self.labels is not None else None,
                            wrap_ats=[self.wrap_ats[d] for d in dimensions] if self.wrap_ats is not None else None)
@@ -5582,9 +5637,10 @@ class MVSamples(BaseMultivariateDistribution):
             _np.random.seed(seed)
 
         qs = _np.random.rand(size if size is not None else 1)
-        qints = _np.asarray(qs*self.nsamples, dtype='int')
+        samples_weighted = self.samples_weighted
+        qints = _np.asarray(qs*samples_weighted.shape[0], dtype='int')
 
-        sample = self.samples[qints, :]
+        sample = samples_weighted[qints, :]
 
         if cache_sample:
             self._cached_sample = sample
@@ -5629,8 +5685,9 @@ class MVSamples(BaseMultivariateDistribution):
         # TODO: MVHistogram.calculate_means_covariances should convert to MVSamples and call this
 
         # TODO: do we need to handle wrap_at?
-        means = _np.mean(self.samples, axis=0)
-        covariances = _np.cov(self.samples.T)
+        samples_weighted = self.samples_weighted
+        means = _np.mean(samples_weighted, axis=0)
+        covariances = _np.cov(samples_weighted.T)
         return means, covariances
 
     def calculate_means(self):
@@ -5690,6 +5747,8 @@ class MVSamples(BaseMultivariateDistribution):
         dimension = self._get_dimension_index(dimension)
 
         return Samples(self.samples[:, dimension],
+                       weights=self.weights[dimension] if self.weights is not None else None,
+                       bins=self.bins if self.bins is not None else None,
                        unit=self.units[dimension] if self.units is not None else None,
                        label=self.labels[dimension] if self.labels is not None else None,
                        wrap_at=self._wrap_ats[dimension] if self.wrap_ats is not None else None)
@@ -5790,12 +5849,16 @@ class MVSamplesSlice(BaseMultivariateSliceDistribution):
     @property
     def dist_constructor_args(self):
         # raise NotImplementedError()
-        hist, bin_edges = _np.histogram(self.samples, bins=self.bins, density=True)
+        hist, bin_edges = _np.histogram(self.samples, weights=self.weights, bins=self.bins, density=True)
         return _hist_pdf_cdf_ppf_callables(bin_edges, hist)
 
     @property
     def samples(self):
         return self.multivariate.samples[:, self.dimension]
+
+    @property
+    def weights(self):
+        return self.multivariate.weights[:, self.dimension] if self.multivariate.weights is not None else None
 
     @property
     def bins(self):

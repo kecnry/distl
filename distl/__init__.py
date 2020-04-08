@@ -155,11 +155,11 @@ def histogram_from_data(data, bins=10, range=None, weights=None, unit=None, labe
                                         weights=weights, unit=unit, label=label,
                                         wrap_at=wrap_at)
 
-def samples(samples, unit=None, label=None, wrap_at=None):
+def samples(samples, weights=None, bins=20, unit=None, label=None, wrap_at=None):
     """
     Create a <Samples> distribution.
     """
-    return _distl.Samples(samples,
+    return _distl.Samples(samples, weights, bins,
                          unit=unit, label=label, wrap_at=wrap_at)
 
 
@@ -182,12 +182,12 @@ def mvhistogram_from_data(data, bins=10, range=None, weights=None,
                                         units=units, labels=labels, wrap_ats=wrap_ats)
 
 
-def mvsamples(samples,
+def mvsamples(samples, weights=None, bins=20,
               units=None, labels=None, wrap_ats=None):
     """
     Create a <MVSamples> distribution.
     """
-    return _distl.MVSamples(samples, units=units, labels=labels, wrap_ats=wrap_ats)
+    return _distl.MVSamples(samples, weights, bins, units=units, labels=labels, wrap_ats=wrap_ats)
 
 #### GENERATORS ####
 def gaussian_around(scale,
