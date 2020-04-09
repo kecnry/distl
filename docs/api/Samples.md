@@ -3,6 +3,8 @@
 
 A Samples distribution stores individual samples and draws randomly from them.
 
+NOTE: [Samples.weights](Samples.weights.md) is only supported with scipy version 1.2+
+
 Treatment under-the-hood:
 
 * [Samples.sample](Samples.sample.md), [Samples.mean](Samples.mean.md), [Samples.median](Samples.median.md), [Samples.std](Samples.std.md), and

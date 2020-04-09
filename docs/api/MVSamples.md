@@ -2,6 +2,8 @@
 
 
 
+NOTE: [MVSamples.weights](MVSamples.weights.md) is only supported with scipy version 1.2+
+
 Treatment under-the-hood:
 
 * [MVSamples.sample](MVSamples.sample.md), [MVSamples.calculate_means](MVSamples.calculate_means.md), [MVSamples.calculate_covariances](MVSamples.calculate_covariances.md)

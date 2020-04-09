@@ -19,8 +19,9 @@ Arguments
 --------------
 * `samples` (np.array object with shape (nsamples, [MVSamples.ndimensions](MVSamples.ndimensions.md))):
     the samples.
-* `weights` (np.array object with shape (nsamples, [MVSamples.ndimensions](MVSamples.ndimensions.md)) or None, optional, default=None):
-    weights for each entry in `samples`
+* `weights` (np.array object with shape (nsamples) or None, optional, default=None):
+    weights for each entry in `samples`.  NOTE: only supported with scipy
+    version 1.2+.
 * `bw_method` (string, float, or None, optional, default=None): passed
     directly to scipy.stats.gaussian_kde.  Only used for methods that
     rely on the KDE.

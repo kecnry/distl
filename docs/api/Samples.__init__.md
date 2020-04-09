@@ -19,7 +19,8 @@ Arguments
 --------------
 * `samples` (np.array object): an array of samples.
 * `weights` (np.array object with length nsamples or None, optional, default=None):
-    weights for each entry in `samples`
+    weights for each entry in `samples`.  NOTE: only supported with
+    scipy 1.2+.
 * `bw_method` (string, float, or None, optional, default=None): passed
     directly to scipy.stats.gaussian_kde.  Only used for methods that
     rely on the KDE.
