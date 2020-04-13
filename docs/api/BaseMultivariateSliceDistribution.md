@@ -43,6 +43,7 @@
 * [to_file](BaseMultivariateSliceDistribution.to_file.md)
 * [to_histogram](BaseMultivariateSliceDistribution.to_histogram.md)
 * [to_json](BaseMultivariateSliceDistribution.to_json.md)
+* [to_samples](BaseMultivariateSliceDistribution.to_samples.md)
 * [to_si](BaseMultivariateSliceDistribution.to_si.md)
 * [to_solar](BaseMultivariateSliceDistribution.to_solar.md)
 * [to_univariate](BaseMultivariateSliceDistribution.to_univariate.md)

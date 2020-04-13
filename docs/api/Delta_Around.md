@@ -2,7 +2,7 @@
 
 
 Create a [Delta](Delta.md) distribution which will always be set to the face-value
-of the parameter.  All methods of the underlying [Delta](Delta.md) distribution are
+of the parameter.  Some methods of the underlying [Delta](Delta.md) distribution are
 available, but must either have [Delta_Around.value](Delta_Around.value.md) set or passed as
 a keyword-argument.  Calling the object with a value will also return
 the underlying "frozen" [Delta](Delta.md) distribution (see [Delta_Around.to_delta](Delta_Around.to_delta.md)).
@@ -25,6 +25,12 @@ da(7).sample()
 * [copy](Delta_Around.copy.md)
 * [hash](Delta_Around.hash.md)
 * [label](Delta_Around.label.md)
+* [pdf](Delta_Around.pdf.md)
+* [plot](Delta_Around.plot.md)
+* [plot_cdf](Delta_Around.plot_cdf.md)
+* [plot_pdf](Delta_Around.plot_pdf.md)
+* [plot_sample](Delta_Around.plot_sample.md)
+* [sample](Delta_Around.sample.md)
 * [to](Delta_Around.to.md)
 * [to_delta](Delta_Around.to_delta.md)
 * [to_dict](Delta_Around.to_dict.md)

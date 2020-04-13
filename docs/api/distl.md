@@ -13,6 +13,8 @@
 * [histogram_from_data](distl.histogram_from_data.md)
 * [mvgaussian](distl.mvgaussian.md)
 * [mvhistogram_from_data](distl.mvhistogram_from_data.md)
+* [mvsamples](distl.mvsamples.md)
 * [normal](distl.normal.md)
+* [samples](distl.samples.md)
 * [uniform](distl.uniform.md)
 * [uniform_around](distl.uniform_around.md)

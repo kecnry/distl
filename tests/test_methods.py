@@ -68,6 +68,15 @@ def test_histogram():
     _test_plotting(d)
     _test_json(d)
 
+def test_samples():
+    d = distl.samples(distl.normal().sample(size=100))
+    d = d.copy()
+
+    _test_conversions(d)
+    _test_methods_properties(d)
+    _test_plotting(d)
+    _test_json(d)
+
 def test_composite():
     u = distl.uniform()
     d = distl.delta()
@@ -165,6 +174,39 @@ def test_mvhistogramslice():
     _test_plotting(d)
     _test_json(d)
 
+def test_mvsamples():
+    mvg = distl.mvgaussian([5,10, 12],
+                           np.array([[ 2,  1, -1],
+                                     [ 1,  2,  1],
+                                     [-1,  1,  2]]),
+                           allow_singular=True,
+                           labels=['a', 'b', 'c'])
+
+    d = distl.mvsamples(mvg.sample(size=100), labels=['a', 'b', 'c'])
+    d = d.copy()
+
+    _test_conversions(d)
+    _test_methods_properties(d)
+    _test_plotting(d)
+    _test_json(d)
+
+def test_mvsamplesslice():
+    mvg = distl.mvgaussian([5,10, 12],
+                           np.array([[ 2,  1, -1],
+                                     [ 1,  2,  1],
+                                     [-1,  1,  2]]),
+                           allow_singular=True,
+                           labels=['a', 'b', 'c'])
+
+    d = distl.mvsamples(mvg.sample(size=100), labels=['a', 'b', 'c'])
+    d = d.slice('a')
+    d = d.copy()
+
+    _test_conversions(d)
+    _test_methods_properties(d)
+    _test_plotting(d)
+    _test_json(d)
+
 def test_gaussian_around():
     d = distl.gaussian_around(scale=1)
     assert_raises(ValueError, d.sample)
@@ -216,15 +258,18 @@ def _test_conversions(d):
             d.to_mvhistogram()
         if d.__class__.__name__ not in ['MVGaussian']:
             d.to_mvgaussian()
+        if d.__class__.__name__ not in ['MVSamples']:
+            d.to_mvsamples()
 
         d.to_univariate(dimension='a')
         d.to_gaussian(dimension='a')
         d.to_histogram(dimension='a')
+        d.to_samples(dimension='a')
         d.slice(dimension='a')
         d.take_dimensions(['a', 'c'])
 
     elif isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
-        d.change_slice_dimension('a')
+        d.change_slice_dimension('b')
         d.to_univariate()
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
@@ -237,6 +282,8 @@ def _test_conversions(d):
             d.to_delta(loc='mean')
             d.to_delta(loc='median')
             d.to_delta(loc='sample')
+        if d.__class__.__name__ not in ['Samples']:
+            d.to_samples()
     else:
         raise NotImplementedError("test_conversions for class {} not implemented".format(d.__class__.__name__))
 
@@ -249,6 +296,9 @@ def _test_methods_properties(d):
         if d.__class__.__name__ not in ['MVGaussian']:
             d.calculate_means()
             d.calculate_covariances()
+        else:
+            d.mean
+            d.cov
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
         if isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
@@ -303,19 +353,22 @@ def _test_methods_properties(d):
         np.cos(d)
         np.tan(d)
 
-        if 'Histogram' not in d.__class__.__name__:
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'MVSamples']:
             # passing value
             d.pdf(0)
             d.logpdf(0)
+
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
             d.cdf(0)
             d.logcdf(0)
 
-        d.sf(0)
-        d.logsf(0)
-        d.isf(0)
+        if d.__class__.__name__ not in ['Samples', 'MVSamples', 'MVSamplesSlice']:
+            d.sf(0)
+            d.logsf(0)
+            d.isf(0)
 
-        d.moment(1)
-        d.entropy()
+            d.moment(1)
+            d.entropy()
 
         # d.expect(...)
 
@@ -344,23 +397,26 @@ def _test_methods_properties(d):
 
     d.sample(size=2)
     d.sample()
-    # TODO: need to fix caching for MVHistogramSlice
+    # TODO: need to fix caching for MVHistogramSlice, MVSamplesSlice
     # TODO: need to fix MVGaussian support in Python 2 on travis
     # TODO: cache the underyling frozen distribution for BaseAroundGenerators and then provide better error message when cache clears
-    if d.__class__.__name__ not in ['MVHistogramSlice', 'MVHistogram', 'MVGaussian'] and not isinstance(d, distl._distl.BaseAroundGenerator):
+    if d.__class__.__name__ not in ['MVHistogramSlice', 'MVHistogram', 'MVSamples', 'MVSamplesSlice', 'MVGaussian'] and not isinstance(d, distl._distl.BaseAroundGenerator):
         d.pdf()
         d.logpdf()
-        d.cdf()
-        d.logcdf()
+
+        if d.__class__.__name__ not in ['Samples']:
+            d.cdf()
+            d.logcdf()
 
 def _test_plotting(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
         pass
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
-        if 'Histogram' not in d.__class__.__name__:
-            d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram']:
             d.plot_pdf()
+        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
+            d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
             d.plot_cdf()
         if not isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
             if d.__class__.__name__ not in ['Gaussian']:
@@ -394,11 +450,14 @@ if __name__ == '__main__':
     test_uniform()
     test_delta()
     test_histogram()
+    test_samples()
     test_composite()
     test_mvgaussian()
     test_mvgaussianslice()
     test_mvhistogram()
     test_mvhistogramslice()
+    test_mvsamples()
+    test_mvsamplesslice()
 
     test_gaussian_around()
     test_uniform_around()

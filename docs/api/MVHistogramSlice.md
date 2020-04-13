@@ -45,6 +45,7 @@
 * [to_file](MVHistogramSlice.to_file.md)
 * [to_histogram](MVHistogramSlice.to_histogram.md)
 * [to_json](MVHistogramSlice.to_json.md)
+* [to_samples](MVHistogramSlice.to_samples.md)
 * [to_si](MVHistogramSlice.to_si.md)
 * [to_solar](MVHistogramSlice.to_solar.md)
 * [to_univariate](MVHistogramSlice.to_univariate.md)

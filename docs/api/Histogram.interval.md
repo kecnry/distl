@@ -11,11 +11,8 @@ def interval(self, alpha, unit=None, as_quantity=False, wrap_at=None)
 
 Expose the range that contains alpha percent of the distribution.
 
-See [scipy docs](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_continuous.interval.html)
-
-This method is just a wrapper around the scipy.stats method on
-[Histogram.dist_constructor_object](Histogram.dist_constructor_object.md) with unit-conversions, support for
-quantity objects, and wrapping done on the returned result.
+If the spline call returns an interval outside the range
+of [Histogram.bins](Histogram.bins.md), the bin edge will be adopted.
 
 Arguments
 ----------

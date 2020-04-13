@@ -34,6 +34,8 @@
 * [to_histogram](MVGaussian.to_histogram.md)
 * [to_json](MVGaussian.to_json.md)
 * [to_mvhistogram](MVGaussian.to_mvhistogram.md)
+* [to_mvsamples](MVGaussian.to_mvsamples.md)
+* [to_samples](MVGaussian.to_samples.md)
 * [to_univariate](MVGaussian.to_univariate.md)
 * [units](MVGaussian.units.md)
 * [wrap_ats](MVGaussian.wrap_ats.md)

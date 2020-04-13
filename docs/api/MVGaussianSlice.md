@@ -45,6 +45,7 @@
 * [to_file](MVGaussianSlice.to_file.md)
 * [to_histogram](MVGaussianSlice.to_histogram.md)
 * [to_json](MVGaussianSlice.to_json.md)
+* [to_samples](MVGaussianSlice.to_samples.md)
 * [to_si](MVGaussianSlice.to_si.md)
 * [to_solar](MVGaussianSlice.to_solar.md)
 * [to_univariate](MVGaussianSlice.to_univariate.md)

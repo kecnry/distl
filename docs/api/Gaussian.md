@@ -50,6 +50,7 @@ Can be created from the top-level via the [distl.gaussian](distl.gaussian.md) or
 * [to_file](Gaussian.to_file.md)
 * [to_histogram](Gaussian.to_histogram.md)
 * [to_json](Gaussian.to_json.md)
+* [to_samples](Gaussian.to_samples.md)
 * [to_si](Gaussian.to_si.md)
 * [to_solar](Gaussian.to_solar.md)
 * [to_uniform](Gaussian.to_uniform.md)

@@ -16,7 +16,10 @@ a pdf (which is normalized to an integral of 1).  A numerical integral
 of the bins is then performed to create the cdf (again, normalized to 1)
 and inverted to create the ppf.  Each of these are then interpolated
 whenever accessing [Histogram.pdf](Histogram.pdf.md), [Histogram.cdf](Histogram.cdf.md), [Histogram.ppf](Histogram.ppf.md), etc as
-well as used when calling [Histogram.sample](Histogram.sample.md).
+well as used when calling [Histogram.sample](Histogram.sample.md).  For [Histogram.interval](Histogram.interval.md),
+[Histogram.ppf](Histogram.ppf.md) (and therefore [Histogram.sample](Histogram.sample.md)),
+the bin-edge is adopted if the spline pdf goes outside the range of the
+stored bins.
 
 
 
@@ -63,6 +66,7 @@ well as used when calling [Histogram.sample](Histogram.sample.md).
 * [to_gaussian](Histogram.to_gaussian.md)
 * [to_histogram](Histogram.to_histogram.md)
 * [to_json](Histogram.to_json.md)
+* [to_samples](Histogram.to_samples.md)
 * [to_si](Histogram.to_si.md)
 * [to_solar](Histogram.to_solar.md)
 * [to_uniform](Histogram.to_uniform.md)

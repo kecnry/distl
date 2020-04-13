@@ -1,0 +1,29 @@
+### [Samples](Samples.md).to_json (function)
+
+
+```py
+
+def to_json(self, **kwargs)
+
+```
+
+
+
+Return the json representation of the distribution object.
+
+The resulting dictionary can be restored to the original object
+via [distl.from_json](distl.from_json.md).
+
+See also:
+
+* [Samples.to_dict](Samples.to_dict.md)
+* [Samples.to_file](Samples.to_file.md)
+
+Arguments
+---------
+* `**kwargs`: all keyword arguments will be sent to json.dumps
+
+Returns
+--------
+* string
+
