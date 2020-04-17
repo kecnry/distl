@@ -233,7 +233,7 @@ def is_distribution_or_none(value):
         raise TypeError('must be a distl Distribution object or None')
 
 def is_math(value):
-    valid_maths = ['__add__', '__radd__', '__sub__', '__rsub__', '__mul__', '__rmul__', '__div__', '__rdiv__']
+    valid_maths = ['__add__', '__radd__', '__sub__', '__rsub__', '__mul__', '__pow__', '__rmul__', '__div__', '__rdiv__']
     valid_maths += ['sin', 'cos', 'tan']
     valid_maths += ['__and__', '__or__']
     if value in valid_maths:
@@ -514,6 +514,14 @@ class BaseDistribution(BaseDistlObject):
 
     def __rmul__(self, other):
         return self.__mul__(other)
+
+    def __pow__(self, other):
+        if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
+            return Composite("__pow__", (self, other))
+        elif isinstance(other, float) or isinstance(other, int):
+            return self.__pow__(Delta(other))
+        else:
+            raise TypeError("cannot pow {} by type {}".format(self.__class__.__name__, type(other)))
 
     def __div__(self, other):
         if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
@@ -4521,6 +4529,17 @@ class Delta(BaseUnivariateDistribution):
 
         return super(Delta, self).__mul__(other)
 
+    def __pow__(self, other):
+        if isinstance(other, Delta):
+            other = other.loc
+
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.loc **= other
+            return dist
+
+        return super(Delta, self).__pow__(other)
+
     def __div__(self, other):
         return self.__mul__(1./other)
 
@@ -4644,6 +4663,18 @@ class Gaussian(BaseUnivariateDistribution):
             return dist
 
         return super(Gaussian, self).__mul__(other)
+
+    def __pow__(self, other):
+        if isinstance(other, Delta):
+            other = other.loc
+
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.loc **= other
+            dist.scale **= other
+            return dist
+
+        return super(Gaussian, self).__pow__(other)
 
     def __div__(self, other):
         return self.__mul__(1./other)
@@ -4774,6 +4805,18 @@ class Uniform(BaseUnivariateDistribution):
             return dist
 
         return super(Uniform, self).__mul__(other)
+
+    def __pow__(self, other):
+        if isinstance(other, Delta):
+            other = other.loc
+
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.low **= other
+            dist.high **= other
+            return dist
+
+        return super(Uniform, self).__pow__(other)
 
 
     def __div__(self, other):
@@ -6409,6 +6452,16 @@ class Uniform_Around(BaseAroundGenerator):
         else:
             raise NotImplementedError()
 
+    def __pow__(self, other):
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            if dist.value is not None:
+                dist.value **= other
+            dist.width **= other
+            return dist
+        else:
+            raise NotImplementedError()
+
     def to_uniform(self, value=None):
         """
         Expose the "frozen" <Uniform> distribution at a certain
@@ -6462,6 +6515,15 @@ class Delta_Around(BaseAroundGenerator):
             dist = self.copy()
             if dist.value is not None:
                 dist.value *= other
+            return dist
+        else:
+            raise NotImplementedError()
+
+    def __pow__(self, other):
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            if dist.value is not None:
+                dist.value **= other
             return dist
         else:
             raise NotImplementedError()
@@ -6527,6 +6589,16 @@ class Gaussian_Around(BaseAroundGenerator):
             if dist.value is not None:
                 dist.value *= other
             dist.scale *= other
+            return dist
+        else:
+            raise NotImplementedError()
+
+    def __pow__(self, other):
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            if dist.value is not None:
+                dist.value **= other
+            dist.scale **= other
             return dist
         else:
             raise NotImplementedError()

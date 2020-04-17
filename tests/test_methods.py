@@ -345,6 +345,7 @@ def _test_methods_properties(d):
         d >= g
 
         d * 2
+        d ** 2
         # TODO: fix division
         # d / 2
         d + 2
