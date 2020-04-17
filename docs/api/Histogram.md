@@ -4,22 +4,13 @@
 A Histogram distribution stores a discrete PDF and allows sampling from
 that binned density distribution.
 
+A Histogram distribution stores a discrete PDF and allows sampling from that
+binned density distribution via [scipy.stats.rv_histogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_histogram.html).
+
 To create a Histogram distribution from already binned data, see
 [distl.histogram_from_bins](distl.histogram_from_bins.md) or [Histogram.__init__](Histogram.__init__.md).  To create a
 Histogram distribtuion from the data array itself, see
 [distl.histogram_from_data](distl.histogram_from_data.md) or [Histogram.from_data](Histogram.from_data.md).
-
-Treatment under-the-hood:
-
-The densities at each bin-midpoint are linearly interpolated to create
-a pdf (which is normalized to an integral of 1).  A numerical integral
-of the bins is then performed to create the cdf (again, normalized to 1)
-and inverted to create the ppf.  Each of these are then interpolated
-whenever accessing [Histogram.pdf](Histogram.pdf.md), [Histogram.cdf](Histogram.cdf.md), [Histogram.ppf](Histogram.ppf.md), etc as
-well as used when calling [Histogram.sample](Histogram.sample.md).  For [Histogram.interval](Histogram.interval.md),
-[Histogram.ppf](Histogram.ppf.md) (and therefore [Histogram.sample](Histogram.sample.md)),
-the bin-edge is adopted if the spline pdf goes outside the range of the
-stored bins.
 
 
 

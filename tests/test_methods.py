@@ -354,12 +354,12 @@ def _test_methods_properties(d):
         np.cos(d)
         np.tan(d)
 
-        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'MVSamples']:
+        if d.__class__.__name__ not in ['MVHistogram', 'MVSamples']:
             # passing value
             d.pdf(0)
             d.logpdf(0)
 
-        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
+        if d.__class__.__name__ not in ['MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
             d.cdf(0)
             d.logcdf(0)
 
@@ -414,9 +414,9 @@ def _test_plotting(d):
         pass
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
-        if d.__class__.__name__ not in ['Histogram', 'MVHistogram']:
+        if d.__class__.__name__ not in ['MVHistogram']:
             d.plot_pdf()
-        if d.__class__.__name__ not in ['Histogram', 'MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
+        if d.__class__.__name__ not in ['MVHistogram', 'Samples', 'MVSamples', 'MVSamplesSlice']:
             d.plot(plot_sample=False, plot_pdf=False, plot_cdf=True)
             d.plot_cdf()
         if not isinstance(d, distl._distl.BaseMultivariateSliceDistribution):

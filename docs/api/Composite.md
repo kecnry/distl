@@ -60,7 +60,8 @@ to [Composite.pdf](Composite.pdf.md), [Composite.cdf](Composite.cdf.md), or [Com
 * all others: sampling is handled by sampling the underyling children and
 therefore can retain covariances.  The pdfs, cdfs, and ppfs are
 created by taking 1 million samples, converting to a [Histogram](Histogram.md),
-and linearly interpolating between the bins, thereby losing all covariances.
+and using the underlying [scipy.stats.rv_histogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_histogram.html),
+thereby losing all covariances.
 
 
 
