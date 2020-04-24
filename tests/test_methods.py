@@ -353,6 +353,12 @@ def _test_methods_properties(d):
         np.sin(d)
         np.cos(d)
         np.tan(d)
+        np.arcsin(d)
+        np.arccos(d)
+        np.arctan(d)
+        np.arctan2(d, g)
+        np.log(d)
+        np.log10(d)
 
         if d.__class__.__name__ not in ['MVHistogram', 'MVSamples']:
             # passing value
