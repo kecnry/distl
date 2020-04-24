@@ -15,6 +15,10 @@ Histogram distribtuion from the data array itself, see
 
 
 * [__init__](Histogram.__init__.md)
+* [arccos](Histogram.arccos.md)
+* [arcsin](Histogram.arcsin.md)
+* [arctan](Histogram.arctan.md)
+* [arctan2](Histogram.arctan2.md)
 * [bins](Histogram.bins.md)
 * [cached_sample](Histogram.cached_sample.md)
 * [cdf](Histogram.cdf.md)
@@ -34,6 +38,8 @@ Histogram distribtuion from the data array itself, see
 * [interval](Histogram.interval.md)
 * [isf](Histogram.isf.md)
 * [label](Histogram.label.md)
+* [log](Histogram.log.md)
+* [log10](Histogram.log10.md)
 * [logcdf](Histogram.logcdf.md)
 * [logpdf](Histogram.logpdf.md)
 * [logsf](Histogram.logsf.md)

@@ -10,6 +10,10 @@ Can be created from the top-level via the [distl.gaussian](distl.gaussian.md) or
 
 
 * [__init__](Gaussian.__init__.md)
+* [arccos](Gaussian.arccos.md)
+* [arcsin](Gaussian.arcsin.md)
+* [arctan](Gaussian.arctan.md)
+* [arctan2](Gaussian.arctan2.md)
 * [cached_sample](Gaussian.cached_sample.md)
 * [cdf](Gaussian.cdf.md)
 * [clear_cached_sample](Gaussian.clear_cached_sample.md)
@@ -27,6 +31,8 @@ Can be created from the top-level via the [distl.gaussian](distl.gaussian.md) or
 * [isf](Gaussian.isf.md)
 * [label](Gaussian.label.md)
 * [loc](Gaussian.loc.md)
+* [log](Gaussian.log.md)
+* [log10](Gaussian.log10.md)
 * [logcdf](Gaussian.logcdf.md)
 * [logpdf](Gaussian.logpdf.md)
 * [logsf](Gaussian.logsf.md)

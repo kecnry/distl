@@ -11,6 +11,10 @@ Any subclass distribution should override the following:
 
 
 * [__init__](BaseDistribution.__init__.md)
+* [arccos](BaseDistribution.arccos.md)
+* [arcsin](BaseDistribution.arcsin.md)
+* [arctan](BaseDistribution.arctan.md)
+* [arctan2](BaseDistribution.arctan2.md)
 * [cached_sample](BaseDistribution.cached_sample.md)
 * [cdf](BaseDistribution.cdf.md)
 * [clear_cached_sample](BaseDistribution.clear_cached_sample.md)
@@ -21,6 +25,8 @@ Any subclass distribution should override the following:
 * [dist_constructor_object](BaseDistribution.dist_constructor_object.md)
 * [get_from_cache](BaseDistribution.get_from_cache.md)
 * [hash](BaseDistribution.hash.md)
+* [log](BaseDistribution.log.md)
+* [log10](BaseDistribution.log10.md)
 * [logcdf](BaseDistribution.logcdf.md)
 * [logpdf](BaseDistribution.logpdf.md)
 * [pdf](BaseDistribution.pdf.md)

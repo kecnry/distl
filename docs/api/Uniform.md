@@ -11,6 +11,10 @@ Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
 
 
 * [__init__](Uniform.__init__.md)
+* [arccos](Uniform.arccos.md)
+* [arcsin](Uniform.arcsin.md)
+* [arctan](Uniform.arctan.md)
+* [arctan2](Uniform.arctan2.md)
 * [cached_sample](Uniform.cached_sample.md)
 * [cdf](Uniform.cdf.md)
 * [clear_cached_sample](Uniform.clear_cached_sample.md)
@@ -28,6 +32,8 @@ Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
 * [interval](Uniform.interval.md)
 * [isf](Uniform.isf.md)
 * [label](Uniform.label.md)
+* [log](Uniform.log.md)
+* [log10](Uniform.log10.md)
 * [logcdf](Uniform.logcdf.md)
 * [logpdf](Uniform.logpdf.md)
 * [logsf](Uniform.logsf.md)

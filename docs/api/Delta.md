@@ -11,6 +11,10 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 
 
 * [__init__](Delta.__init__.md)
+* [arccos](Delta.arccos.md)
+* [arcsin](Delta.arcsin.md)
+* [arctan](Delta.arctan.md)
+* [arctan2](Delta.arctan2.md)
 * [cached_sample](Delta.cached_sample.md)
 * [cdf](Delta.cdf.md)
 * [clear_cached_sample](Delta.clear_cached_sample.md)
@@ -28,6 +32,8 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 * [isf](Delta.isf.md)
 * [label](Delta.label.md)
 * [loc](Delta.loc.md)
+* [log](Delta.log.md)
+* [log10](Delta.log10.md)
 * [logcdf](Delta.logcdf.md)
 * [logpdf](Delta.logpdf.md)
 * [logsf](Delta.logsf.md)

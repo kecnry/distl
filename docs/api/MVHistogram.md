@@ -21,6 +21,10 @@ on that sample.
 
 
 * [__init__](MVHistogram.__init__.md)
+* [arccos](MVHistogram.arccos.md)
+* [arcsin](MVHistogram.arcsin.md)
+* [arctan](MVHistogram.arctan.md)
+* [arctan2](MVHistogram.arctan2.md)
 * [bins](MVHistogram.bins.md)
 * [cached_sample](MVHistogram.cached_sample.md)
 * [calculate_covariances](MVHistogram.calculate_covariances.md)
@@ -39,6 +43,8 @@ on that sample.
 * [get_wrap_at](MVHistogram.get_wrap_at.md)
 * [hash](MVHistogram.hash.md)
 * [labels](MVHistogram.labels.md)
+* [log](MVHistogram.log.md)
+* [log10](MVHistogram.log10.md)
 * [logcdf](MVHistogram.logcdf.md)
 * [logpdf](MVHistogram.logpdf.md)
 * [ndimensions](MVHistogram.ndimensions.md)

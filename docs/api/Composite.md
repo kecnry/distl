@@ -67,6 +67,10 @@ thereby losing all covariances.
 
 
 * [__init__](Composite.__init__.md)
+* [arccos](Composite.arccos.md)
+* [arcsin](Composite.arcsin.md)
+* [arctan](Composite.arctan.md)
+* [arctan2](Composite.arctan2.md)
 * [cached_sample](Composite.cached_sample.md)
 * [cached_sample_children](Composite.cached_sample_children.md)
 * [cdf](Composite.cdf.md)
@@ -85,6 +89,8 @@ thereby losing all covariances.
 * [interval](Composite.interval.md)
 * [isf](Composite.isf.md)
 * [label](Composite.label.md)
+* [log](Composite.log.md)
+* [log10](Composite.log10.md)
 * [logcdf](Composite.logcdf.md)
 * [logpdf](Composite.logpdf.md)
 * [logsf](Composite.logsf.md)

@@ -20,6 +20,10 @@ See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kd
 
 
 * [__init__](MVSamples.__init__.md)
+* [arccos](MVSamples.arccos.md)
+* [arcsin](MVSamples.arcsin.md)
+* [arctan](MVSamples.arctan.md)
+* [arctan2](MVSamples.arctan2.md)
 * [bw_method](MVSamples.bw_method.md)
 * [cached_sample](MVSamples.cached_sample.md)
 * [calculate_covariances](MVSamples.calculate_covariances.md)
@@ -37,6 +41,8 @@ See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kd
 * [hash](MVSamples.hash.md)
 * [interval](MVSamples.interval.md)
 * [labels](MVSamples.labels.md)
+* [log](MVSamples.log.md)
+* [log10](MVSamples.log10.md)
 * [logcdf](MVSamples.logcdf.md)
 * [logpdf](MVSamples.logpdf.md)
 * [ndimensions](MVSamples.ndimensions.md)
