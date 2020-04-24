@@ -3610,12 +3610,14 @@ class Composite(BaseUnivariateDistribution):
                                         math=math, dists=dists)
 
         if label is None:
-            if len(dists) == 1:
-                if dists[0].label is not None:
-                    self.label = '{}({})'.format(math, dists[0].label)
+            if len(self.dists) == 1:
+                self.label = "{}({})".format(_math_symbols.get(math, math), dists[0].label)
+            elif self.math in ['arctan2']:
+                if _np.all([d.label is not None for d in dists]):
+                    self.label = "{}({})".format(_math_symbols.get(math, math), ",".join([d.label for d in dists]))
             else:
                 if _np.all([d.label is not None for d in dists]):
-                    self.label = ' {} '.format(_math_symbols.get(math, math)).join([d.label for d in dists])
+                    self.label = " {} ".format(_math_symbols.get(math, math)).join([d.label for d in dists])
 
 
         def recursive_math(math, items):
