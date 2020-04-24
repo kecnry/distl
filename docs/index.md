@@ -29,7 +29,7 @@
 **distl** requires the following dependencies:
 
   - python 2.7+ or 3.6+
-  - scipy 0.17+
+  - scipy 1.0+
   - numpy 1.10+
 
 

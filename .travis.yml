@@ -29,9 +29,6 @@ matrix:
 
         # Try with lowest supported numpy/astropy/scipy (only with python 2.7)
         - os: linux
-          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 ASTROPY_VERSION=1.0 SCIPY_VERSION=0.17
-
-        - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 ASTROPY_VERSION=1.0 SCIPY_VERSION=1.0
 
         # - os: osx
