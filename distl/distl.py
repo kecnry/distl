@@ -4130,7 +4130,8 @@ class Samples(BaseUnivariateDistribution):
 
         Arguments
         --------------
-        * `samples` (np.array object): an array of samples.
+        * `samples` (np.array object): an array of samples.  Note that any Nans
+            will be removed.
         * `weights` (np.array object with length nsamples or None, optional, default=None):
             weights for each entry in `samples`.  NOTE: only supported with
             scipy 1.2+.
@@ -4150,9 +4151,11 @@ class Samples(BaseUnivariateDistribution):
         --------
         * a <Samples> object
         """
+        notnans = not _np.isnan(samples)
+
         super(Samples, self).__init__(unit, label, wrap_at,
                                       _stats.gaussian_kde, ('samples', 'bw_method') if StrictVersion(_scipy_version) < StrictVersion("1.2.0") else ('samples', 'bw_method', 'weights'),
-                                      samples=samples, weights=weights, bw_method=bw_method)
+                                      samples=samples[notnans], weights=weights[notnans], bw_method=bw_method)
 
     @property
     def nsamples(self):
