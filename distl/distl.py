@@ -4601,7 +4601,15 @@ class Delta(BaseUnivariateDistribution):
         return super(Delta, self).__pow__(other)
 
     def __div__(self, other):
-        return self.__mul__(1./other)
+        if isinstance(other, Delta):
+            other = other.loc
+
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.loc /= other
+            return dist
+
+        return super(Delta, self).__div__(other)
 
     def __add__(self, other):
         if isinstance(other, Delta):
@@ -4739,7 +4747,16 @@ class Gaussian(BaseUnivariateDistribution):
         return super(Gaussian, self).__pow__(other)
 
     def __div__(self, other):
-        return self.__mul__(1./other)
+        if isinstance(other, Delta):
+            other = other.loc
+
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.loc /= other
+            dist.scale /= other
+            return dist
+
+        return super(Gaussian, self).__div__(other)
 
     def __add__(self, other):
         if isinstance(other, Delta):
@@ -4884,7 +4901,16 @@ class Uniform(BaseUnivariateDistribution):
 
 
     def __div__(self, other):
-        return self.__mul__(1./other)
+        if isinstance(other, Delta):
+            other = other.loc
+
+        if (isinstance(other, float) or isinstance(other, int)):
+            dist = self.copy()
+            dist.low /= other
+            dist.high /= other
+            return dist
+
+        return super(Uniform, self).__div__(other)
 
     def __add__(self, other):
         if isinstance(other, Delta):
