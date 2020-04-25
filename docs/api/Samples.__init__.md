@@ -17,7 +17,8 @@ This can also be created from a function at the top-level as:
 
 Arguments
 --------------
-* `samples` (np.array object): an array of samples.
+* `samples` (np.array object): an array of samples.  Note that any Nans
+    will be removed.
 * `weights` (np.array object with length nsamples or None, optional, default=None):
     weights for each entry in `samples`.  NOTE: only supported with
     scipy 1.2+.

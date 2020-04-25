@@ -9,7 +9,7 @@ def __init__(self, math, dists, unit=None, label=None, wrap_at=None)
 
 
 
-Create a [Composite](Composite.md) distribution from two other distributions.
+Create a [Composite](Composite.md) distribution from other distribution(s).
 
 Most likely, users will create Composite objects through math operators
 directly.  See examples on the [Composite](Composite.md) overview page.

@@ -92,6 +92,7 @@ and available at the [top-level of distl](./api/distl.md):
 * [mvgaussian](./api/distl.mvgaussian.md)
 * [mvhistogram_from_data](./api/distl.mvhistogram_from_data.md)
 * [mvsamples](./api/distl.mvsamples.md)
+* [function](./api/distl.function.md)
 
 ## Converting Between Distribution Types
 
@@ -130,6 +131,11 @@ and limitations.  Below is a summary of all implemented translation methods:
     * [to_gaussian](./api/Samples.to_gaussian.md)
     * [to_histogram](./api/Samples.to_histogram.md)
     * [to_uniform](./api/Samples.to_uniform.md) (via to_gaussian)
+* [Function](./api/Function.md)
+    * [to_gaussian](./api/Function.to_gaussian.md) (via histogram)
+    * [to_histogram](./api/Function.to_histogram.md)
+    * [to_uniform](./api/Function.to_uniform.md) (via histogram)
+    * [to_samples](./api/Function.to_samples.md)
 * [MVGaussian](./api/MVGaussian.md)
     * [slice](./api/MVGaussian.slice.md) (to convert to [MVGaussianSlice](./api/MVGaussianSlice.md))
     * [take_dimensions](./api/MVGaussian.take_dimensions.md) (returns another [MVGaussian](./api/MVGaussian.md))

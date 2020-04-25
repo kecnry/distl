@@ -122,6 +122,7 @@ if __name__ == '__main__':
     fms = api_docs(distl._distl.BaseAroundGenerator, skip=skip_methods)
 
     fms = api_docs(distl._distl.Composite, skip=skip_methods)
+    fms = api_docs(distl._distl.Function, skip=skip_methods)
     fms = api_docs(distl._distl.DistributionCollection, skip=skip_methods)
 
     fms = api_docs(distl._distl.Histogram, skip=skip_methods)

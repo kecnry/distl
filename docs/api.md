@@ -18,14 +18,16 @@ Top-Level Convenience Functions to Create Distributions:
 * [normal](api/distl.normal.md)
 * [uniform](api/distl.uniform.md)
 * [uniform_around](api/distl.uniform_around.md)
+* [function](api/distl.function.md)
 
 
 Distribution Classes:
 
+* [Composite](api/Composite.md)
 * [Delta](api/Delta.md)
 * [Delta_Around](api/Delta_Around.md)
 * [DistributionCollection](api/DistributionCollection.md)
-* [Composite](api/Composite.md)
+* [Function](api/Function.md)
 * [Gaussian](api/Gaussian.md)
 * [Gaussian_Around](api/Gaussian_Around.md)
 * [Histogram](api/Histogram.md)

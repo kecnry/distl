@@ -106,6 +106,22 @@ def test_composite():
         _test_plotting(dist)
         _test_json(dist)
 
+def test_function():
+    u = distl.uniform()
+    d = distl.delta()
+    g = distl.gaussian()
+
+    def func(u, d, g):
+        return u*d+g
+
+    d = distl.function(func, (u,d), {'g': g})
+    d = d.copy()
+
+    _test_conversions(d)
+    _test_methods_properties(d)
+    _test_plotting(d)
+    _test_json(d)
+
 def test_mvgaussian():
     d = distl.mvgaussian([5,10, 12],
                            np.array([[ 2,  1, -1],
@@ -399,7 +415,8 @@ def _test_methods_properties(d):
 
     d.copy()
     d.hash
-    d.to_json()
+    if not isinstance(d, distl._distl.Function):
+        d.to_json()
     d.to_dict()
 
     d.sample(size=2)
@@ -443,11 +460,12 @@ def _test_plotting(d):
 
 
 def _test_json(d):
-    distl.from_dict(d.to_dict())
-    distl.from_json(d.to_json())
+    if not isinstance(d, distl._distl.Function):
+        distl.from_dict(d.to_dict())
+        distl.from_json(d.to_json())
 
-    distl.from_dict(d.to_json())
-    distl.from_json(d.to_dict())
+        distl.from_dict(d.to_json())
+        distl.from_json(d.to_dict())
 
     distl.from_file(d.to_file('tmp.distl'))
 
@@ -459,6 +477,7 @@ if __name__ == '__main__':
     test_histogram()
     test_samples()
     test_composite()
+    test_function()
     test_mvgaussian()
     test_mvgaussianslice()
     test_mvhistogram()

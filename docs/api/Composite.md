@@ -59,9 +59,11 @@ to [Composite.pdf](Composite.pdf.md), [Composite.cdf](Composite.cdf.md), or [Com
 
 * all others: sampling is handled by sampling the underyling children and
 therefore can retain covariances.  The pdfs, cdfs, and ppfs are
-created by taking 1 million samples, converting to a [Histogram](Histogram.md),
+created by taking 1 million samples, converting to a [Histogram](Histogram.md) with 100 bins,
 and using the underlying [scipy.stats.rv_histogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_histogram.html),
-thereby losing all covariances.
+thereby losing all covariances.  Note if any of the underlying children
+are [Function](Function.md) distributions, then the minimum [Function.hist_samples](Function.hist_samples.md)
+will be used when converting to a [Histogram](Histogram.md).
 
 
 
@@ -86,6 +88,7 @@ thereby losing all covariances.
 * [get_from_cache](Composite.get_from_cache.md)
 * [get_wrap_at](Composite.get_wrap_at.md)
 * [hash](Composite.hash.md)
+* [hist_samples](Composite.hist_samples.md)
 * [interval](Composite.interval.md)
 * [isf](Composite.isf.md)
 * [label](Composite.label.md)

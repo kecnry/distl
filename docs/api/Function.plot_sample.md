@@ -1,4 +1,4 @@
-### [Composite](Composite.md).plot_sample (function)
+### [Function](Function.md).plot_sample (function)
 
 
 ```py
@@ -13,5 +13,5 @@ See [BaseDistribution.plot_sample](BaseDistribution.plot_sample.md) for other ar
 
 Arguments
 ------------
-* `size` (optional): if not provided, `size` will default [Composite.hist_samples](Composite.hist_samples.md).
+* `size` (optional): if not provided, `size` will default [Function.hist_samples](Function.hist_samples.md).
 

@@ -6,6 +6,7 @@
 * [from_dict](distl.from_dict.md)
 * [from_file](distl.from_file.md)
 * [from_json](distl.from_json.md)
+* [function](distl.function.md)
 * [gaussian](distl.gaussian.md)
 * [gaussian_around](distl.gaussian_around.md)
 * [get_random_seed](distl.get_random_seed.md)
