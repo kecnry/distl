@@ -3569,7 +3569,7 @@ class Composite(BaseUnivariateDistribution):
 
     * all others: sampling is handled by sampling the underyling children and
         therefore can retain covariances.  The pdfs, cdfs, and ppfs are
-        created by taking 1 million samples, converting to a <Histogram>,
+        created by taking 1 million samples, converting to a <Histogram> with 100 bins,
         and using the underlying [scipy.stats.rv_histogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.rv_histogram.html),
         thereby losing all covariances.
 
@@ -3740,8 +3740,9 @@ class Composite(BaseUnivariateDistribution):
         if self.math in ['__and__', '__or__']:
             return  _stats_custom.generic_pdf_cdf_ppf
         else:
-            # dist_constructor_args will return the histogram args
-            return _stats.rv_histogram
+            # dist_constructor_args will return the samples args
+            return  _stats.rv_histogram
+            # return  _stats.gaussian_kde
 
     @property
     def dist_constructor_args(self):
@@ -3798,6 +3799,7 @@ class Composite(BaseUnivariateDistribution):
 
         else:
             return self.to_histogram(N=int(1e6), bins=100, wrap_at=False).dist_constructor_args
+            # return self.to_samples(N=int(1e6), wrap_at=False).dist_constructor_args
 
     def _sample_from_children(self, math, dists, seed={}, size=None, cache_sample=True):
         if math == '__and__':
@@ -4062,7 +4064,8 @@ class Histogram(BaseUnivariateDistribution):
         --------
         * a <Histogram> object
         """
-        hist, bin_edges = _np.histogram(data, bins=bins, range=range, weights=weights, density=True)
+        nans = _np.isnan(data)
+        hist, bin_edges = _np.histogram(data[~nans], bins=bins, range=range, weights=weights[~nans] if weights is not None else weights, density=True)
 
         return cls(bin_edges, hist, label=label, unit=unit, wrap_at=wrap_at)
 
@@ -4151,11 +4154,11 @@ class Samples(BaseUnivariateDistribution):
         --------
         * a <Samples> object
         """
-        notnans = not _np.isnan(samples)
+        nans = _np.isnan(samples)
 
         super(Samples, self).__init__(unit, label, wrap_at,
                                       _stats.gaussian_kde, ('samples', 'bw_method') if StrictVersion(_scipy_version) < StrictVersion("1.2.0") else ('samples', 'bw_method', 'weights'),
-                                      samples=samples[notnans], weights=weights[notnans], bw_method=bw_method)
+                                      samples=samples[~nans], weights=weights[~nans] if weights is not None else weights, bw_method=bw_method)
 
     @property
     def nsamples(self):
