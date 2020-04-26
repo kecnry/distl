@@ -54,7 +54,7 @@ _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-',
 
 _builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'dist_constructor_argnames', 'dist_constructor_args', 'dist_constructor_func', 'dist_constructor_object']
 
-_physical_types_to_si = {'length': 'solRad',
+_physical_types_to_solar = {'length': 'solRad',
                          'mass': 'solMass',
                          'temperature': 'solTeff',
                          'power': 'solLum',
@@ -64,7 +64,7 @@ _physical_types_to_si = {'length': 'solRad',
                          'angular speed': 'rad/d',
                          'dimensionless': ''}
 
-_physical_types_to_solar = {'length': 'm',
+_physical_types_to_si = {'length': 'm',
                             'mass': 'kg',
                             'temperature': 'K',
                             'power': 'W',
