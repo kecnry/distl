@@ -131,15 +131,13 @@ print(np.sin(g))
     sin(<distl.gaussian loc=6.283185307179586 scale=0.5235987755982988>)
 
 
-**TODO**: the issue here is not the pdf itself, but rather that interval is giving the incorrect range for some reason.
-
 
 ```python
 out = g.plot_pdf(show=True)
 ```
 
 
-![png](math_files/math_22_0.png)
+![png](math_files/math_21_0.png)
 
 
 
@@ -148,7 +146,7 @@ out = np.sin(g).plot_pdf(show=True)
 ```
 
 
-![png](math_files/math_23_0.png)
+![png](math_files/math_22_0.png)
 
 
 
@@ -157,7 +155,7 @@ out = np.sin(g).plot_cdf(show=True)
 ```
 
 
-![png](math_files/math_24_0.png)
+![png](math_files/math_23_0.png)
 
 
 
@@ -166,7 +164,7 @@ out = np.sin(g).plot(show=True)
 ```
 
 
-![png](math_files/math_25_0.png)
+![png](math_files/math_24_0.png)
 
 
 
@@ -175,7 +173,7 @@ out = np.cos(g).plot(show=True)
 ```
 
 
-![png](math_files/math_26_0.png)
+![png](math_files/math_25_0.png)
 
 
 
@@ -184,7 +182,7 @@ out = np.tan(g).plot(show=True)
 ```
 
 
-![png](math_files/math_27_0.png)
+![png](math_files/math_26_0.png)
 
 
 

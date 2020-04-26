@@ -1,6 +1,12 @@
-# distl
+<p align="center"><a href="http://dist.readthedocs.io"><img src="./docs/images/distl.png" alt="distl logo" width="300px" align="center"/></a></p>
 
-**simplified and condensed distributions**
+<p align="center" style="text-align:center"><i>simplified and condensed distributions</i></p>
+
+<!-- <pre align="center" style="text-align:center; font-family:monospace; margin: 30px">
+  pip install distl
+</pre> -->
+
+
 
 [![badge](https://img.shields.io/badge/github-kecnry%2Fdistl-blue.svg)](https://github.com/kecnry/distl)
 [![badge](https://img.shields.io/badge/pip-unreleased-lightgray.svg)](https://pypi.org/project/distl/)
@@ -39,6 +45,7 @@ and the following optional dependencies:
   - matplotlib 2.2+ (required for plotting distributions)
   - [corner](https://corner.readthedocs.io) (required for plotting multivariate distributions and distribution collections)
   - astropy 1.0+ (required for units support)
+  - dill (required for saving/loading Function distributions)
 
 
 You can see the [Travis testing matrix](https://travis-ci.com/kecnry/distl) for

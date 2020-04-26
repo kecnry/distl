@@ -48,7 +48,7 @@ g.sample(unit=u.m)
 
 
 
-    10308.310625430042
+    8717.416171176093
 
 
 
@@ -88,6 +88,26 @@ out = g_meters.plot(show=True)
 
 
 ![png](units_files/units_12_0.png)
+
+
+there are also shortcut methods for [to_size](../api/Gaussian.to_si.md) or [to_solar](../api/Gaussian.to_solar.md)
+
+
+```python
+out = g.to_solar().plot(show=True)
+```
+
+
+![png](units_files/units_14_0.png)
+
+
+
+```python
+out = g.to_si().plot(show=True)
+```
+
+
+![png](units_files/units_15_0.png)
 
 
 

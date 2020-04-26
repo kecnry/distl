@@ -91,17 +91,8 @@ out = u.plot_gaussian(show=True)
 out = gh.plot_gaussian(show=True)
 ```
 
-    /home/kyle/.local/lib/python3.7/site-packages/scipy/stats/_distn_infrastructure.py:1675: IntegrationWarning: The maximum number of subdivisions (50) has been achieved.
-      If increasing the limit yields no improvement it is advised to analyze 
-      the integrand in order to determine the difficulties.  If the position of a 
-      local difficulty can be determined (singularity, discontinuity) one will 
-      probably gain from splitting up the interval and calling the integrator 
-      on the subranges.  Perhaps a special-purpose integrator should be used.
-      return integrate.quad(self._mom_integ1, 0, 1, args=(m,)+args)[0]
 
-
-
-![png](plotting_files/plotting_16_1.png)
+![png](plotting_files/plotting_16_0.png)
 
 
 for more options, see the [plot_gaussian API docs](../api/BaseDistribution.plot_gaussian.md).

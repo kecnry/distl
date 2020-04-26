@@ -28,7 +28,7 @@ dc
 
 
 
-    <distl.distl.DistributionCollection at 0x7f7106373090>
+    <distl.distl.DistributionCollection at 0x7fc84a366510>
 
 
 
@@ -42,7 +42,7 @@ dc.sample()
 
 
 
-    array([7.94423774, 4.82428537])
+    array([7.94423774, 1.95210135])
 
 
 
@@ -83,9 +83,9 @@ dc.sample(size=3)
 
 
 
-    array([[ 8.23561226,  2.80621119],
-           [10.84212204,  4.7611796 ],
-           [11.47347495,  0.78735796]])
+    array([[12.04693996,  2.22171585],
+           [10.19206936,  2.68623238],
+           [ 8.53497014,  3.08658149]])
 
 
 
@@ -180,7 +180,7 @@ dc.sample()
 
 
 
-    array([12.15966564,  1.30710094,  3.50626537, 11.9352359 ])
+    array([ 9.48128528,  2.02930039,  5.79131932, 12.60540779])
 
 
 
@@ -302,8 +302,6 @@ g.pdf(10) * u.pdf(5) * mvg.to_univariate('mvg_a').pdf(5) * mvg.to_univariate('mv
 g1 = distl.gaussian(5, 2, label='g1')
 u = distl.gaussian(3, 5, label='u')
 g2 = distl.gaussian(25, 1, label='g2')
-#c = u*g2
-#c.label = 'c'
 
 dc = distl.DistributionCollection(g1, u, u*g2)
 ```
@@ -316,7 +314,7 @@ dc.sample()
 
 
 
-    array([   6.13359899,   -6.12284311, -150.50768913])
+    array([  4.06251152,   5.77395689, 160.63898803])
 
 
 
@@ -351,7 +349,7 @@ dc.pdf([6, 4, 4*25], as_univariates=True)
 
 
 
-    4.321436464559148e-05
+    4.3007709480577515e-05
 
 
 
@@ -377,7 +375,7 @@ g1.pdf(6) * u.pdf(4) * (u*g2).pdf(4*25)
 
 
 
-    4.321436464559148e-05
+    4.3007709480577515e-05
 
 
 
@@ -399,9 +397,14 @@ dc.labels_unpacked
 
 
 ```python
-# raises a ValueError
-# dc.pdf([6, 4, 5, 25])
+try:
+    dc.pdf([6, 4, 5, 25])
+except Exception as e:
+    print(e)
 ```
+
+    All passed values for u must be identical
+
 
 
 ```python
@@ -447,24 +450,29 @@ Now let's consider a more complex example: let's sample from 'gaussian * mvg_a' 
 
 
 ```python
-# TODO: this won't work until math with multivariates is implemented
-#dc = distl.DistributionCollection(g * mvg.slice('mvg_a'), mvg.slice('mvg_c'))
+dc = distl.DistributionCollection(g * mvg.slice('mvg_a'), mvg.slice('mvg_c'))
 ```
 
 
 ```python
-# dc.sample()
+dc.sample()
 ```
+
+
+
+
+    array([42.37014023, 12.29659702])
+
+
 
 
 ```python
-# out = dc.plot(show=True)
+out = dc.plot(show=True)
 ```
+
+
+![png](collections_files/collections_57_0.png)
+
 
 As in the univariate case, [pdf](../api/DistributionCollection.pdf.md) takes a tuple/list/array.  However, in order to respect the covariances, the length of the input must match that of the underlying distributions that were sampled (see [labels_unpacked](../api/DistributionCollection.labels_unpacked.md) or [distributions_unpacked](../api/DistributionCollection.distributions_unpacked.md)).
 
-
-
-```python
-
-```

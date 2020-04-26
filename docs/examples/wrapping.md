@@ -47,17 +47,8 @@ gh = g.to_histogram()
 out = gh.plot(show=True, plot_gaussian=True)
 ```
 
-    /home/kyle/.local/lib/python3.7/site-packages/scipy/stats/_distn_infrastructure.py:1675: IntegrationWarning: The maximum number of subdivisions (50) has been achieved.
-      If increasing the limit yields no improvement it is advised to analyze 
-      the integrand in order to determine the difficulties.  If the position of a 
-      local difficulty can be determined (singularity, discontinuity) one will 
-      probably gain from splitting up the interval and calling the integrator 
-      on the subranges.  Perhaps a special-purpose integrator should be used.
-      return integrate.quad(self._mom_integ1, 0, 1, args=(m,)+args)[0]
 
-
-
-![png](wrapping_files/wrapping_8_1.png)
+![png](wrapping_files/wrapping_8_0.png)
 
 
 # Example 2: Automatic Wrapping for Distributions with Angle Units
@@ -103,6 +94,8 @@ out = p.plot(show=True, bins=20)
 
 # Example 3: Uniform Distribution with `low` > `high`
 
+**NOTE**: this is currently broken, but will hopefully be fixed before the first official release
+
 
 ```python
 b = distl.uniform(340, 20)*u.deg
@@ -127,20 +120,20 @@ out = b.plot(show=True, bins=200)
           3 # TODO: this seems to be broken by the rewrite
 
 
-    ~/.local/lib/python3.7/site-packages/distl-0.1.0.dev0-py3.7.egg/distl/distl.py in plot(self, size, unit, wrap_at, seed, samples, plot_sample, plot_sample_kwargs, plot_pdf, plot_pdf_kwargs, plot_cdf, plot_cdf_kwargs, plot_gaussian, plot_gaussian_kwargs, label, xlabel, show, **kwargs)
-        832             for k,v in kwargs.items():
-        833                 plot_sample_kwargs.setdefault(k,v)
-    --> 834             ret_sample = self.plot_sample(size=int(size), samples=samples, unit=unit, wrap_at=wrap_at, seed=seed, show=False, **plot_sample_kwargs)
-        835         else:
-        836             ret_sample = None
+    ~/.local/lib/python3.7/site-packages/distl-0.1.0.dev1-py3.7.egg/distl/distl.py in plot(self, size, unit, wrap_at, seed, samples, plot_sample, plot_sample_kwargs, plot_pdf, plot_pdf_kwargs, plot_cdf, plot_cdf_kwargs, plot_gaussian, plot_gaussian_kwargs, label, xlabel, show, **kwargs)
+       1141             for k,v in kwargs.items():
+       1142                 plot_sample_kwargs.setdefault(k,v)
+    -> 1143             ret_sample = self.plot_sample(size=int(size), samples=samples, unit=unit, wrap_at=wrap_at, seed=seed, show=False, **plot_sample_kwargs)
+       1144         else:
+       1145             ret_sample = None
 
 
-    ~/.local/lib/python3.7/site-packages/distl-0.1.0.dev0-py3.7.egg/distl/distl.py in plot_sample(self, size, unit, wrap_at, seed, samples, label, xlabel, show, **kwargs)
-        965 
-        966         try:
-    --> 967             ret = _plt.hist(samples, density=True, **kwargs)
-        968         except AttributeError:
-        969             # TODO: determine which version of matplotlib
+    ~/.local/lib/python3.7/site-packages/distl-0.1.0.dev1-py3.7.egg/distl/distl.py in plot_sample(self, size, unit, wrap_at, seed, samples, label, xlabel, show, **kwargs)
+       1279 
+       1280         try:
+    -> 1281             ret = _plt.hist(samples, density=True, **kwargs)
+       1282         except AttributeError:
+       1283             # TODO: determine which version of matplotlib
 
 
     ~/.local/lib/python3.7/site-packages/matplotlib/pyplot.py in hist(x, bins, range, density, weights, cumulative, bottom, histtype, align, orientation, rwidth, log, color, label, stacked, normed, data, **kwargs)

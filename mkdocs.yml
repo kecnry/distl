@@ -16,6 +16,7 @@ nav:
         - plotting: examples/plotting.md
         - math: examples/math.md
         - and/or logic: examples/and_or.md
+        - custom functions: examples/function.md
         - units: examples/units.md
         - wrapping: examples/wrapping.md
         - multivariate: examples/multivariate.md
@@ -30,6 +31,7 @@ nav:
         - Uniform: api/Uniform.md
         - Histogram: api/Histogram.md
         - Composite: api/Composite.md
+        - Function: api/Function.md
         - Delta Around: api/Delta_Around.md
         - Uniform Around: api/Uniform_Around.md
         - Gaussian_Around: api/Gaussian_Around.md
