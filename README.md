@@ -1,4 +1,4 @@
-<p align="center"><a href="http://dist.readthedocs.io"><img src="./docs/images/distl.png" alt="distl logo" width="300px" align="center"/></a></p>
+<p align="center"><a href="http://distl.readthedocs.io"><img src="./docs/images/distl.png" alt="distl logo" width="300px" align="center"/></a></p>
 
 <p align="center" style="text-align:center"><i>simplified and condensed distributions</i></p>
 

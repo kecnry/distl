@@ -3471,7 +3471,11 @@ class DistributionCollection(object):
 
         sample_kwargs = {k:v for k,v in kwargs.items() if k not in ['seeds']}
         # print("*** seeds: {}, sample_kwargs: {}".format(seeds, sample_kwargs))
-        samples = _np.asarray([dist.sample(*args, seed=seeds, cache_sample=cache_sample, **sample_kwargs) for dist in self.dists]).T
+
+        array_kwargs = {}
+        if kwargs.get('as_quantity', False):
+            array_kwargs['dtype'] = _np.dtype(object)
+        samples = _np.asarray([dist.sample(*args, seed=seeds, cache_sample=cache_sample, **sample_kwargs) for dist in self.dists], **array_kwargs).T
 
         if cache_sample:
             self._cached_sample = samples
