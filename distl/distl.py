@@ -3518,8 +3518,13 @@ class DistributionCollection(object):
         if not _has_corner:
             raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
+        def _range(dist):
+            if isinstance(dist, Delta):
+                return (0.9*dist.loc, 1.1*dist.loc)
+            else:
+                return 1.0
 
-        return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=[dist._xlabel() for dist in self.dists], **kwargs)
+        return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=kwargs.pop('labels', [dist._xlabel() for dist in self.dists]), range=kwargs.pop('range', [_range(dist) for dist in self.dists]), **kwargs)
 
     def plot(self, **kwargs):
         """
