@@ -17,7 +17,7 @@ setup(name='distl',
       packages=['distl'],
       install_requires=['numpy>=1.10','scipy>=1.0'],
       classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Natural Language :: English",
