@@ -109,6 +109,8 @@ will be used when converting to a [Histogram](Histogram.md).
 * [plot_sample](Composite.plot_sample.md)
 * [ppf](Composite.ppf.md)
 * [sample](Composite.sample.md)
+* [sample_quantiles](Composite.sample_quantiles.md)
+* [sample_uncertainties_formatted](Composite.sample_uncertainties_formatted.md)
 * [sf](Composite.sf.md)
 * [std](Composite.std.md)
 * [to](Composite.to.md)

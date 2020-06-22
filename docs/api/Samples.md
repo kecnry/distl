@@ -58,6 +58,8 @@ See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kd
 * [plot_sample](Samples.plot_sample.md)
 * [ppf](Samples.ppf.md)
 * [sample](Samples.sample.md)
+* [sample_quantiles](Samples.sample_quantiles.md)
+* [sample_uncertainties_formatted](Samples.sample_uncertainties_formatted.md)
 * [samples](Samples.samples.md)
 * [sf](Samples.sf.md)
 * [std](Samples.std.md)

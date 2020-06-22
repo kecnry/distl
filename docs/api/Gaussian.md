@@ -47,6 +47,8 @@ Can be created from the top-level via the [distl.gaussian](distl.gaussian.md) or
 * [plot_sample](Gaussian.plot_sample.md)
 * [ppf](Gaussian.ppf.md)
 * [sample](Gaussian.sample.md)
+* [sample_quantiles](Gaussian.sample_quantiles.md)
+* [sample_uncertainties_formatted](Gaussian.sample_uncertainties_formatted.md)
 * [scale](Gaussian.scale.md)
 * [sf](Gaussian.sf.md)
 * [std](Gaussian.std.md)

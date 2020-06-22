@@ -49,6 +49,8 @@ Can be created from the top-level via the [distl.uniform](distl.uniform.md) or
 * [plot_sample](Uniform.plot_sample.md)
 * [ppf](Uniform.ppf.md)
 * [sample](Uniform.sample.md)
+* [sample_quantiles](Uniform.sample_quantiles.md)
+* [sample_uncertainties_formatted](Uniform.sample_uncertainties_formatted.md)
 * [sf](Uniform.sf.md)
 * [std](Uniform.std.md)
 * [to](Uniform.to.md)

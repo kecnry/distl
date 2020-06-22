@@ -28,6 +28,8 @@
 * [plot_pdf](BaseMultivariateDistribution.plot_pdf.md)
 * [plot_sample](BaseMultivariateDistribution.plot_sample.md)
 * [sample](BaseMultivariateDistribution.sample.md)
+* [sample_quantiles](BaseMultivariateDistribution.sample_quantiles.md)
+* [sample_uncertainties_formatted](BaseMultivariateDistribution.sample_uncertainties_formatted.md)
 * [take_dimensions](BaseMultivariateDistribution.take_dimensions.md)
 * [to_dict](BaseMultivariateDistribution.to_dict.md)
 * [to_file](BaseMultivariateDistribution.to_file.md)

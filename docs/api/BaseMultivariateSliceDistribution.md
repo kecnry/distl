@@ -41,6 +41,8 @@
 * [plot_sample](BaseMultivariateSliceDistribution.plot_sample.md)
 * [ppf](BaseMultivariateSliceDistribution.ppf.md)
 * [sample](BaseMultivariateSliceDistribution.sample.md)
+* [sample_quantiles](BaseMultivariateSliceDistribution.sample_quantiles.md)
+* [sample_uncertainties_formatted](BaseMultivariateSliceDistribution.sample_uncertainties_formatted.md)
 * [sf](BaseMultivariateSliceDistribution.sf.md)
 * [std](BaseMultivariateSliceDistribution.std.md)
 * [to](BaseMultivariateSliceDistribution.to.md)

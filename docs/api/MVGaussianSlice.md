@@ -42,6 +42,8 @@
 * [plot_sample](MVGaussianSlice.plot_sample.md)
 * [ppf](MVGaussianSlice.ppf.md)
 * [sample](MVGaussianSlice.sample.md)
+* [sample_quantiles](MVGaussianSlice.sample_quantiles.md)
+* [sample_uncertainties_formatted](MVGaussianSlice.sample_uncertainties_formatted.md)
 * [scale](MVGaussianSlice.scale.md)
 * [sf](MVGaussianSlice.sf.md)
 * [std](MVGaussianSlice.std.md)

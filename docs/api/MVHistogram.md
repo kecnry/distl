@@ -55,6 +55,8 @@ on that sample.
 * [plot_pdf](MVHistogram.plot_pdf.md)
 * [plot_sample](MVHistogram.plot_sample.md)
 * [sample](MVHistogram.sample.md)
+* [sample_quantiles](MVHistogram.sample_quantiles.md)
+* [sample_uncertainties_formatted](MVHistogram.sample_uncertainties_formatted.md)
 * [slice](MVHistogram.slice.md)
 * [take_dimensions](MVHistogram.take_dimensions.md)
 * [to_dict](MVHistogram.to_dict.md)

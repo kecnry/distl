@@ -48,6 +48,8 @@ Can be created from the top-level via the [distl.delta](distl.delta.md) convenie
 * [plot_sample](Delta.plot_sample.md)
 * [ppf](Delta.ppf.md)
 * [sample](Delta.sample.md)
+* [sample_quantiles](Delta.sample_quantiles.md)
+* [sample_uncertainties_formatted](Delta.sample_uncertainties_formatted.md)
 * [sf](Delta.sf.md)
 * [std](Delta.std.md)
 * [to](Delta.to.md)

@@ -76,6 +76,8 @@ thereby losing all covariances.
 * [ppf](Function.ppf.md)
 * [sample](Function.sample.md)
 * [sample_args_kwargs](Function.sample_args_kwargs.md)
+* [sample_quantiles](Function.sample_quantiles.md)
+* [sample_uncertainties_formatted](Function.sample_uncertainties_formatted.md)
 * [sf](Function.sf.md)
 * [std](Function.std.md)
 * [to](Function.to.md)

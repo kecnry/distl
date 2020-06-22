@@ -54,6 +54,8 @@ Histogram distribtuion from the data array itself, see
 * [plot_sample](Histogram.plot_sample.md)
 * [ppf](Histogram.ppf.md)
 * [sample](Histogram.sample.md)
+* [sample_quantiles](Histogram.sample_quantiles.md)
+* [sample_uncertainties_formatted](Histogram.sample_uncertainties_formatted.md)
 * [sf](Histogram.sf.md)
 * [std](Histogram.std.md)
 * [to](Histogram.to.md)

@@ -37,6 +37,8 @@
 * [plot_sample](BaseUnivariateDistribution.plot_sample.md)
 * [ppf](BaseUnivariateDistribution.ppf.md)
 * [sample](BaseUnivariateDistribution.sample.md)
+* [sample_quantiles](BaseUnivariateDistribution.sample_quantiles.md)
+* [sample_uncertainties_formatted](BaseUnivariateDistribution.sample_uncertainties_formatted.md)
 * [sf](BaseUnivariateDistribution.sf.md)
 * [std](BaseUnivariateDistribution.std.md)
 * [to](BaseUnivariateDistribution.to.md)

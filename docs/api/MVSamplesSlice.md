@@ -42,6 +42,8 @@
 * [plot_sample](MVSamplesSlice.plot_sample.md)
 * [ppf](MVSamplesSlice.ppf.md)
 * [sample](MVSamplesSlice.sample.md)
+* [sample_quantiles](MVSamplesSlice.sample_quantiles.md)
+* [sample_uncertainties_formatted](MVSamplesSlice.sample_uncertainties_formatted.md)
 * [samples](MVSamplesSlice.samples.md)
 * [sf](MVSamplesSlice.sf.md)
 * [std](MVSamplesSlice.std.md)

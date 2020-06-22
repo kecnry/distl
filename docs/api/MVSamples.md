@@ -55,6 +55,8 @@ See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kd
 * [plot_sample](MVSamples.plot_sample.md)
 * [ppf](MVSamples.ppf.md)
 * [sample](MVSamples.sample.md)
+* [sample_quantiles](MVSamples.sample_quantiles.md)
+* [sample_uncertainties_formatted](MVSamples.sample_uncertainties_formatted.md)
 * [samples](MVSamples.samples.md)
 * [slice](MVSamples.slice.md)
 * [take_dimensions](MVSamples.take_dimensions.md)

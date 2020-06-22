@@ -32,6 +32,8 @@
 * [plot_pdf](MVGaussian.plot_pdf.md)
 * [plot_sample](MVGaussian.plot_sample.md)
 * [sample](MVGaussian.sample.md)
+* [sample_quantiles](MVGaussian.sample_quantiles.md)
+* [sample_uncertainties_formatted](MVGaussian.sample_uncertainties_formatted.md)
 * [slice](MVGaussian.slice.md)
 * [take_dimensions](MVGaussian.take_dimensions.md)
 * [to_dict](MVGaussian.to_dict.md)

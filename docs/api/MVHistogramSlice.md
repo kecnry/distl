@@ -43,6 +43,8 @@
 * [plot_sample](MVHistogramSlice.plot_sample.md)
 * [ppf](MVHistogramSlice.ppf.md)
 * [sample](MVHistogramSlice.sample.md)
+* [sample_quantiles](MVHistogramSlice.sample_quantiles.md)
+* [sample_uncertainties_formatted](MVHistogramSlice.sample_uncertainties_formatted.md)
 * [sf](MVHistogramSlice.sf.md)
 * [std](MVHistogramSlice.std.md)
 * [to](MVHistogramSlice.to.md)
