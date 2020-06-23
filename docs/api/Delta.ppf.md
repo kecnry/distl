@@ -41,5 +41,5 @@ Arguments
 
 Returns
 ---------
-* (float or array) ppf values of the same type/shape as `x`
+* (float or array) ppf values of the same type/shape as `q`
 

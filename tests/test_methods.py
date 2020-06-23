@@ -395,6 +395,8 @@ def _test_methods_properties(d):
 
         # d.expect(...)
 
+        d.uncertainties()
+        d.uncertainties(tex=True)
         d.median()
         d.mean()
         d.var()
