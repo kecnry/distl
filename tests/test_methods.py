@@ -306,6 +306,7 @@ def _test_conversions(d):
 def _test_methods_properties(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
         d.labels
+        d.labels_latex
         d.units
         d.wrap_ats
 
@@ -346,6 +347,7 @@ def _test_methods_properties(d):
         d.__repr__()
         str(d)
         d.label
+        d.label_latex
         d.unit
         d.wrap_at
         d.wrap(5)
@@ -406,6 +408,7 @@ def _test_methods_properties(d):
 
     elif isinstance(d, distl._distl.BaseAroundGenerator):
         d.label
+        d.label_latex
         d.unit
         d.wrap_at
         d.value
