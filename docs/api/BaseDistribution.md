@@ -35,6 +35,7 @@ Any subclass distribution should override the following:
 * [plot_gaussian](BaseDistribution.plot_gaussian.md)
 * [plot_pdf](BaseDistribution.plot_pdf.md)
 * [plot_sample](BaseDistribution.plot_sample.md)
+* [plot_uncertainties](BaseDistribution.plot_uncertainties.md)
 * [sample](BaseDistribution.sample.md)
 * [to_file](BaseDistribution.to_file.md)
 * [to_json](BaseDistribution.to_json.md)

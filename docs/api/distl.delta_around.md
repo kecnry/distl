@@ -3,7 +3,7 @@
 
 ```py
 
-def delta_around(unit=None, label=None, wrap_at=None)
+def delta_around(unit=None, label=None, label_latex=None, wrap_at=None)
 
 ```
 

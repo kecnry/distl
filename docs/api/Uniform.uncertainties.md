@@ -9,12 +9,8 @@ def uncertainties(self, sigma=1, tex=False)
 
 
 
-Expose (asymmetric) uncertainties for the distribution(s) at a given
+Expose (symmetric) uncertainties for the distribution(s) at a given
 value of `sigma`.
-
-This first determines the appropriate quantiles to pass to
-[Uniform.ppf](Uniform.ppf.md) using scipy.state.norm.cdf([`-sigma`, `0`, `sigma`])
-and then formats those into a Latex friendly representation if `tex` is True.
 
 Arguments
 -----------

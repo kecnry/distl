@@ -3,7 +3,7 @@
 
 ```py
 
-def plot(self, size=100000.0, unit=None, wrap_at=None, seed=None, samples=None, plot_sample=True, plot_sample_kwargs={'color': 'gray'}, plot_pdf=True, plot_pdf_kwargs={'color': 'red'}, plot_cdf=False, plot_cdf_kwargs={'color': 'green'}, plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'}, label=None, xlabel=None, show=False, **kwargs)
+def plot(self, size=100000.0, unit=None, wrap_at=None, seed=None, samples=None, plot_sample=True, plot_sample_kwargs={'color': 'gray'}, plot_pdf=True, plot_pdf_kwargs={'color': 'red'}, plot_cdf=False, plot_cdf_kwargs={'color': 'green'}, plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'}, plot_uncertainties=True, plot_uncertainties_kwargs={'color': 'black', 'linestyle': 'dashed'}, label=None, xlabel=None, show=False, **kwargs)
 
 ```
 
@@ -57,6 +57,13 @@ Arguments
     distributions that have [Gaussian.to_gaussian](Gaussian.to_gaussian.md) methods.
 * `plot_gaussian_kwargs` (dict, optional, default={'color': 'blue'}):
     keyword arguments to send to [Gaussian.plot_gaussian](Gaussian.plot_gaussian.md).
+* `plot_uncertainties` (bool or int, optional, default=True): whether
+    to plot uncertainties (as vertical lines) and include the representation
+    of the uncertainties in the plot title.  If an integer, will
+    plot at that `sigma`.  If True, will default to `sigma=1`.  See
+    [Gaussian.uncertainties](Gaussian.uncertainties.md).
+* `plot_uncertainties_kwargs` (dict, optional, default={'color': 'black', 'linestyle': 'dashed'}):
+    keyword arguments to send to [Gaussian.plot_uncertainties](Gaussian.plot_uncertainties.md).
 * `label` (string, optional, default=None): override the label on the
     x-axis.  If not provided or None, will use [Gaussian.label](Gaussian.label.md).  Will
     only be used if `show=True`.  Unit will automatically be appended.
@@ -77,7 +84,8 @@ Returns
 * tuple: the return values from [Gaussian.plot_sample](Gaussian.plot_sample.md) (or None if
     `plot_sample=False`), [Gaussian.plot_pdf](Gaussian.plot_pdf.md) (or None if `plot_pdf=False`),
     [Gaussian.plot_cdf](Gaussian.plot_cdf.md) (or None if `plot_cdf=False`),
-    and [Gaussian.plot_pdf](Gaussian.plot_pdf.md) (or None if `plot_gaussian=False`).
+    [Gaussian.plot_pdf](Gaussian.plot_pdf.md) (or None if `plot_gaussian=False`), and
+    [Gaussian.plot_uncertainties](Gaussian.plot_uncertainties.md) (or None if `plot_uncertainties=False`).
 
 Raises
 --------

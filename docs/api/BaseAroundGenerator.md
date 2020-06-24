@@ -8,6 +8,7 @@
 * [copy](BaseAroundGenerator.copy.md)
 * [hash](BaseAroundGenerator.hash.md)
 * [label](BaseAroundGenerator.label.md)
+* [label_latex](BaseAroundGenerator.label_latex.md)
 * [log](BaseAroundGenerator.log.md)
 * [log10](BaseAroundGenerator.log10.md)
 * [pdf](BaseAroundGenerator.pdf.md)

@@ -16,6 +16,8 @@ simultaneously, respecting all underlying covariances whenever possible.
 * [get_distributions_with_values](DistributionCollection.get_distributions_with_values.md)
 * [hash](DistributionCollection.hash.md)
 * [labels](DistributionCollection.labels.md)
+* [labels_latex](DistributionCollection.labels_latex.md)
+* [labels_latex_unpacked](DistributionCollection.labels_latex_unpacked.md)
 * [labels_unpacked](DistributionCollection.labels_unpacked.md)
 * [logcdf](DistributionCollection.logcdf.md)
 * [logpdf](DistributionCollection.logpdf.md)
