@@ -215,7 +215,7 @@ class Latex(object):
 
     @property
     def as_latex_list(self):
-        return [r"${}$".format(li.replace("&=", "=")) for li in self._stex.split("\\\\") if len(li.replace(" ", ""))]
+        return [r"${}$".format(li.replace("&=", "=").replace("$", "")) for li in self._stex.split("\\\\") if len(li.replace(" ", ""))]
 
     @property
     def as_string(self):
@@ -244,14 +244,14 @@ def to_unit(unit):
 
     return unit
 
-def _json_safe(v):
+def _json_safe(v, exclude=[]):
     if isinstance(v, _np.ndarray):
         return v.tolist()
 
     if isinstance(v, list) or isinstance(v, tuple):
-        return [_json_safe(li) for li in v]
+        return [_json_safe(li, exclude=exclude) for li in v]
     elif isinstance(v, BaseDistribution):
-        return v.to_dict()
+        return v.to_dict(exclude=exclude)
     elif _is_unit(v):
         return str(v.to_string())
     elif hasattr(v, 'func_name'):
@@ -288,8 +288,11 @@ def _format_uncertainties_asymmetric(labels, labels_latex, units, qs_per_dim):
         if label is None:
             label = ''
 
-        stex += "\mathrm{{ {} }} &= {} {}{}~ ^{{ +{} }}_{{ -{} }} \\\\ ".format(label_latex.replace("$", ""), _np.round(qs[1], ndigits), "" if unit is None or unit.physical_type in ['dimensionless', 'angle'] else "~", unit._repr_latex_().replace('$', '') if unit is not None else '', _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits))
-        s += "{} = {}{} +{} -{}\n".format(label, _np.round(qs[1], ndigits), " "+unit.to_string() if unit is not None else "", _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits))
+        unitstr = " "+unit.to_string() if unit is not None else ""
+        unittex_spacer = "" if unit is None or unit.physical_type in ['dimensionless', 'angle'] else "~"
+        unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
+        stex += "\mathrm{{ {} }} &= {}^{{ +{} }}_{{ -{} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unittex)
+        s += "{} = {} +{} -{} {}\n".format(label, _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unitstr)
 
     return Latex(s, stex)
 
@@ -316,8 +319,11 @@ def _format_uncertainties_symmetric(labels, labels_latex, units, values_per_dim,
         if label is None:
             label = ''
 
-        stex += "\mathrm{{ {} }} &= {} {}{}~ \pm {{ {} }} \\\\ ".format(label_latex.replace("$", ""), _np.round(value, ndigits), "" if unit is None or unit.physical_type in ['dimensionless', 'angle'] else "~", unit._repr_latex_().replace('$', '') if unit is not None else '', _np.round(sigma, ndigits))
-        s += "{} = {}{} +/- {}\n".format(label, _np.round(value, ndigits), " "+unit.to_string() if unit is not None else "", _np.round(sigma, ndigits))
+        unitstr = " "+unit.to_string() if unit is not None else ""
+        unittex_spacer = "" if unit is None or unit.physical_type in ['dimensionless', 'angle'] else "~"
+        unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
+        stex += "\mathrm{{ {} }} &= {}\pm{{ {} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(value, ndigits), _np.round(sigma, ndigits), unittex)
+        s += "{} = {} +/- {} {}\n".format(label, _np.round(value, ndigits), _np.round(sigma, ndigits), unitstr)
 
     return Latex(s, stex)
 
@@ -561,7 +567,7 @@ class BaseDistlObject(object):
         --------
         * string
         """
-        return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
+        return _json.dumps(self.to_dict(exclude=kwargs.pop('exclude', [])), ensure_ascii=True, **kwargs)
 
     def to_file(self, filename, **kwargs):
         """
@@ -1663,7 +1669,7 @@ class BaseDistribution(BaseDistlObject):
         ret += [_plt.axvline(uncertainties[0], **kwargs)]
         ret += [_plt.axvline(uncertainties[2], **kwargs)]
 
-        _plt.title(label.as_latex_list[0])
+        _plt.title(r"$"+label.as_latex_list[0].split("=")[1])
 
         if show:
             _plt.show()
@@ -1688,6 +1694,8 @@ class BaseUnivariateDistribution(BaseDistribution):
             descriptors += " wrap_at={}".format(self.wrap_at)
         if self.label is not None:
             descriptors += " label={}".format(self.label)
+        if self._label_latex is not None:
+            descriptors += " label_latex={}".format(self.label_latex)
         return "<distl.{} {}>".format(self.__class__.__name__.lower(), descriptors)
 
     def __str__(self):
@@ -1696,7 +1704,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         else:
             return self.__repr__()
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -1708,20 +1716,30 @@ class BaseUnivariateDistribution(BaseDistribution):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
         """
-        d = {k: _json_safe(getattr(self, k)) for k in self._descriptors}
+        d = {k: _json_safe(getattr(self, k), exclude=exclude) for k in self._descriptors}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
         if self.unit is not None:
             d['unit'] = str(self.unit.to_string())
         if self.label is not None:
             d['label'] = self.label
+        if self._label_latex is not None:
+            d['label_latex'] = self._label_latex
         if self.wrap_at is not None:
             d['wrap_at'] = self.wrap_at
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
+
 
     ### LABEL
 
@@ -2625,6 +2643,8 @@ class BaseMultivariateDistribution(BaseDistribution):
             descriptors += " wrap_ats={}".format(self.wrap_ats)
         if self.labels is not None:
             descriptors += " labels={}".format(self.labels)
+        if self._labels_latex is not None:
+            descriptors += " labels_latex={}".format(self.labels_latex)
         return "<distl.{} {}>".format(self.__class__.__name__.lower(), descriptors)
 
     def __str__(self):
@@ -2633,7 +2653,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         else:
             return self.__repr__()
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -2645,20 +2665,29 @@ class BaseMultivariateDistribution(BaseDistribution):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
         """
 
-        d = {k:_json_safe(getattr(self,k)) for k in self._descriptors}
+        d = {k:_json_safe(getattr(self,k), exclude=exclude) for k in self._descriptors}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        if self.units is not None:
+        if self.units is not None and 'units':
             d['units'] = [u.to_string() if u is not None else None for u in self.units]
-        if self.labels is not None:
+        if self.labels is not None and 'labels':
             d['labels'] = self.labels
-        if self.wrap_ats is not None:
+        if self._labels_latex is not None and 'labels_latex':
+            d['labels_latex'] = self._labels_latex
+        if self.wrap_ats is not None and 'wrap_ats':
             d['wrap_ats'] = self.wrap_ats
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     def _get_dimension_index(self, dimension):
@@ -2719,7 +2748,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         ---------
         * (list): list of labels
         """
-        return [r"$"+ll+"$" for ll in self._labels_latex] if self._labels_latex is not None else self.labels #[self.dimension_indices]
+        return [ll if "$" in ll else r"$"+ll+"$" for ll in self._labels_latex] if self._labels_latex is not None else self.labels #[self.dimension_indices]
 
     @labels_latex.setter
     def labels_latex(self, labels_latex):
@@ -3130,7 +3159,7 @@ class BaseMultivariateDistribution(BaseDistribution):
                     axix = int(axi % _np.sqrt(len(mplaxes)))
                     axiy = int(axi / _np.sqrt(len(mplaxes)))
                     if axix == axiy:
-                        ax.set_title(uncertainties_latex_per_dim[axix])
+                        ax.set_title("$"+uncertainties_latex_per_dim[axix].split("=")[1])
 
             return fig
 
@@ -3188,7 +3217,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         else:
             return self.__repr__()
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -3200,6 +3229,10 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
@@ -3208,14 +3241,19 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         d = {}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        d['multivariate'] = self.multivariate.to_dict()
+        d['multivariate'] = self.multivariate.to_dict(exclude=exclude)
         d['dimension'] = self.dimension
-        if self._unit is not None:
+        if self._unit is not None and 'unit':
             d['unit'] = str(self._unit.to_string())
-        if self._label is not None:
+        if self._label is not None and 'label':
             d['label'] = self._label
-        if self._wrap_at is not None:
+        if self._label_latex is not None and 'label_latex':
+            d['label_latex'] = self._label_latex
+        if self._wrap_at is not None and 'wrap_at':
             d['wrap_at'] = self._wrap_at
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     @property
@@ -3488,7 +3526,7 @@ class DistributionCollection(BaseDistlObject):
 
         self._cached_sample = None
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -3500,6 +3538,10 @@ class DistributionCollection(BaseDistlObject):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
@@ -3508,7 +3550,10 @@ class DistributionCollection(BaseDistlObject):
         d = {}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        d['args'] = [distribution.to_dict() for distribution in self.dists]
+        d['args'] = [distribution.to_dict(exclude=exclude) for distribution in self.dists]
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     @property
@@ -4048,7 +4093,7 @@ class DistributionCollection(BaseDistlObject):
                 axix = int(axi % _np.sqrt(len(mplaxes)))
                 axiy = int(axi / _np.sqrt(len(mplaxes)))
                 if axix == axiy:
-                    ax.set_title(uncertainties_latex_per_dim[axix])
+                    ax.set_title("$"+uncertainties_latex_per_dim[axix].split("=")[1])
 
         return fig
 
@@ -7611,7 +7656,7 @@ class BaseAroundGenerator(BaseDistlObject):
         return self.__math_if_resolved__("log")
 
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -7623,21 +7668,30 @@ class BaseAroundGenerator(BaseDistlObject):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
         """
-        d = {k: _json_safe(getattr(self, k)) for k in self._descriptors}
+        d = {k: _json_safe(getattr(self, k), exclude=exclude) for k in self._descriptors}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        if self.value is not None:
+        if self.value is not None and 'value':
             d['value'] = self.value
-        if self.unit is not None:
+        if self.unit is not None and 'unit':
             d['unit'] = str(self.unit.to_string())
-        if self.label is not None:
+        if self.label is not None and 'label':
             d['label'] = self.label
-        if self.wrap_at is not None:
+        if self._label_latex is not None:
+            d['label_latex'] = self._label_latex
+        if self.wrap_at is not None and 'wrap_at':
             d['wrap_at'] = self.wrap_at
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     ### LABEL
@@ -7667,7 +7721,12 @@ class BaseAroundGenerator(BaseDistlObject):
         The latex label of the distribution object.  When not None, this is used for
         the x-label when plotting (see <<class>.plot>).
         """
-        return r"$"+self._label_latex+"$" if self._label_latex is not None else self.label
+        if self._label_latex is not None:
+            if "$" not in self._label_latex:
+                return r"$"+self._label_latex+"$"
+            return self._label_latex
+        else:
+            return self.label
 
     @label_latex.setter
     def label_latex(self, label_latex):
