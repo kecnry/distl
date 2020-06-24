@@ -1296,6 +1296,8 @@ class BaseDistribution(BaseDistlObject):
 
         if plot_uncertainties:
             ret_uncertainties = self.plot_uncertainties(sigma=plot_uncertainties, **plot_uncertainties_kwargs)
+        else:
+            ret_uncertainties = None
 
         _plt.xlabel(self._xlabel(unit, label=label))
         _plt.ylabel('density')
