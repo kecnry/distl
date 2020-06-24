@@ -1119,6 +1119,7 @@ class BaseDistribution(BaseDistlObject):
              plot_pdf=True, plot_pdf_kwargs={'color': 'red'},
              plot_cdf=False, plot_cdf_kwargs={'color': 'green'},
              plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
+             plot_uncertainties=True, plot_uncertainties_kwargs={'color': 'black', 'linestyle': 'dashed'},
              label=None, xlabel=None, show=False, **kwargs):
         """
         Plot both the analytic distribution function as well as a sampled
@@ -1169,6 +1170,13 @@ class BaseDistribution(BaseDistlObject):
             distributions that have <<class>.to_gaussian> methods.
         * `plot_gaussian_kwargs` (dict, optional, default={'color': 'blue'}):
             keyword arguments to send to <<class>.plot_gaussian>.
+        * `plot_uncertainties` (bool or int, optional, default=True): whether
+            to plot uncertainties (as vertical lines) and include the representation
+            of the uncertainties in the plot title.  If an integer, will
+            plot at that `sigma`.  If True, will default to `sigma=1`.  See
+            <<class>.uncertainties>.
+        * `plot_uncertainties_kwargs` (dict, optional, default={'color': 'black', 'linestyle': 'dashed'}):
+            keyword arguments to send to <<class>.plot_uncertainties>.
         * `label` (string, optional, default=None): override the label on the
             x-axis.  If not provided or None, will use <<class>.label>.  Will
             only be used if `show=True`.  Unit will automatically be appended.
@@ -1189,7 +1197,8 @@ class BaseDistribution(BaseDistlObject):
         * tuple: the return values from <<class>.plot_sample> (or None if
             `plot_sample=False`), <<class>.plot_pdf> (or None if `plot_pdf=False`),
             <<class>.plot_cdf> (or None if `plot_cdf=False`),
-            and <Gaussian.plot_pdf> (or None if `plot_gaussian=False`).
+            <Gaussian.plot_pdf> (or None if `plot_gaussian=False`), and
+            <<class>.plot_uncertainties> (or None if `plot_uncertainties=False`).
 
         Raises
         --------
@@ -1261,13 +1270,16 @@ class BaseDistribution(BaseDistlObject):
         else:
             ret_cdf = None
 
+        if plot_uncertainties:
+            ret_uncertainties = self.plot_uncertainties(sigma=plot_uncertainties, **plot_uncertainties_kwargs)
+
         _plt.xlabel(self._xlabel(unit, label=label))
         _plt.ylabel('density')
 
         if show:
             _plt.show()
 
-        return (ret_sample, ret_pdf, ret_cdf, ret_gauss)
+        return (ret_sample, ret_pdf, ret_cdf, ret_gauss, ret_uncertainties)
 
 
     def plot_sample(self, size=100000, unit=None,
@@ -1606,6 +1618,26 @@ class BaseDistribution(BaseDistlObject):
 
         _plt.xlabel(xlabel if xlabel is not None else self._xlabel(unit, label=label))
         _plt.ylabel('density')
+
+        if show:
+            _plt.show()
+
+        return ret
+
+    def plot_uncertainties(self, sigma=1, show=False, **kwargs):
+        """
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        uncertainties = self.uncertainties(sigma=sigma)
+        label = self.uncertainties(sigma=sigma, tex=True)
+
+        ret = []
+        ret += [_plt.axvline(uncertainties[0], **kwargs)]
+        ret += [_plt.axvline(uncertainties[2], **kwargs)]
+
+        _plt.title(label.as_latex_list[0])
 
         if show:
             _plt.show()
@@ -3010,27 +3042,13 @@ class BaseMultivariateDistribution(BaseDistribution):
         * `wrap_at`
         * `xlabel`
         * `samples`
-        * `draw_sigmas` (tuple, None, or bool, optional, default=None): if True,
-            will default to (1,2,3).  If False, `quantiles` and `levels` will
-            not be plotted.  If None, `quantiles` and `levels` will be passed
-            directly to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner).
-            If provided as a list or tuple, then `quantiles` will be set to the
-            appropriate quantile for the first sigma in the passed list and
-            `levels` will be set to the appropriate 2-D volume levels for each
-            item in the list (see `levels` below).
-        * `quantiles` (tuple or None, optional, default=(0.16, 0.84)): passed
-            to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner):
-            "A list of fractional quantiles to show on the 1-D histograms as
-            vertical dashed lines."  Ignored if `draw_sigmas` is not None.
-        * `levels` (tuple or None, optional, default=(1-np.exp(-0.5))): passed
-            to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
-            see [corner: a note about sigmas](https://corner.readthedocs.io/en/latest/pages/sigmas.html).
-            Ignored if `draw_sigmas` is not None.
-        * `titles_sigma` (int or bool , optional, default=False):
-            include the latex output from <<class>.uncertainties> with the given
-            value of `sigma` in the axes titles.
-            If True, will default to `sigma=1`.
-
+        * `plot_uncertainties` (tuple or bool, optional, default=True): if True,
+            will default to (1,2,3).
+            If provided as a list or tuple, then `quantiles` shown in the 1D
+            histograms will be set to the appropriate quantile for the first
+            sigma in the passed list/tuple and will be used for the uncertainties
+            in the axes titles. `levels` will be set to the appropriate 2-D volume levels for each
+            item in the list and used as contours. See <<class>.uncertainties>.
         * `**kwargs`: additional kwargs are passed to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
         """
         dimension = kwargs.pop('dimension', None)
@@ -3057,20 +3075,18 @@ class BaseMultivariateDistribution(BaseDistribution):
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
 
-            draw_sigmas = kwargs.pop('draw_sigmas', None)
-            if draw_sigmas:
-                if draw_sigmas is True:
-                    draw_sigmas = [1, 2, 3]
-                if not (isinstance(draw_sigmas, list) or isinstance(draw_sigmas, tuple)):
-                    raise TypeError("draw_sigmas must be of type list")
+            plot_uncertainties = kwargs.pop('plot_uncertainties', True)
+            if plot_uncertainties:
+                if plot_uncertainties is True:
+                    plot_uncertainties = [1, 2, 3]
+                if not (isinstance(plot_uncertainties, list) or isinstance(plot_uncertainties, tuple)):
+                    raise TypeError("plot_uncertainties must be of type list")
 
-                kwargs['quantiles'] = (_norm.cdf(-draw_sigmas[0]), _norm.cdf(draw_sigmas[0]))
-                kwargs['levels'] = [1-_np.exp(-s**2 / 2.) for s in draw_sigmas]
-            elif draw_sigmas is None:
+                kwargs['quantiles'] = (_norm.cdf(-plot_uncertainties[0]), _norm.cdf(plot_uncertainties[0]))
+                kwargs['levels'] = [1-_np.exp(-s**2 / 2.) for s in plot_uncertainties]
+            elif plot_uncertainties is None:
                 kwargs.setdefault('quantiles', (_norm.cdf(-1), _norm.cdf(1)))
                 kwargs.setdefault('levels', [1-_np.exp(-s**2 / 2.) for s in (1,2,3)])
-
-            titles_sigma = kwargs.pop('titles_sigma', False)
 
             fig = corner.corner(self.sample(size=int(1e5), cache_sample=False),
                                  labels=[self._xlabel(dim) for dim in range(self.ndimensions)],
@@ -3079,11 +3095,8 @@ class BaseMultivariateDistribution(BaseDistribution):
                                  **kwargs)
 
 
-            if titles_sigma:
-                if titles_sigma is True:
-                    titles_sigma = 1
-
-                uncertainties_latex = self.uncertainties(titles_sigma, tex=True)  # samples=samples
+            if plot_uncertainties:
+                uncertainties_latex = self.uncertainties(plot_uncertainties[0], tex=True)  # samples=samples
                 uncertainties_latex_per_dim = uncertainties_latex.as_latex_list
 
                 mplaxes = fig.axes
@@ -3953,26 +3966,13 @@ class DistributionCollection(BaseDistlObject):
         ------------
         * `labels`
         * `range`
-        * `draw_sigmas` (tuple, None, or bool, optional, default=None): if True,
-            will default to (1,2,3).  If False, `quantiles` and `levels` will
-            not be plotted.  If None, `quantiles` and `levels` will be passed
-            directly to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner).
-            If provided as a list or tuple, then `quantiles` will be set to the
-            appropriate quantile for the first sigma in the passed list and
-            `levels` will be set to the appropriate 2-D volume levels for each
-            item in the list (see `levels` below).
-        * `quantiles` (tuple or None, optional, default=(0.16, 0.84)): passed
-            to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner):
-            "A list of fractional quantiles to show on the 1-D histograms as
-            vertical dashed lines."  Ignored if `draw_sigmas` is not None.
-        * `levels` (tuple or None, optional, default=(1-np.exp(-0.5))): passed
-            to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
-            see [corner: a note about sigmas](https://corner.readthedocs.io/en/latest/pages/sigmas.html).
-            Ignored if `draw_sigmas` is not None.
-        * `titles_sigma` (int or bool , optional, default=False):
-            include the latex output from <<class>.uncertainties> with the given
-            value of `sigma` in the axes titles.
-            If True, will default to `sigma=1`.
+        * `plot_uncertainties` (tuple or bool, optional, default=True): if True,
+            will default to (1,2,3).
+            If provided as a list or tuple, then `quantiles` shown in the 1D
+            histograms will be set to the appropriate quantile for the first
+            sigma in the passed list/tuple and will be used for the uncertainties
+            in the axes titles. `levels` will be set to the appropriate 2-D volume levels for each
+            item in the list and used as contours. See <<class>.uncertainties>.
         * `**kwargs`: additional kwargs are passed to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
 
 
@@ -3987,16 +3987,16 @@ class DistributionCollection(BaseDistlObject):
             else:
                 return 1.0
 
-        draw_sigmas = kwargs.pop('draw_sigmas', None)
-        if draw_sigmas:
-            if draw_sigmas is True:
-                draw_sigmas = [1, 2, 3]
-            if not (isinstance(draw_sigmas, list) or isinstance(draw_sigmas, tuple)):
-                raise TypeError("draw_sigmas must be of type list")
+        plot_uncertainties = kwargs.pop('plot_uncertainties', True)
+        if plot_uncertainties:
+            if plot_uncertainties is True:
+                plot_uncertainties = [1, 2, 3]
+            if not (isinstance(plot_uncertainties, list) or isinstance(plot_uncertainties, tuple)):
+                raise TypeError("plot_uncertainties must be of type list")
 
-            kwargs['quantiles'] = (_norm.cdf(-draw_sigmas[0]), _norm.cdf(draw_sigmas[0]))
-            kwargs['levels'] = [1-_np.exp(-s**2 / 2.) for s in draw_sigmas]
-        elif draw_sigmas is None:
+            kwargs['quantiles'] = (_norm.cdf(-plot_uncertainties[0]), _norm.cdf(plot_uncertainties[0]))
+            kwargs['levels'] = [1-_np.exp(-s**2 / 2.) for s in plot_uncertainties]
+        elif plot_uncertainties is None:
             kwargs.setdefault('quantiles', (_norm.cdf(-1), _norm.cdf(1)))
             kwargs.setdefault('levels', [1-_np.exp(-s**2 / 2.) for s in (1,2,3)])
 
@@ -4009,11 +4009,8 @@ class DistributionCollection(BaseDistlObject):
                              levels=kwargs.pop('levels', None),
                              **kwargs)
 
-        if titles_sigma:
-            if titles_sigma is True:
-                titles_sigma = 1
-
-            uncertainties_latex = self.uncertainties(titles_sigma, tex=True)  # samples=samples
+        if plot_uncertainties:
+            uncertainties_latex = self.uncertainties(plot_uncertainties[0], tex=True)  # samples=samples
             uncertainties_latex_per_dim = uncertainties_latex.as_latex_list
 
             mplaxes = fig.axes
@@ -6035,6 +6032,32 @@ class Uniform(BaseUnivariateDistribution):
     def __sub__(self, other):
         return self.__add__(-1*other)
 
+
+    def uncertainties(self, sigma=1, tex=False):
+        """
+        Expose (symmetric) uncertainties for the distribution(s) at a given
+        value of `sigma`.
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose.
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+        quantiles = _norm.cdf([-sigma, 0, sigma])
+        qs = self.ppf(quantiles)
+
+        if tex:
+            return _format_uncertainties_symmetric([self.label], [self.label_latex], [self.unit], [qs[1]], [(qs[2]-qs[0])/2.])
+        else:
+            return qs
 
     def to_gaussian(self, sigma=1.0):
         """
