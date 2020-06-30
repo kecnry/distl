@@ -298,7 +298,7 @@ def _format_uncertainties_asymmetric(labels, labels_latex, units, qs_per_dim):
             label = ''
 
         unitstr = " "+unit.to_string() if unit is not None else ""
-        unittex_spacer = "" if unit is None or unit.physical_type in ['dimensionless', 'angle'] else "~"
+        unittex_spacer = "" if unit is None or unit in [_units.deg, _units.dimensionless_unscaled] else "~"
         unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
         stex += "\mathrm{{ {} }} &= {}^{{ +{} }}_{{ -{} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unittex)
         s += "{} = {} +{} -{} {}\n".format(label, _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unitstr)
@@ -329,7 +329,7 @@ def _format_uncertainties_symmetric(labels, labels_latex, units, values_per_dim,
             label = ''
 
         unitstr = " "+unit.to_string() if unit is not None else ""
-        unittex_spacer = "" if unit is None or unit.physical_type in ['dimensionless', 'angle'] else "~"
+        unittex_spacer = "" if unit is None or unit in [_units.deg, _units.dimensionless_unscaled] else "~"
         unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
         stex += "\mathrm{{ {} }} &= {}\pm{{ {} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(value, ndigits), _np.round(sigma, ndigits), unittex)
         s += "{} = {} +/- {} {}\n".format(label, _np.round(value, ndigits), _np.round(sigma, ndigits), unitstr)
@@ -1310,7 +1310,7 @@ class BaseDistribution(BaseDistlObject):
             ret_cdf = None
 
         if plot_uncertainties:
-            ret_uncertainties = self.plot_uncertainties(sigma=plot_uncertainties, **plot_uncertainties_kwargs)
+            ret_uncertainties = self.plot_uncertainties(sigma=plot_uncertainties, unit=unit, **plot_uncertainties_kwargs)
         else:
             ret_uncertainties = None
 
@@ -1665,14 +1665,18 @@ class BaseDistribution(BaseDistlObject):
 
         return ret
 
-    def plot_uncertainties(self, sigma=1, show=False, **kwargs):
+    def plot_uncertainties(self, sigma=1, unit=None, show=False, **kwargs):
         """
         """
         if not _has_mpl:
             raise ImportError("matplotlib required for plotting")
 
-        uncertainties = self.uncertainties(sigma=sigma)
-        label = self.uncertainties(sigma=sigma, tex=True)
+        if unit is not None and not isinstance(self, BaseUnivariateDistribution):
+            raise ValueError("passing unit to uncertainties not allowed for {}".format(self.__class__.__name__))
+
+        uncertainties_kwargs = {'unit': unit} if unit is not None else {}
+        uncertainties = self.uncertainties(sigma=sigma, **uncertainties_kwargs)
+        label = self.uncertainties(sigma=sigma, tex=True, **uncertainties_kwargs)
 
         ret = []
         ret += [_plt.axvline(uncertainties[0], **kwargs)]
@@ -2466,7 +2470,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         # we call np.asarray so that wrapping and units works on an array object instead of a tuple
         return self._return_with_units(self.wrap(_np.asarray(interval), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
-    def uncertainties(self, sigma=1, tex=False):
+    def uncertainties(self, sigma=1, tex=False, unit=None):
         """
         Expose (asymmetric) uncertainties for the distribution(s) at a given
         value of `sigma`.
@@ -2481,6 +2485,9 @@ class BaseUnivariateDistribution(BaseDistribution):
             expose.
         * `tex` (bool, optional, default=False): return as a formatted latex
             string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
 
         Returns
         ---------
@@ -2489,10 +2496,13 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         """
         quantiles = _norm.cdf([-sigma, 0, sigma])
-        qs = self.ppf(quantiles)
+        qs = self._return_with_units(self.ppf(quantiles), unit=unit, as_quantity=False)
 
         if tex:
-            return _format_uncertainties_asymmetric([self.label], [self.label_latex], [self.unit], [qs])
+            return _format_uncertainties_asymmetric([self.label],
+                                                    [self.label_latex],
+                                                    [unit if unit is not None else self.unit],
+                                                    [qs])
         else:
             return qs
 
@@ -4509,9 +4519,16 @@ class Composite(BaseUnivariateDistribution):
             # TODO: OPTIMIZE: should we cache the collection? (in which case we should pass cache_sample)
             samples = DistributionCollection(*dists).sample(seeds=seed, size=size, cache_sample=cache_sample)
             if size is not None:
-                return getattr(samples[:,0], math)(samples[:,1])
+                try:
+                    return getattr(samples[:,0], math)(samples[:,1])
+                except AttributeError:
+                    return _math_funcs.get(math)(samples[:,0], samples[:,1])
             else:
-                return getattr(samples[0], math)(samples[1])
+                try:
+                    return getattr(samples[0], math)(samples[1])
+                except AttributeError:
+                    return _math_funcs.get(math)(samples[0], samples[1])
+
         else:
             # if math in ['sin', 'cos', 'tan'] and _has_astropy and dist1.unit is not None:
             #     unit = _units.rad
@@ -5780,7 +5797,7 @@ class Delta(BaseUnivariateDistribution):
         return self.loc
 
 
-    def uncertainties(self, sigma=1, tex=False):
+    def uncertainties(self, sigma=1, tex=False, unit=None):
         """
         Expose (zero by default) uncertainties for the distribution(s) at a given
         value of `sigma`.
@@ -5791,6 +5808,9 @@ class Delta(BaseUnivariateDistribution):
             expose - will still give zero uncertainty!
         * `tex` (bool, optional, default=False): return as a formatted latex
             string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
 
         Returns
         ---------
@@ -5798,10 +5818,16 @@ class Delta(BaseUnivariateDistribution):
         * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
 
         """
+        loc = self.loc if unit is None else self._return_with_units(self.loc, unit=unit, as_quantity=False)
+
         if tex:
-            return _format_uncertainties_symmetric([self.label], [self.label_latex], [self.unit], [self.loc], [0])
+            return _format_uncertainties_symmetric([self.label],
+                                                   [self.label_latex],
+                                                   [unit if unit is not None else self.unit],
+                                                   [loc],
+                                                   [0])
         else:
-            return [self.loc, self.loc, self.loc]
+            return [loc, loc, loc]
 
     def to_uniform(self):
         """
@@ -5957,7 +5983,7 @@ class Gaussian(BaseUnivariateDistribution):
         return self.loc
 
 
-    def uncertainties(self, sigma=1, tex=False):
+    def uncertainties(self, sigma=1, tex=False, unit=None):
         """
         Expose (symmetric) uncertainties for the distribution(s) at a given
         value of `sigma` directly from <Gaussian.loc> and <Gaussian.scale>.
@@ -5968,6 +5994,9 @@ class Gaussian(BaseUnivariateDistribution):
             expose.
         * `tex` (bool, optional, default=False): return as a formatted latex
             string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
 
         Returns
         ---------
@@ -5975,10 +6004,17 @@ class Gaussian(BaseUnivariateDistribution):
         * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
 
         """
+        loc = self.loc if unit is None else self._return_with_units(self.loc, unit=unit, as_quantity=False)
+        scale = self.scale if unit is None else self._return_with_units(self.scale, unit=unit, as_quantity=False)
+
         if tex:
-            return _format_uncertainties_symmetric([self.label], [self.label_latex], [self.unit], [self.loc], [self.scale*sigma])
+            return _format_uncertainties_symmetric([self.label],
+                                                   [self.label_latex],
+                                                   [unit if unit is not None else self.unit],
+                                                   [loc],
+                                                   [scale*sigma])
         else:
-            return [self.loc-self.scale*sigma, self.loc, self.loc+self.scale*sigma]
+            return [loc-scale*sigma, loc, loc+scale*sigma]
 
 
     def to_uniform(self, sigma=1.0):
@@ -6145,7 +6181,7 @@ class Uniform(BaseUnivariateDistribution):
         return self.__add__(-1*other)
 
 
-    def uncertainties(self, sigma=1, tex=False):
+    def uncertainties(self, sigma=1, tex=False, unit=None):
         """
         Expose (symmetric) uncertainties for the distribution(s) at a given
         value of `sigma`.
@@ -6156,6 +6192,9 @@ class Uniform(BaseUnivariateDistribution):
             expose.
         * `tex` (bool, optional, default=False): return as a formatted latex
             string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
 
         Returns
         ---------
@@ -6164,10 +6203,10 @@ class Uniform(BaseUnivariateDistribution):
 
         """
         quantiles = _norm.cdf([-sigma, 0, sigma])
-        qs = self.ppf(quantiles)
+        qs = self._return_with_units(self.ppf(quantiles), unit=unit, as_quantity=False)
 
         if tex:
-            return _format_uncertainties_symmetric([self.label], [self.label_latex], [self.unit], [qs[1]], [(qs[2]-qs[0])/2.])
+            return _format_uncertainties_symmetric([self.label], [self.label_latex], [unit if unit is not None else self.unit], [qs[1]], [(qs[2]-qs[0])/2.])
         else:
             return qs
 
