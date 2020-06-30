@@ -53,6 +53,15 @@ _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-',
                 '__or__': '|',
                 '__pow__': '**'}
 
+_math_funcs = {'__div__': lambda x,y: x/y,
+               '__rdiv__': lambda x,y: y/x,
+               '__add__': lambda x,y: x+y,
+               '__radd__': lambda x,y: y+x,
+               '__sub__': lambda x,y: x-y,
+               '__rsub__': lambda x,y: y-x,
+               '__mul__': lambda x,y: x*y,
+               '__rmul__': lambda x,y: y*x}
+
 _builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'dist_constructor_argnames', 'dist_constructor_args', 'dist_constructor_func', 'dist_constructor_object']
 
 _physical_types_to_solar = {'length': 'solRad',
@@ -708,7 +717,7 @@ class BaseDistribution(BaseDistlObject):
         if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__rtruediv__", (self, other))
         elif isinstance(other, float) or isinstance(other, int):
-            return self.__div__(Delta(other))
+            return self.__rdiv__(Delta(other))
         else:
             raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
 
@@ -724,7 +733,7 @@ class BaseDistribution(BaseDistlObject):
         if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__floordiv__", (self, other))
         elif isinstance(other, float) or isinstance(other, int):
-            return self.__div__(Delta(other))
+            return self.__rdiv__(Delta(other))
         else:
             raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
 
@@ -4364,12 +4373,14 @@ class Composite(BaseUnivariateDistribution):
             else:
                 return d.__str__()
 
+        dists = self.dists if self.math[:3] != "__r" else self.dists[::-1]
+
         if len(self.dists) == 1:
-            return "{}({})".format(_math_symbols.get(self.math, self.math), _subdist_str(self.dists[0]) )
+            return "{}({})".format(_math_symbols.get(self.math, self.math), _subdist_str(dists[0]) )
         elif self.math in ['arctan2']:
-            return "{}({})".format(_math_symbols.get(self.math, self.math), ",".join(_subdist_str(d) for d in self.dists))
+            return "{}({})".format(_math_symbols.get(self.math, self.math), ",".join(_subdist_str(d) for d in dists))
         else:
-            return " {} ".format(_math_symbols.get(self.math, self.math)).join(_subdist_str(d) for d in self.dists)
+            return " {} ".format(_math_symbols.get(self.math, self.math)).join(_subdist_str(d) for d in dists)
 
     @property
     def hash(self):
