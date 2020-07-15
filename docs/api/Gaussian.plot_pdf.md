@@ -17,6 +17,7 @@ See also:
 * [Gaussian.plot_cdf](Gaussian.plot_cdf.md)
 * [Gaussian.plot_sample](Gaussian.plot_sample.md)
 * [Gaussian.plot_gaussian](Gaussian.plot_gaussian.md)
+* [Gaussian.plot_uncertainties](Gaussian.plot_uncertainties.md)
 
 Arguments
 -----------

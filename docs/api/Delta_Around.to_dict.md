@@ -3,7 +3,7 @@
 
 ```py
 
-def to_dict(self)
+def to_dict(self, exclude=[])
 
 ```
 
@@ -18,6 +18,10 @@ See also:
 
 * [Delta_Around.to_json](Delta_Around.to_json.md)
 * [Delta_Around.to_file](Delta_Around.to_file.md)
+
+Arguments
+----------
+* `exclude` (list, optional, default=[]): list of keys to exclude.
 
 Returns
 --------

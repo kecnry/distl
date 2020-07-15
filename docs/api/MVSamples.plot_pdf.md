@@ -17,6 +17,7 @@ See also:
 * [MVSamples.plot_cdf](MVSamples.plot_cdf.md)
 * [MVSamples.plot_sample](MVSamples.plot_sample.md)
 * [MVSamples.plot_gaussian](MVSamples.plot_gaussian.md)
+* [MVSamples.plot_uncertainties](MVSamples.plot_uncertainties.md)
 
 Arguments
 -----------

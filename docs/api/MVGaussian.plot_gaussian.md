@@ -22,6 +22,7 @@ See also:
 * [MVGaussian.plot_sample](MVGaussian.plot_sample.md)
 * [MVGaussian.plot_pdf](MVGaussian.plot_pdf.md)
 * [MVGaussian.plot_cdf](MVGaussian.plot_cdf.md)
+* [MVGaussian.plot_uncertainties](MVGaussian.plot_uncertainties.md)
 
 Arguments
 -----------

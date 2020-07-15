@@ -17,6 +17,7 @@ See also:
 * [MVHistogramSlice.plot_cdf](MVHistogramSlice.plot_cdf.md)
 * [MVHistogramSlice.plot_sample](MVHistogramSlice.plot_sample.md)
 * [MVHistogramSlice.plot_gaussian](MVHistogramSlice.plot_gaussian.md)
+* [MVHistogramSlice.plot_uncertainties](MVHistogramSlice.plot_uncertainties.md)
 
 Arguments
 -----------

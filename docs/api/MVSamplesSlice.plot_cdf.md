@@ -17,6 +17,7 @@ See also:
 * [MVSamplesSlice.plot_pdf](MVSamplesSlice.plot_pdf.md)
 * [MVSamplesSlice.plot_sample](MVSamplesSlice.plot_sample.md)
 * [MVSamplesSlice.plot_gaussian](MVSamplesSlice.plot_gaussian.md)
+* [MVSamplesSlice.plot_uncertainties](MVSamplesSlice.plot_uncertainties.md)
 
 Arguments
 -----------

@@ -3,7 +3,7 @@
 
 ```py
 
-def to_dict(self)
+def to_dict(self, exclude=[])
 
 ```
 
@@ -18,6 +18,10 @@ See also:
 
 * [Histogram.to_json](Histogram.to_json.md)
 * [Histogram.to_file](Histogram.to_file.md)
+
+Arguments
+----------
+* `exclude` (list, optional, default=[]): list of keys to exclude.
 
 Returns
 --------

@@ -3,7 +3,7 @@
 
 ```py
 
-def uncertainties(self, sigma=1, tex=False)
+def uncertainties(self, sigma=1, tex=False, unit=None)
 
 ```
 
@@ -22,6 +22,9 @@ Arguments
     expose.
 * `tex` (bool, optional, default=False): return as a formatted latex
     string.
+* `unit` (astropy.unit, optional, default=None): unit of the values
+    to expose.  If None or not provided, will assume they're in
+    [Samples.unit](Samples.unit.md).
 
 Returns
 ---------

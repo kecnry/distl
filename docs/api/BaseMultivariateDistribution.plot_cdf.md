@@ -17,6 +17,7 @@ See also:
 * [BaseMultivariateDistribution.plot_pdf](BaseMultivariateDistribution.plot_pdf.md)
 * [BaseMultivariateDistribution.plot_sample](BaseMultivariateDistribution.plot_sample.md)
 * [BaseMultivariateDistribution.plot_gaussian](BaseMultivariateDistribution.plot_gaussian.md)
+* [BaseMultivariateDistribution.plot_uncertainties](BaseMultivariateDistribution.plot_uncertainties.md)
 
 Arguments
 -----------

@@ -22,6 +22,7 @@ See also:
 * [MVHistogramSlice.plot_sample](MVHistogramSlice.plot_sample.md)
 * [MVHistogramSlice.plot_pdf](MVHistogramSlice.plot_pdf.md)
 * [MVHistogramSlice.plot_cdf](MVHistogramSlice.plot_cdf.md)
+* [MVHistogramSlice.plot_uncertainties](MVHistogramSlice.plot_uncertainties.md)
 
 Arguments
 -----------

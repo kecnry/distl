@@ -18,6 +18,7 @@ See also:
 * [Uniform.plot_pdf](Uniform.plot_pdf.md)
 * [Uniform.plot_cdf](Uniform.plot_cdf.md)
 * [Uniform.plot_gaussian](Uniform.plot_gaussian.md)
+* [Uniform.plot_uncertainties](Uniform.plot_uncertainties.md)
 
 Arguments
 -----------

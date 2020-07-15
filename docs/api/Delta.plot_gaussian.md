@@ -22,6 +22,7 @@ See also:
 * [Delta.plot_sample](Delta.plot_sample.md)
 * [Delta.plot_pdf](Delta.plot_pdf.md)
 * [Delta.plot_cdf](Delta.plot_cdf.md)
+* [Delta.plot_uncertainties](Delta.plot_uncertainties.md)
 
 Arguments
 -----------

@@ -17,6 +17,7 @@ See also:
 * [MVHistogram.plot_pdf](MVHistogram.plot_pdf.md)
 * [MVHistogram.plot_sample](MVHistogram.plot_sample.md)
 * [MVHistogram.plot_gaussian](MVHistogram.plot_gaussian.md)
+* [MVHistogram.plot_uncertainties](MVHistogram.plot_uncertainties.md)
 
 Arguments
 -----------

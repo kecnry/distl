@@ -17,6 +17,7 @@ See also:
 * [MVGaussian.plot_pdf](MVGaussian.plot_pdf.md)
 * [MVGaussian.plot_sample](MVGaussian.plot_sample.md)
 * [MVGaussian.plot_gaussian](MVGaussian.plot_gaussian.md)
+* [MVGaussian.plot_uncertainties](MVGaussian.plot_uncertainties.md)
 
 Arguments
 -----------
