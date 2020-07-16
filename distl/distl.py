@@ -2608,7 +2608,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         """
         quantiles = _norm.cdf([-sigma, 0, sigma])
-        qs = self._return_with_units(self.ppf(quantiles), unit=unit, as_quantity=False)
+        qs = self._return_with_units(self.ppf(quantiles, wrap_at=False), unit=unit, as_quantity=False)
 
         if tex:
             return _format_uncertainties_asymmetric([self.label],
@@ -2664,7 +2664,7 @@ class BaseUnivariateDistribution(BaseDistribution):
             _np.random.seed(seed)
 
         qs = _np.random.random(size=size)
-        sample = self.ppf(qs)
+        sample = self.ppf(qs, wrap_at=False)
         if cache_sample:
             self._cached_sample = sample
 
@@ -5641,7 +5641,7 @@ class Samples(BaseUnivariateDistribution):
         * (array) endpoints in units `unit`.
         """
 
-        interval = [self.ppf(0.5-alpha/2., unit=unit), self.ppf(0.5+alpha/2., unit=unit)]
+        interval = [self.ppf(0.5-alpha/2., unit=unit, wrap_at=False), self.ppf(0.5+alpha/2., unit=unit, wrap_at=False)]
 
         return self._return_with_units(self.wrap(_np.asarray(interval), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
@@ -6224,6 +6224,13 @@ class Uniform(BaseUnivariateDistribution):
                                        _stats.uniform, ('low', 'width'),
                                        low=low, high=high)
 
+        if high < low:
+            wrap_at = self.get_wrap_at()
+            if not wrap_at:
+                raise ValueError("high must be greater than low unless wrap_at is provided or units are angular")
+            self.high = wrap_at + high
+
+
     @property
     def low(self):
         """
@@ -6345,7 +6352,7 @@ class Uniform(BaseUnivariateDistribution):
 
         """
         quantiles = _norm.cdf([-sigma, 0, sigma])
-        qs = self._return_with_units(self.ppf(quantiles), unit=unit, as_quantity=False)
+        qs = self._return_with_units(self.ppf(quantiles, wrap_at=False), unit=unit, as_quantity=False)
 
         if tex:
             return _format_uncertainties_symmetric([self.label], [self.label_latex], [unit if unit is not None else self.unit], [qs[1]], [(qs[2]-qs[0])/2.])
