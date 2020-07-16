@@ -4429,7 +4429,7 @@ class Composite(BaseUnivariateDistribution):
                                         None, None,
                                         math=math, dists=dists)
 
-        if label is None:
+        if label is None and _np.all([dist.label is not None for dist in dists]):
             if len(self.dists) == 1:
                 self.label = "{}({})".format(_math_symbols.get(math, math), dists[0].label)
             elif self.math in ['arctan2']:
