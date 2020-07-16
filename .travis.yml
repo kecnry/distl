@@ -71,7 +71,7 @@ install:
 
 script:
     - cd tests;
-    - nosetests --with-coverage --cover-package=distl -v -s -d;
+    - nosetests -v -s -d;
 
 after_success:
     - codecov
