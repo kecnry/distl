@@ -1794,7 +1794,7 @@ class BaseDistribution(BaseDistlObject):
         ret += [_plt.axvline(uncertainties[0], **kwargs)]
         ret += [_plt.axvline(uncertainties[2], **kwargs)]
 
-        _plt.title(r"$"+label.as_latex_list[0].split("=")[1])
+        _plt.title(r"$"+label.as_latex_list[0].split("=")[-1])
 
         if show:
             _plt.show()
