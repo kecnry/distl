@@ -8,6 +8,8 @@ addons:
     # add PPAs with more up-to-date toolchains
     - ubuntu-toolchain-r-test
 
+os: linux
+arch: arm64
 dist: bionic
 
 env:
