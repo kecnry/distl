@@ -93,8 +93,6 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
         brew update;
       fi;
-    - sudo apt-get update
-    - sudo apt-get -y install strace
 
 install:
     - git clone git://github.com/astropy/ci-helpers.git
@@ -104,7 +102,7 @@ install:
 
 script:
     - cd tests;
-    - strace -f nosetests --with-coverage --cover-package=distl -v -s -d;
+    - nosetests --with-coverage --cover-package=distl -v -s -d;
 
 after_success:
     - codecov
