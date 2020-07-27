@@ -6,26 +6,53 @@ import astropy.units as u
 
 def test_gaussian():
     # passing string
+    print("*** test_methods.test_gaussian 1")
     assert_raises(TypeError, distl.gaussian, 0, "a")
+    print("*** test_methods.test_gaussian 2")
 
     # too many args
     assert_raises(TypeError, distl.gaussian, 0, 1, 1)
+    print("*** test_methods.test_gaussian 3")
 
     d = distl.gaussian(unit=u.deg)
+    print("*** test_methods.test_gaussian 4")
+
     d.to(u.rad)
+    print("*** test_methods.test_gaussian 5")
+
     d.to('rad')
+    print("*** test_methods.test_gaussian 6")
+
     d_with_unit = distl.gaussian(unit='deg')
+    print("*** test_methods.test_gaussian 7")
+
     d_with_label = distl.gaussian(label='mylabel')
+    print("*** test_methods.test_gaussian 8")
+
+
     d_with_wrap_at = distl.gaussian(10, 2, wrap_at=12)
+    print("*** test_methods.test_gaussian 9")
+
     d = distl.gaussian(5, 10)
+    print("*** test_methods.test_gaussian 10")
+
+
     d = distl.normal(5, 10)
+    print("*** test_methods.test_gaussian 11")
+
+
     d = d.copy()
+    print("*** test_methods.test_gaussian 12")
+
 
     for d in [d, d_with_unit, d_with_label, d_with_wrap_at]:
         _test_conversions(d)
         _test_methods_properties(d)
         # _test_plotting(d)
         _test_json(d)
+
+    print("*** test_methods.test_gaussian 13")
+
 
 def test_uniform():
     assert_raises(TypeError, distl.uniform, 0, "a")
