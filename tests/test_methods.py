@@ -312,6 +312,7 @@ def test_delta_around():
 def _test_conversions(d):
     print("*** test_methods.test_conversions 1")
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
+        print("*** test_methods.test_conversions MV ({})".format(d.__class__.__name__))
         if d.__class__.__name__ not in ['MVHistogram']:
             d.to_mvhistogram()
         if d.__class__.__name__ not in ['MVGaussian']:
