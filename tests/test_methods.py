@@ -24,7 +24,7 @@ def test_gaussian():
     for d in [d, d_with_unit, d_with_label, d_with_wrap_at]:
         _test_conversions(d)
         _test_methods_properties(d)
-        _test_plotting(d)
+        # _test_plotting(d)
         _test_json(d)
 
 def test_uniform():
@@ -39,7 +39,7 @@ def test_uniform():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_delta():
@@ -55,7 +55,7 @@ def test_delta():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    _test_pleotting(d)
     _test_json(d)
 
 def test_histogram():
@@ -65,7 +65,7 @@ def test_histogram():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_samples():
@@ -74,7 +74,7 @@ def test_samples():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_composite():
@@ -103,7 +103,7 @@ def test_composite():
         print("test_composite dist=", dist)
         _test_conversions(dist)
         _test_methods_properties(dist)
-        _test_plotting(dist)
+        # _test_plotting(dist)
         _test_json(dist)
 
 def test_function():
@@ -119,7 +119,7 @@ def test_function():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_mvgaussian():
@@ -137,7 +137,7 @@ def test_mvgaussian():
     for d in [d, d_with_units]:
         _test_conversions(d)
         _test_methods_properties(d)
-        _test_plotting(d)
+        # _test_plotting(d)
         _test_json(d)
 
 def test_mvgaussianslice():
@@ -153,7 +153,7 @@ def test_mvgaussianslice():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 
@@ -170,7 +170,7 @@ def test_mvhistogram():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_mvhistogramslice():
@@ -187,7 +187,7 @@ def test_mvhistogramslice():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_mvsamples():
@@ -203,7 +203,7 @@ def test_mvsamples():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_mvsamplesslice():
@@ -220,7 +220,7 @@ def test_mvsamplesslice():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_gaussian_around():
@@ -235,7 +235,7 @@ def test_gaussian_around():
     d()
 
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_uniform_around():
@@ -250,7 +250,7 @@ def test_uniform_around():
     d()
 
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_delta_around():
@@ -265,7 +265,7 @@ def test_delta_around():
     d()
 
     _test_methods_properties(d)
-    _test_plotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def _test_conversions(d):
