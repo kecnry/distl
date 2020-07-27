@@ -150,6 +150,7 @@ def test_function():
     _test_json(d)
 
 def test_mvgaussian():
+    print("*** test_methods.test_mvgaussian 1")
     d = distl.mvgaussian([5,10, 12],
                            np.array([[ 2,  1, -1],
                                      [ 1,  2,  1],
@@ -157,15 +158,28 @@ def test_mvgaussian():
                            allow_singular=True,
                            labels=['a', 'b', 'c'])
 
+    print("*** test_methods.test_mvgaussian 2")
+
     d_with_units = d.copy()
+    print("*** test_methods.test_mvgaussian 3")
+
     d_with_units.units = ['solRad', 'deg', 'kg']
 
+    print("*** test_methods.test_mvgaussian 4")
 
     for d in [d, d_with_units]:
+        print("*** test_methods.test_mvgaussian 5")
+
         _test_conversions(d)
+        print("*** test_methods.test_mvgaussian 6")
+
         _test_methods_properties(d)
+        print("*** test_methods.test_mvgaussian 7")
+
         # _test_plotting(d)
         _test_json(d)
+        print("*** test_methods.test_mvgaussian 8")
+
 
 def test_mvgaussianslice():
     d = distl.mvgaussian([5,10, 12],
