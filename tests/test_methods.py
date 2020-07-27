@@ -314,10 +314,13 @@ def _test_conversions(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
         print("*** test_methods.test_conversions MV ({})".format(d.__class__.__name__))
         if d.__class__.__name__ not in ['MVHistogram']:
+            print("*** test_methods.test_conversions MV to_mvhistogram")
             d.to_mvhistogram()
         if d.__class__.__name__ not in ['MVGaussian']:
+            print("*** test_methods.test_conversions MV to_mvgaussian")
             d.to_mvgaussian()
         if d.__class__.__name__ not in ['MVSamples']:
+            print("*** test_methods.test_conversions MV to_mvsamples")
             d.to_mvsamples()
 
         print("*** test_methods.test_conversions MV 2")
