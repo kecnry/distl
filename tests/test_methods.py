@@ -310,6 +310,7 @@ def test_delta_around():
     _test_json(d)
 
 def _test_conversions(d):
+    print("*** test_methods.test_conversions 1")
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
         if d.__class__.__name__ not in ['MVHistogram']:
             d.to_mvhistogram()
@@ -318,16 +319,37 @@ def _test_conversions(d):
         if d.__class__.__name__ not in ['MVSamples']:
             d.to_mvsamples()
 
+        print("*** test_methods.test_conversions MV 2")
+
         d.to_univariate(dimension='a')
+        print("*** test_methods.test_conversions MV 3")
+
         d.to_gaussian(dimension='a')
+        print("*** test_methods.test_conversions MV 4")
+
         d.to_histogram(dimension='a')
+        print("*** test_methods.test_conversions MV 5")
+
         d.to_samples(dimension='a')
+        print("*** test_methods.test_conversions MV 6")
+
         d.slice(dimension='a')
+        print("*** test_methods.test_conversions MV 7")
+
         d.take_dimensions(['a', 'c'])
+        print("*** test_methods.test_conversions MV 8")
+
 
     elif isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
+        print("*** test_methods.test_conversions MVS 1")
+
         d.change_slice_dimension('b')
+        print("*** test_methods.test_conversions MVS 2")
+
+
         d.to_univariate()
+        print("*** test_methods.test_conversions MVS 3")
+
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
         if d.__class__.__name__ not in ['Histogram']:
