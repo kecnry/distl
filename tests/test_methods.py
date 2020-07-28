@@ -531,6 +531,7 @@ def _test_plotting(d):
     d.plot(size=100, color='blue')
     d.plot(size=100, plot_sample_kwargs={'color': 'blue'})
     d.plot_sample()
+    d.plot_sample(size=100)
 
 
 def _test_json(d):
