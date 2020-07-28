@@ -82,7 +82,7 @@ def test_delta():
 
     _test_conversions(d)
     _test_methods_properties(d)
-    _test_pleotting(d)
+    # _test_plotting(d)
     _test_json(d)
 
 def test_histogram():
@@ -318,7 +318,11 @@ def _test_conversions(d):
             d.to_mvhistogram(N=100)
         if d.__class__.__name__ not in ['MVGaussian']:
             print("*** test_methods.test_conversions MV to_mvgaussian")
-            d.to_mvgaussian(N=100)
+            if d.__class__.__name__ in ['MVSamples']:
+                # doesn't take N as an argument
+                d.to_mvgaussian()
+            else:
+                d.to_mvgaussian(N=100)
         if d.__class__.__name__ not in ['MVSamples']:
             print("*** test_methods.test_conversions MV to_mvsamples")
             d.to_mvsamples(N=100)
