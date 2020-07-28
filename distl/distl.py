@@ -3277,7 +3277,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
             samples = kwargs.pop('samples', None)
             if samples is None:
-                samples = self.sample(size=int(1e5), dimension=dimension, cache_sample=False) #, unit=unit, wrap_at=wrap_at)
+                samples = self.sample(size=int(size), dimension=dimension, cache_sample=False) #, unit=unit, wrap_at=wrap_at)
 
             return super(BaseMultivariateDistribution, self).plot_sample(samples=samples, label=label, unit=unit, wrap_at=wrap_at, xlabel=xlabel, **kwargs)
         else:
