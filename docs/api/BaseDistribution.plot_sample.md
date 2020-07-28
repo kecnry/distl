@@ -18,6 +18,7 @@ See also:
 * [BaseDistribution.plot_pdf](BaseDistribution.plot_pdf.md)
 * [BaseDistribution.plot_cdf](BaseDistribution.plot_cdf.md)
 * [BaseDistribution.plot_gaussian](BaseDistribution.plot_gaussian.md)
+* [BaseDistribution.plot_uncertainties](BaseDistribution.plot_uncertainties.md)
 
 Arguments
 -----------

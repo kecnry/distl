@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
     fms = api_docs(distl, skip=[], members=[pydoc.inspect.isfunction])
 
-    skip_methods = ['sin', 'cos', 'tan']
+    skip_methods = ['get_from_cache', 'dist_constructor_argnames']
     fms = api_docs(distl._distl.BaseDistlObject, skip=skip_methods)
     fms = api_docs(distl._distl.BaseDistribution, skip=skip_methods)
     fms = api_docs(distl._distl.BaseUnivariateDistribution, skip=skip_methods)

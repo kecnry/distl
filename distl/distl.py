@@ -1,6 +1,7 @@
 import numpy as _np
 from scipy import __version__ as _scipy_version
 from scipy import stats as _stats
+from scipy.stats import norm as _norm
 from scipy import interpolate as _interpolate
 from scipy import integrate as _integrate
 import json as _json
@@ -51,6 +52,15 @@ _math_symbols = {'__mul__': '*', '__add__': '+', '__sub__': '-',
                 '__and__': '&',
                 '__or__': '|',
                 '__pow__': '**'}
+
+_math_funcs = {'__div__': lambda x,y: x/y,
+               '__rdiv__': lambda x,y: y/x,
+               '__add__': lambda x,y: x+y,
+               '__radd__': lambda x,y: y+x,
+               '__sub__': lambda x,y: x-y,
+               '__rsub__': lambda x,y: y-x,
+               '__mul__': lambda x,y: x*y,
+               '__rmul__': lambda x,y: y*x}
 
 _builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'dist_constructor_argnames', 'dist_constructor_args', 'dist_constructor_func', 'dist_constructor_object']
 
@@ -184,6 +194,42 @@ def from_file(filename):
 
 ############################# HELPER FUNCTIONS #################################
 
+class Latex(object):
+    def __init__(self, s="", stex=r""):
+        self._s = s
+        self._stex = stex
+
+    def __repr__(self):
+        return self._s
+
+    def __str__(self):
+        return self._s
+
+    def _repr_latex_(self):
+        return self.as_latex
+
+    @classmethod
+    def from_list(cls, list):
+        return cls(" ".join([l._s for l in list]), " ".join([l._stex for l in list]))
+
+    def __add__(self, other):
+        if not isinstance(other, Latex):
+            raise TypeError("can only add two Latex objects")
+
+        return Latex(self._s+other._s, self._stex+other._stex)
+
+    @property
+    def as_latex(self):
+        return r"\begin{align} "+self._stex+" \end{align}"
+
+    @property
+    def as_latex_list(self):
+        return [r"${}$".format(li.replace("&=", "=").replace("$", "")) for li in self._stex.split("\\\\") if len(li.replace(" ", ""))]
+
+    @property
+    def as_string(self):
+        return self._s
+
 def get_random_seed():
     """
     Return a random seed which can be passed to <BaseDistribution.sample>.
@@ -207,14 +253,14 @@ def to_unit(unit):
 
     return unit
 
-def _json_safe(v):
+def _json_safe(v, exclude=[]):
     if isinstance(v, _np.ndarray):
         return v.tolist()
 
     if isinstance(v, list) or isinstance(v, tuple):
-        return [_json_safe(li) for li in v]
+        return [_json_safe(li, exclude=exclude) for li in v]
     elif isinstance(v, BaseDistribution):
-        return v.to_dict()
+        return v.to_dict(exclude=exclude)
     elif _is_unit(v):
         return str(v.to_string())
     elif hasattr(v, 'func_name'):
@@ -230,6 +276,65 @@ def _all_in_types(objects, types):
 
 def _any_in_types(objects, types):
     return _np.any([_np.any([isinstance(o, t) for t in types]) for o in objects])
+
+def _format_uncertainties_asymmetric(labels, labels_latex, units, qs_per_dim):
+    stex = r""
+    s = ""
+
+    for label, label_latex, unit, qs in zip(labels, labels_latex, units, qs_per_dim):
+        # we'll round to 1 significant digits in whichever uncertainty direction has the best precision
+        ndigits = int(_np.ceil(_np.max(-1*_np.log10([qs[2]-qs[1], qs[1]-qs[0]]))))
+
+        if isinstance(unit, str):
+            unit = _units.Unit(unit)
+
+        if label_latex is None:
+            label_latex = label
+
+        if label_latex is None:
+            label_latex = ''
+
+        if label is None:
+            label = ''
+
+        unitstr = " "+unit.to_string() if unit is not None else ""
+        unittex_spacer = "" if unit is None or unit in [_units.deg, _units.dimensionless_unscaled] else "~"
+        unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
+        stex += "\mathrm{{ {} }} &= {}^{{ +{} }}_{{ -{} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unittex)
+        s += "{} = {} +{} -{} {}\n".format(label, _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unitstr)
+
+    return Latex(s, stex)
+
+def _format_uncertainties_symmetric(labels, labels_latex, units, values_per_dim, sigmas_per_dim):
+    stex = r""
+    s = ""
+
+    for label, label_latex, unit, value, sigma in zip(labels, labels_latex, units, values_per_dim, sigmas_per_dim):
+        # we'll round to 1 significant digits in whichever uncertainty direction has the best precision
+        if sigma == 0:
+            ndigits = int(-1*_np.log10(value))
+        else:
+            ndigits = int(_np.ceil(-1*_np.log10(sigma)))
+
+        if isinstance(unit, str):
+            unit = _units.Unit(unit)
+
+        if label_latex is None:
+            label_latex = label
+
+        if label_latex is None:
+            label_latex = ''
+
+        if label is None:
+            label = ''
+
+        unitstr = " "+unit.to_string() if unit is not None else ""
+        unittex_spacer = "" if unit is None or unit in [_units.deg, _units.dimensionless_unscaled] else "~"
+        unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
+        stex += "\mathrm{{ {} }} &= {}\pm{{ {} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(value, ndigits), _np.round(sigma, ndigits), unittex)
+        s += "{} = {} +/- {} {}\n".format(label, _np.round(value, ndigits), _np.round(sigma, ndigits), unitstr)
+
+    return Latex(s, stex)
 
 ################## VALIDATORS ###################
 
@@ -471,7 +576,7 @@ class BaseDistlObject(object):
         --------
         * string
         """
-        return _json.dumps(self.to_dict(), ensure_ascii=True, **kwargs)
+        return _json.dumps(self.to_dict(exclude=kwargs.pop('exclude', [])), ensure_ascii=True, **kwargs)
 
     def to_file(self, filename, **kwargs):
         """
@@ -612,7 +717,7 @@ class BaseDistribution(BaseDistlObject):
         if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__rtruediv__", (self, other))
         elif isinstance(other, float) or isinstance(other, int):
-            return self.__div__(Delta(other))
+            return self.__rdiv__(Delta(other))
         else:
             raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
 
@@ -628,7 +733,7 @@ class BaseDistribution(BaseDistlObject):
         if _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__floordiv__", (self, other))
         elif isinstance(other, float) or isinstance(other, int):
-            return self.__div__(Delta(other))
+            return self.__rdiv__(Delta(other))
         else:
             raise TypeError("cannot divide {} by type {}".format(self.__class__.__name__, type(other)))
 
@@ -667,6 +772,13 @@ class BaseDistribution(BaseDistlObject):
         return Composite("__or__", (self, other))
 
     def sin(self):
+        """
+        Create a <Composite> distribution with the 'sin' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use sin with type {}".format(self.__class__.__name__))
 
@@ -678,6 +790,13 @@ class BaseDistribution(BaseDistlObject):
         return Composite("sin", (dist,))
 
     def cos(self):
+        """
+        Create a <Composite> distribution with the 'cos' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use cos with type {}".format(self.__class__.__name__))
 
@@ -689,6 +808,13 @@ class BaseDistribution(BaseDistlObject):
         return Composite("cos", (dist,))
 
     def tan(self):
+        """
+        Create a <Composite> distribution with the 'tan' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use tan with type {}".format(self.__class__.__name__))
 
@@ -700,6 +826,13 @@ class BaseDistribution(BaseDistlObject):
         return Composite("tan", (dist,))
 
     def arcsin(self):
+        """
+        Create a <Composite> distribution with the 'arcsin' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use arcsin with type {}".format(self.__class__.__name__))
 
@@ -711,6 +844,13 @@ class BaseDistribution(BaseDistlObject):
         return Composite("arcsin", (dist,), unit=_units.rad, wrap_at=2*_np.pi)
 
     def arccos(self):
+        """
+        Create a <Composite> distribution with the 'arccos' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use arccos with type {}".format(self.__class__.__name__))
 
@@ -722,6 +862,13 @@ class BaseDistribution(BaseDistlObject):
         return Composite("arccos", (dist,), unit=_units.rad, wrap_at=2*_np.pi)
 
     def arctan(self):
+        """
+        Create a <Composite> distribution with the 'arctan' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use arctan with type {}".format(self.__class__.__name__))
 
@@ -733,6 +880,17 @@ class BaseDistribution(BaseDistlObject):
         return Composite("arctan", (dist,), unit=_units.rad, wrap_at=2*_np.pi)
 
     def arctan2(self, other):
+        """
+        Create a <Composite> distribution with the 'arctan2' operator
+
+        Arguments
+        ----------
+        * `other` (float, <BaseUnivariateDistribution> or <BaseMultivariateSliceDistribution>): the second argument to arctan2.
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use arctan2 with type {}".format(self.__class__.__name__))
 
@@ -750,12 +908,26 @@ class BaseDistribution(BaseDistlObject):
         return Composite("arctan2", (dist,other), unit=_units.rad, wrap_at=2*_np.pi)
 
     def log(self):
+        """
+        Create a <Composite> distribution with the 'log' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use log with type {}".format(self.__class__.__name__))
 
         return Composite("log", (self,))
 
     def log10(self):
+        """
+        Create a <Composite> distribution with the 'log10' operator
+
+        Returns
+        -----------
+        * a <Composite> object
+        """
         if not _all_in_types((self,), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             raise TypeError("cannot use log with type {}".format(self.__class__.__name__))
 
@@ -764,9 +936,23 @@ class BaseDistribution(BaseDistlObject):
     ### SAMPLE CACHING
     @property
     def cached_sample(self):
+        """
+        Access the cached sample from <<class>.sample>
+
+        See also:
+
+        * <<class>.clear_cached_sample>
+        """
         return self._cached_sample
 
     def clear_cached_sample(self):
+        """
+        Clear any stored cached sample
+
+        See also:
+
+        * <<class>.cached_sample>
+        """
         self._cached_sample = None
 
     def get_from_cache(self, x=None, unit=None):
@@ -802,8 +988,6 @@ class BaseDistribution(BaseDistlObject):
 
     @property
     def dist_constructor_argnames(self):
-        """
-        """
         return self._dist_constructor_argnames
 
     @property
@@ -1038,10 +1222,10 @@ class BaseDistribution(BaseDistlObject):
     ### PLOTTING
 
     def _xlabel(self, unit=None, label=None):
-        label = label if label is not None else self.label
+        label = label if label is not None else self.label_latex  # will fallback on self.label
         l = 'value' if label is None else label
         if _has_astropy and self.unit is not None and self.unit not in [_units.dimensionless_unscaled]:
-            l += ' ({})'.format(unit if unit is not None else self.unit)
+            l += ' ({})'.format(unit._repr_latex_() if unit is not None else self.unit._repr_latex_())
 
         return l
 
@@ -1053,6 +1237,7 @@ class BaseDistribution(BaseDistlObject):
              plot_pdf=True, plot_pdf_kwargs={'color': 'red'},
              plot_cdf=False, plot_cdf_kwargs={'color': 'green'},
              plot_gaussian=False, plot_gaussian_kwargs={'color': 'blue'},
+             plot_uncertainties=True, plot_uncertainties_kwargs={'color': 'black', 'linestyle': 'dashed'},
              label=None, xlabel=None, show=False, **kwargs):
         """
         Plot both the analytic distribution function as well as a sampled
@@ -1103,6 +1288,13 @@ class BaseDistribution(BaseDistlObject):
             distributions that have <<class>.to_gaussian> methods.
         * `plot_gaussian_kwargs` (dict, optional, default={'color': 'blue'}):
             keyword arguments to send to <<class>.plot_gaussian>.
+        * `plot_uncertainties` (bool or int, optional, default=True): whether
+            to plot uncertainties (as vertical lines) and include the representation
+            of the uncertainties in the plot title.  If an integer, will
+            plot at that `sigma`.  If True, will default to `sigma=1`.  See
+            <<class>.uncertainties>.
+        * `plot_uncertainties_kwargs` (dict, optional, default={'color': 'black', 'linestyle': 'dashed'}):
+            keyword arguments to send to <<class>.plot_uncertainties>.
         * `label` (string, optional, default=None): override the label on the
             x-axis.  If not provided or None, will use <<class>.label>.  Will
             only be used if `show=True`.  Unit will automatically be appended.
@@ -1123,7 +1315,8 @@ class BaseDistribution(BaseDistlObject):
         * tuple: the return values from <<class>.plot_sample> (or None if
             `plot_sample=False`), <<class>.plot_pdf> (or None if `plot_pdf=False`),
             <<class>.plot_cdf> (or None if `plot_cdf=False`),
-            and <Gaussian.plot_pdf> (or None if `plot_gaussian=False`).
+            <Gaussian.plot_pdf> (or None if `plot_gaussian=False`), and
+            <<class>.plot_uncertainties> (or None if `plot_uncertainties=False`).
 
         Raises
         --------
@@ -1195,13 +1388,18 @@ class BaseDistribution(BaseDistlObject):
         else:
             ret_cdf = None
 
+        if plot_uncertainties:
+            ret_uncertainties = self.plot_uncertainties(sigma=plot_uncertainties, unit=unit, **plot_uncertainties_kwargs)
+        else:
+            ret_uncertainties = None
+
         _plt.xlabel(self._xlabel(unit, label=label))
         _plt.ylabel('density')
 
         if show:
             _plt.show()
 
-        return (ret_sample, ret_pdf, ret_cdf, ret_gauss)
+        return (ret_sample, ret_pdf, ret_cdf, ret_gauss, ret_uncertainties)
 
 
     def plot_sample(self, size=100000, unit=None,
@@ -1218,6 +1416,7 @@ class BaseDistribution(BaseDistlObject):
         * <<class>.plot_pdf>
         * <<class>.plot_cdf>
         * <<class>.plot_gaussian>
+        * <<class>.plot_uncertainties>
 
         Arguments
         -----------
@@ -1303,6 +1502,7 @@ class BaseDistribution(BaseDistlObject):
         * <<class>.plot_cdf>
         * <<class>.plot_sample>
         * <<class>.plot_gaussian>
+        * <<class>.plot_uncertainties>
 
         Arguments
         -----------
@@ -1390,6 +1590,7 @@ class BaseDistribution(BaseDistlObject):
         * <<class>.plot_pdf>
         * <<class>.plot_sample>
         * <<class>.plot_gaussian>
+        * <<class>.plot_uncertainties>
 
         Arguments
         -----------
@@ -1482,6 +1683,7 @@ class BaseDistribution(BaseDistlObject):
         * <<class>.plot_sample>
         * <<class>.plot_pdf>
         * <<class>.plot_cdf>
+        * <<class>.plot_uncertainties>
 
         Arguments
         -----------
@@ -1546,13 +1748,67 @@ class BaseDistribution(BaseDistlObject):
 
         return ret
 
+    def plot_uncertainties(self, sigma=1, unit=None, show=False, **kwargs):
+        """
+        Plot uncertainties as vertical lines and as a latex representation in
+        the axes title.
+
+        See also:
+
+        * <<class>.uncertainties>
+        * <<class>.plot>
+        * <<class>.plot_sample>
+        * <<class>.plot_pdf>
+        * <<class>.plot_cdf>
+        * <<class>.plot_gaussian>
+
+        Arguments
+        ------------
+        * `sigma` (int, optional, default=1): sigma to use for uncertainties,
+            passed directly to <<class>.uncertainties>
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.
+        * `show` (bool, optional, default=True): whether to show the resulting
+            matplotlib figure.
+        * `**kwargs`: keyword arguments for will be passed on to plt.axvline.
+
+        Returns
+        --------
+        * the return from the plt.axvline calls.
+
+        Raises
+        --------
+        * ImportError: if matplotlib dependency is not met.
+        """
+        if not _has_mpl:
+            raise ImportError("matplotlib required for plotting")
+
+        if unit is not None and not isinstance(self, BaseUnivariateDistribution):
+            raise ValueError("passing unit to uncertainties not allowed for {}".format(self.__class__.__name__))
+
+        uncertainties_kwargs = {'unit': unit} if unit is not None else {}
+        uncertainties = self.uncertainties(sigma=sigma, **uncertainties_kwargs)
+        label = self.uncertainties(sigma=sigma, tex=True, **uncertainties_kwargs)
+
+        ret = []
+        ret += [_plt.axvline(uncertainties[0], **kwargs)]
+        ret += [_plt.axvline(uncertainties[2], **kwargs)]
+
+        _plt.title(r"$"+label.as_latex_list[0].split("=")[-1])
+
+        if show:
+            _plt.show()
+
+        return ret
+
 
 
 class BaseUnivariateDistribution(BaseDistribution):
-    def __init__(self, unit, label, wrap_at, *args, **kwargs):
+    def __init__(self, unit, label, label_latex, wrap_at, *args, **kwargs):
         super(BaseUnivariateDistribution, self).__init__(*args, **kwargs)
         self.unit = unit
         self.label = label
+        self.label_latex = label_latex
         self.wrap_at = wrap_at
 
     def __repr__(self):
@@ -1563,6 +1819,8 @@ class BaseUnivariateDistribution(BaseDistribution):
             descriptors += " wrap_at={}".format(self.wrap_at)
         if self.label is not None:
             descriptors += " label={}".format(self.label)
+        if self._label_latex is not None:
+            descriptors += " label_latex={}".format(self.label_latex)
         return "<distl.{} {}>".format(self.__class__.__name__.lower(), descriptors)
 
     def __str__(self):
@@ -1571,7 +1829,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         else:
             return self.__repr__()
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -1583,20 +1841,30 @@ class BaseUnivariateDistribution(BaseDistribution):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
         """
-        d = {k: _json_safe(getattr(self, k)) for k in self._descriptors}
+        d = {k: _json_safe(getattr(self, k), exclude=exclude) for k in self._descriptors}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
         if self.unit is not None:
             d['unit'] = str(self.unit.to_string())
         if self.label is not None:
             d['label'] = self.label
+        if self._label_latex is not None:
+            d['label_latex'] = self._label_latex
         if self.wrap_at is not None:
             d['wrap_at'] = self.wrap_at
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
+
 
     ### LABEL
 
@@ -1604,8 +1872,8 @@ class BaseUnivariateDistribution(BaseDistribution):
     def label(self):
         """
         The label of the distribution object.  When not None, this is used for
-        the x-label when plotting (see <<class>.plot>) and for the
-        string representation for any math in a <Composite>.
+        the x-label when plotting and <<class>.label_latex> is not set (see <<class>.plot>)
+        and for the string representation for any math in a <Composite>.
         """
         return self._label
 
@@ -1618,6 +1886,24 @@ class BaseUnivariateDistribution(BaseDistribution):
                 raise TypeError("label must be of type str")
 
         self._label = label
+
+    @property
+    def label_latex(self):
+        """
+        The latex label of the distribution object. When not None, this is used for
+        the x-label when plotting (see <<class>.plot>).
+        """
+        return r"$"+self._label_latex+"$" if self._label_latex is not None else self.label
+
+    @label_latex.setter
+    def label_latex(self, label_latex):
+        if label_latex is not None:
+            try:
+                label_latex = str(label_latex)
+            except:
+                raise TypeError("label_latex must be of type str")
+
+        self._label_latex = label_latex
 
     ### UNITS AND UNIT CONVERSIONS
 
@@ -1884,7 +2170,7 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         Returns
         ---------
-        * (float or array) ppf values of the same type/shape as `x`
+        * (float or array) ppf values of the same type/shape as `q`
         """
         try:
             ppf = self.dist_constructor_object.ppf(q)
@@ -2296,6 +2582,42 @@ class BaseUnivariateDistribution(BaseDistribution):
         # we call np.asarray so that wrapping and units works on an array object instead of a tuple
         return self._return_with_units(self.wrap(_np.asarray(interval), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
+    def uncertainties(self, sigma=1, tex=False, unit=None):
+        """
+        Expose (asymmetric) uncertainties for the distribution(s) at a given
+        value of `sigma`.
+
+        This first determines the appropriate quantiles to pass to
+        <<class>.ppf> using scipy.state.norm.cdf([`-sigma`, `0`, `sigma`])
+        and then formats those into a Latex friendly representation if `tex` is True.
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose.
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+        quantiles = _norm.cdf([-sigma, 0, sigma])
+        qs = self._return_with_units(self.ppf(quantiles, wrap_at=False), unit=unit, as_quantity=False)
+
+        if tex:
+            return _format_uncertainties_asymmetric([self.label],
+                                                    [self.label_latex],
+                                                    [unit if unit is not None else self.unit],
+                                                    [qs])
+        else:
+            return qs
+
     ### SAMPLING
 
     def sample(self, size=None, unit=None, as_quantity=False, wrap_at=None, seed=None, cache_sample=True):
@@ -2342,7 +2664,7 @@ class BaseUnivariateDistribution(BaseDistribution):
             _np.random.seed(seed)
 
         qs = _np.random.random(size=size)
-        sample = self.ppf(qs)
+        sample = self.ppf(qs, wrap_at=False)
         if cache_sample:
             self._cached_sample = sample
 
@@ -2384,7 +2706,9 @@ class BaseUnivariateDistribution(BaseDistribution):
             raise TypeError("loc must be a float or one of 'median', 'mean', 'sample'")
 
         return Delta(loc=loc,
-                     unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+                     unit=self.unit,
+                     label=self.label, label_latex=self._label_latex,
+                     wrap_at=self.wrap_at)
 
     def to_histogram(self, N=100000, bins=10, range=None, wrap_at=None):
         """
@@ -2411,7 +2735,9 @@ class BaseUnivariateDistribution(BaseDistribution):
         """
         return Histogram.from_data(self.sample(size=N, wrap_at=False, cache_sample=False),
                                    bins=bins, range=range,
-                                   unit=self.unit, label=self.label, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
+                                   unit=self.unit,
+                                   label=self.label, label_latex=self._label_latex,
+                                   wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
 
     def to_samples(self, N=100000, wrap_at=None):
         """
@@ -2433,14 +2759,17 @@ class BaseUnivariateDistribution(BaseDistribution):
         * a <Histogram> object
         """
         return Samples(self.sample(size=N, wrap_at=False, cache_sample=False),
-                       unit=self.unit, label=self.label, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
+                       unit=self.unit,
+                       label=self.label, label_latex=self._label_latex,
+                       wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
 
 
 class BaseMultivariateDistribution(BaseDistribution):
-    def __init__(self, units=None, labels=None, wrap_ats=None, *args, **kwargs):
+    def __init__(self, units=None, labels=None, labels_latex=None, wrap_ats=None, *args, **kwargs):
         super(BaseMultivariateDistribution, self).__init__(*args, **kwargs)
         self.units = units
         self.labels = labels
+        self.labels_latex = labels_latex
         self.wrap_ats = wrap_ats
 
     def __repr__(self):
@@ -2451,6 +2780,8 @@ class BaseMultivariateDistribution(BaseDistribution):
             descriptors += " wrap_ats={}".format(self.wrap_ats)
         if self.labels is not None:
             descriptors += " labels={}".format(self.labels)
+        if self._labels_latex is not None:
+            descriptors += " labels_latex={}".format(self.labels_latex)
         return "<distl.{} {}>".format(self.__class__.__name__.lower(), descriptors)
 
     def __str__(self):
@@ -2459,7 +2790,7 @@ class BaseMultivariateDistribution(BaseDistribution):
         else:
             return self.__repr__()
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -2471,20 +2802,29 @@ class BaseMultivariateDistribution(BaseDistribution):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
         """
 
-        d = {k:_json_safe(getattr(self,k)) for k in self._descriptors}
+        d = {k:_json_safe(getattr(self,k), exclude=exclude) for k in self._descriptors}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        if self.units is not None:
+        if self.units is not None and 'units':
             d['units'] = [u.to_string() if u is not None else None for u in self.units]
-        if self.labels is not None:
+        if self.labels is not None and 'labels':
             d['labels'] = self.labels
-        if self.wrap_ats is not None:
+        if self._labels_latex is not None and 'labels_latex':
+            d['labels_latex'] = self._labels_latex
+        if self.wrap_ats is not None and 'wrap_ats':
             d['wrap_ats'] = self.wrap_ats
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     def _get_dimension_index(self, dimension):
@@ -2529,6 +2869,34 @@ class BaseMultivariateDistribution(BaseDistribution):
             raise TypeError("labels must be of type list")
 
         self._labels = labels
+
+    @property
+    def labels_latex(self):
+        """
+        The latex labels of each dimension in the multivariate distribution.
+        If not provided, will fallback on <<class>.labels>.
+
+        See also:
+
+        * <<class>.all_labels>
+        * <<class>.dimensions>
+
+        Returns
+        ---------
+        * (list): list of labels
+        """
+        return [ll if "$" in ll else r"$"+ll+"$" for ll in self._labels_latex] if self._labels_latex is not None else self.labels #[self.dimension_indices]
+
+    @labels_latex.setter
+    def labels_latex(self, labels_latex):
+        if isinstance(labels_latex, str) or isinstance(labels_latex, unicode):
+            raise NotImplementedError()
+            # labels = [label for _ in range(self._ndimensions_available)]
+
+        if not (labels_latex is None or isinstance(labels_latex, list)):
+            raise TypeError("labels_latex must be of type list")
+
+        self._labels_latex = labels_latex
 
     ### UNITS AND UNIT CONVERSIONS
 
@@ -2723,6 +3091,86 @@ class BaseMultivariateDistribution(BaseDistribution):
         return super(BaseMultivariateDistribution, self).logcdf(x)
 
 
+    def ppf(self, q, samples=None):
+        """
+        Expose the percent point function (ppf; iverse of cdf - percentiles) at
+        values of `q` from a set of `samples`.  If `samples` is not provided
+        or None, <<class>.sample> will be called first with `size=1e6`.
+
+        See also:
+        * <<class>.sample>
+
+        Arguments
+        ----------
+        * `q` (float or array): percentiles at which to expose the ppf
+        * `samples` (array or None, optional, default=None): samples to use
+            to determine the ppf.  If not provided, <<class>.sample> will be
+            called with `size=1e6`.
+
+        Returns
+        ---------
+        * (float or array) ppf values of the same type/shape as `q`
+
+        """
+        if samples is None:
+            samples = self.sample(size=int(1e6), cache_sample=False) #, unit=unit, wrap_at=wrap_at)
+
+        if isinstance(q, list):
+            q = _np.asarray(q)
+
+        percentiles = q * 100
+        return [_np.percentile(samples_dim, percentiles) for samples_dim in samples.T]
+
+    def uncertainties(self, sigma=1, tex=False, dimension=None, samples=None):
+        """
+        Expose (asymmetric) uncertainties for the distribution(s) at a given
+        value of `sigma`.
+
+        This first determines the appropriate quantiles to pass to
+        <<class>.ppf> using scipy.state.norm.cdf([`-sigma`, `0`, `sigma`])
+        and then formats those into a Latex friendly representation if  `tex` is True.
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose.
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+        * `dimension` (int or string, optional, default=None): the label or index
+            of the dimension to use.
+        * `samples` (array-type, optional, default=None): passed to <<class>.ppf>
+            for cases where `samples` are used to determine the ppf (ignored for
+            <MVGaussian>, <MVSamples>)
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+        quantiles = _norm.cdf([-sigma, 0, sigma])
+        if self.__class__.__name__ in ['MVGaussian', 'MVSamples']:
+            qs_per_dim = self.ppf(quantiles)
+        else:
+            qs_per_dim = self.ppf(quantiles, samples=samples)
+
+        if dimension is not None:
+            dimension = self._get_dimension_index(dimension)
+
+            qs_per_dim = [qs_per_dim[dimension]]
+            labels = [self.labels[dimension] if self.labels is not None else None]
+            labels_latex = [self.labels_latex[dimension] if self.labels_latex is not None else None]
+            units = [self.units[dimension] if self.units is not None else None]
+
+        else:
+            labels = self.labels if self.labels is not None else [None]*len(qs_per_dim)
+            labels_latex = self.labels_latex if self.labels_latex is not None else [None]*len(qs_per_dim)
+            units = self.units if self.units is not None else [None]*len(qs_per_dim)
+
+        if tex:
+            return _format_uncertainties_asymmetric(labels, labels_latex, units, qs_per_dim)
+        else:
+            return qs_per_dim
 
     def sample(self, size=None, dimension=None, seed=None, cache_sample=True):
         """
@@ -2768,14 +3216,52 @@ class BaseMultivariateDistribution(BaseDistribution):
             return sample
 
     def _xlabel(self, dimension, unit=None, label=None):
-        label = label if label is not None else self.labels[dimension]
+        label = label if label is not None else self.labels_latex[dimension] # will fallback on self.labels[dimension]
         l = 'value' if label is None else label
         if _has_astropy and self.units is not None and self.units[dimension] is not None and self.units[dimension] not in [_units.dimensionless_unscaled]:
-            l += ' ({})'.format(unit if unit is not None else self.units[dimension])
+            l += ' ({})'.format(unit._repr_latex_()  if unit is not None else self.units[dimension]._repr_latex_())
 
         return l
 
-    def plot_sample(self, **kwargs):
+    def plot_sample(self, size=1e5, **kwargs):
+        """
+
+        Arguments
+        ---------
+        * `dimension` (string or int, optional, default=None): choose a single
+            dimension to plot.
+        * `label` (string, optional, default=None): override the label on the
+            x-axis.  If not provided or None, will use <<class>.label>.  Will
+            only be used if `show=True`.  Unit will automatically be appended.
+            Will be ignored if `xlabel` is provided.
+        * `unit` (astropy.unit, optional, default=None): units to use along
+            the x-axis.  Astropy must be installed.  If `samples` is provided,
+            the passed values will be assumed to be in the correct units.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  See <<class>.wrap>.  If not provided or None,
+            will use the value from <<class>.wrap_at>.  Note: wrapping is
+            computed before changing units, so `wrap_at` must be provided
+            according to <<class>.unit> not `unit`.  Will be ignored
+            if `samples` is provided.
+        * `xlabel` (string, optional, default=None): override the label on the
+            x-axis without appending the unit.  Will override `label`.
+        * `samples` (array, optional, default=None): plot specific sampled
+            values instead of calling <<class>.sample> internally.  Will override
+            `size`.
+        * `plot_uncertainties` (tuple or bool, optional, default=True): if True,
+            will default to (1,2,3).
+            If provided as a list or tuple, then `quantiles` shown in the 1D
+            histograms will be set to the appropriate quantile for the first
+            sigma in the passed list/tuple and will be used for the uncertainties
+            in the axes titles. `levels` will be set to the appropriate 2-D volume levels for each
+            item in the list and used as contours. See <<class>.uncertainties>.
+        * `**kwargs`: additional kwargs are passed to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
+
+        Returns
+        ------------
+        * the figure from [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
+
+        """
         dimension = kwargs.pop('dimension', None)
 
         if dimension is not None:
@@ -2791,7 +3277,8 @@ class BaseMultivariateDistribution(BaseDistribution):
 
             samples = kwargs.pop('samples', None)
             if samples is None:
-                samples = self.sample(size=int(1e5), dimension=dimension, cache_sample=False) #, unit=unit, wrap_at=wrap_at)
+                samples = self.sample(size=int(size), dimension=dimension, cache_sample=False) #, unit=unit, wrap_at=wrap_at)
+
             return super(BaseMultivariateDistribution, self).plot_sample(samples=samples, label=label, unit=unit, wrap_at=wrap_at, xlabel=xlabel, **kwargs)
         else:
             # then we need to do a corner plot
@@ -2799,10 +3286,42 @@ class BaseMultivariateDistribution(BaseDistribution):
                 raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
 
 
-            return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=[self._xlabel(dim) for dim in range(self.ndimensions)], **kwargs)
+            plot_uncertainties = kwargs.pop('plot_uncertainties', True)
+            if plot_uncertainties:
+                if plot_uncertainties is True:
+                    plot_uncertainties = [1, 2, 3]
+                if not (isinstance(plot_uncertainties, list) or isinstance(plot_uncertainties, tuple)):
+                    raise TypeError("plot_uncertainties must be of type list")
+
+                kwargs['quantiles'] = (_norm.cdf(-plot_uncertainties[0]), _norm.cdf(plot_uncertainties[0]))
+                kwargs['levels'] = [1-_np.exp(-s**2 / 2.) for s in plot_uncertainties]
+            elif plot_uncertainties is None:
+                kwargs.setdefault('quantiles', (_norm.cdf(-1), _norm.cdf(1)))
+                kwargs.setdefault('levels', [1-_np.exp(-s**2 / 2.) for s in (1,2,3)])
+
+            fig = corner.corner(self.sample(size=int(size), cache_sample=False),
+                                 labels=[self._xlabel(dim) for dim in range(self.ndimensions)],
+                                 quantiles=kwargs.pop('quantiles', None),
+                                 levels=kwargs.pop('levels', None),
+                                 **kwargs)
+
+
+            if plot_uncertainties:
+                uncertainties_latex = self.uncertainties(plot_uncertainties[0], tex=True)  # samples=samples
+                uncertainties_latex_per_dim = uncertainties_latex.as_latex_list
+
+                mplaxes = fig.axes
+                for axi, ax in enumerate(mplaxes):
+                    axix = int(axi % _np.sqrt(len(mplaxes)))
+                    axiy = int(axi / _np.sqrt(len(mplaxes)))
+                    if axix == axiy:
+                        ax.set_title("$"+uncertainties_latex_per_dim[axix].split("=")[1])
+
+            return fig
 
     def plot(self, **kwargs):
         """
+        Shortcut to <<class>.plot_sample>
         """
         dimension = kwargs.pop('dimension', None)
 
@@ -2812,19 +3331,30 @@ class BaseMultivariateDistribution(BaseDistribution):
             return self.plot_sample(**kwargs)
 
     def to_univariate(self, *args, **kwargs):
+        """
+        Raises
+        -----------
+        * NotImplementedError
+        """
         raise NotImplementedError("to_univariate not implemented by {}".format(self.__class__.__name__))
 
     def take_dimensions(self, dimensions):
+        """
+        Raises
+        ---------
+        * NotImplementedError
+        """
         raise NotImplementedError("take_dimensions not implemented by {}".format(self.__class__.__name__))
 
 
 class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
-    def __init__(self, multivariate, dimension, unit=None, label=None, wrap_at=None):
+    def __init__(self, multivariate, dimension, unit=None, label=None, label_latex=None, wrap_at=None):
         self._dist_constructor_object_cache = None
         self._parents_with_constructor_object_cache = []
 
         self.unit = unit
         self.label = label
+        self.label_latex = label_latex
         self.wrap_at = wrap_at
 
         if isinstance(multivariate, dict):
@@ -2854,7 +3384,7 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         else:
             return self.__repr__()
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -2866,6 +3396,10 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
@@ -2874,14 +3408,19 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         d = {}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        d['multivariate'] = self.multivariate.to_dict()
+        d['multivariate'] = self.multivariate.to_dict(exclude=exclude)
         d['dimension'] = self.dimension
-        if self._unit is not None:
+        if self._unit is not None and 'unit':
             d['unit'] = str(self._unit.to_string())
-        if self._label is not None:
+        if self._label is not None and 'label':
             d['label'] = self._label
-        if self._wrap_at is not None:
+        if self._label_latex is not None and 'label_latex':
+            d['label_latex'] = self._label_latex
+        if self._wrap_at is not None and 'wrap_at':
             d['wrap_at'] = self._wrap_at
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     @property
@@ -2961,6 +3500,33 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
         self._label = label
 
     @property
+    def label_latex(self):
+        """
+        Access the label_latex of the multivariate distribution corresponsing to the
+        sliced dimension, or the overridden value for this <<class>>.
+
+        See also:
+
+        * <<class>.multivariate>
+        * <<class>.dimension>
+
+        Returns
+        -------------
+        * string or None
+        """
+        return r"$"+self._label_latex+"$" if self._label_latex is not None else self.multivariate.labels_latex[self.dimension] if self.multivariate.labels_latex is not None else None
+
+    @label_latex.setter
+    def label_latex(self, label_latex):
+        if label_latex is not None:
+            try:
+                label_latex = str(label_latex)
+            except:
+                raise TypeError("label_latex must be of type str")
+
+        self._label_latex = label_latex
+
+    @property
     def wrap_at(self):
         """
         Access the wrap_at of the multivariate distribution corresponsing to the
@@ -3035,7 +3601,24 @@ class BaseMultivariateSliceDistribution(BaseUnivariateDistribution):
     ### OVERRIDE SCIPY.STATS FROM UNIVARIATE
 
     def ppf(self, q):
+        """
+        Not supported for multivariate slices.  Translate to a univariate via
+        <<class>.to_univariate> first.
+        """
         raise NotImplementedError("ppf not supported for multivariate slices ({}).  Translate to a univariate via to_univariate() first.".format(self.__class__.__name__))
+
+
+    def uncertainties(self, sigma=1, tex=False):
+        """
+        Expose the uncertainties by calling <<class>.multivariate> and then
+        passing <<class>.dimension>, `sigma` and `tex` to the respective
+        `uncertainties` function.
+        """
+        ret_ = self.multivariate.uncertainties(dimension=self.dimension, sigma=sigma, tex=tex)
+        if tex:
+            return ret_
+        else:
+            return ret_[0]
 
     ### SAMPLING & PLOTTING
 
@@ -3110,7 +3693,7 @@ class DistributionCollection(BaseDistlObject):
 
         self._cached_sample = None
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -3122,6 +3705,10 @@ class DistributionCollection(BaseDistlObject):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
@@ -3130,7 +3717,10 @@ class DistributionCollection(BaseDistlObject):
         d = {}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        d['args'] = [distribution.to_dict() for distribution in self.dists]
+        d['args'] = [distribution.to_dict(exclude=exclude) for distribution in self.dists]
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     @property
@@ -3159,6 +3749,18 @@ class DistributionCollection(BaseDistlObject):
         return [d.label for d in self.dists]
 
     @property
+    def labels_latex(self):
+        """
+        """
+        return [d.label_latex for d in self.dists]
+
+    @property
+    def units(self):
+        """
+        """
+        return [d.unit for d in self.dists]
+
+    @property
     def dists_unpacked(self):
         """
         """
@@ -3184,6 +3786,16 @@ class DistributionCollection(BaseDistlObject):
         """
         """
         return [d.label for d in self.dists_unpacked]
+
+    @property
+    def labels_latex_unpacked(self):
+        """
+        """
+        return [d.label_latex for d in self.dists_unpacked]
+
+    @property
+    def units_unpacked(self):
+        return [d.unit for d in self.dists_unpacked]
 
     @property
     def cached_sample(self):
@@ -3422,6 +4034,82 @@ class DistributionCollection(BaseDistlObject):
         """
         return self._method_on_values('logcdf', 'sum', values, as_univariates)
 
+
+    # def ppf(self, q, samples=None):
+    #     """
+    #     Expose the percent point function (ppf; iverse of cdf - percentiles) at
+    #     values of `q` from a set of `samples`.  If `samples` is not provided
+    #     or None, <<class>.sample> will be called first with `size=1e6`.
+    #
+    #     See also:
+    #     * <<class>.sample>
+    #
+    #     Arguments
+    #     ----------
+    #     * `q` (float or array): percentiles at which to expose the ppf
+    #     * `samples` (array or None, optional, default=None): samples to use
+    #         to determine the ppf.  If not provided, <<class>.sample> will be
+    #         called with `size=1e6`.
+    #
+    #     Returns
+    #     ---------
+    #     * (float or array) ppf values of the same type/shape as `q`
+    #
+    #     """
+    #     if samples is None:
+    #         samples = self.sample(size=int(1e6), cache_sample=False) #, unit=unit, wrap_at=wrap_at)
+    #
+    #     return [_np.percentile(samples_dim, percentiles) for samples_dim in samples.T]
+    #     # for MVSamples/Samples allow weights by calling:
+    #     # return [corner.quantile(samples_dim, quantiles) for samples_dim in samples.T]
+
+    def uncertainties(self, sigma=1, tex=False):
+        """
+        Expose (asymmetric or symmetric) uncertainties for the distribution(s) at a given
+        value of `sigma`.
+
+        This just loops over the individual <DistributionCollection.dists>
+        and calls uncertainties on each.  See:
+
+        * <Composite.uncertainties>
+        * <Delta.uncertainties>
+        * <Function.uncertainties>
+        * <Gaussian.uncertainties>
+        * <Samples.uncertainties>
+        * <Histogram.uncertainties>
+        * <MVGaussian.uncertainties>
+        * <MVHistogram.uncertainties>
+        * <MVSamples.uncertainties>
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose.
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+
+        ret_ = [dist.uncertainties(sigma=sigma, tex=tex) for dist in self.dists]
+
+        if tex:
+            return Latex.from_list(ret_)
+        else:
+            return ret_
+
+        # quantiles = _norm.cdf([-sigma, 0, sigma])
+        # qs_per_dim = self.ppf(quantiles, samples=samples)
+        #
+        # if tex:
+        #     return _format_uncertainties_asymmetric(self.labels, self.labels_latex, self.units, qs_per_dim)
+        # else:
+        #     return qs_per_dim
+
     def sample(self, *args, **kwargs):
         """
         Sample from multiple distributions with random seeds automatically determined,
@@ -3513,7 +4201,24 @@ class DistributionCollection(BaseDistlObject):
         models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
         return models
 
-    def plot_sample(self, **kwargs):
+    def plot_sample(self, size=1e5, **kwargs):
+        """
+
+        Arguments
+        ------------
+        * `labels`
+        * `range`
+        * `plot_uncertainties` (tuple or bool, optional, default=True): if True,
+            will default to (1,2,3).
+            If provided as a list or tuple, then `quantiles` shown in the 1D
+            histograms will be set to the appropriate quantile for the first
+            sigma in the passed list/tuple and will be used for the uncertainties
+            in the axes titles. `levels` will be set to the appropriate 2-D volume levels for each
+            item in the list and used as contours. See <<class>.uncertainties>.
+        * `**kwargs`: additional kwargs are passed to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
+
+
+        """
         # then we need to do a corner plot
         if not _has_corner:
             raise ImportError("corner must be installed to plot multivariate distributions.  Either install corner or pass a value to dimension to plot a 1D distribution.")
@@ -3524,7 +4229,41 @@ class DistributionCollection(BaseDistlObject):
             else:
                 return 1.0
 
-        return corner.corner(self.sample(size=int(1e5), cache_sample=False), labels=kwargs.pop('labels', [dist._xlabel() for dist in self.dists]), range=kwargs.pop('range', [_range(dist) for dist in self.dists]), **kwargs)
+        plot_uncertainties = kwargs.pop('plot_uncertainties', True)
+        if plot_uncertainties:
+            if plot_uncertainties is True:
+                plot_uncertainties = [1, 2, 3]
+            if not (isinstance(plot_uncertainties, list) or isinstance(plot_uncertainties, tuple)):
+                raise TypeError("plot_uncertainties must be of type list")
+
+            kwargs['quantiles'] = (_norm.cdf(-plot_uncertainties[0]), _norm.cdf(plot_uncertainties[0]))
+            kwargs['levels'] = [1-_np.exp(-s**2 / 2.) for s in plot_uncertainties]
+        elif plot_uncertainties is None:
+            kwargs.setdefault('quantiles', (_norm.cdf(-1), _norm.cdf(1)))
+            kwargs.setdefault('levels', [1-_np.exp(-s**2 / 2.) for s in (1,2,3)])
+
+        titles_sigma = kwargs.pop('titles_sigma', False)
+
+        fig = corner.corner(self.sample(size=int(size), cache_sample=False),
+                             labels=kwargs.pop('labels', [dist._xlabel() for dist in self.dists]),
+                             range=kwargs.pop('range', [_range(dist) for dist in self.dists]),
+                             quantiles=kwargs.pop('quantiles', None),
+                             levels=kwargs.pop('levels', None),
+                             **kwargs)
+
+        if plot_uncertainties:
+            uncertainties_latex = self.uncertainties(plot_uncertainties[0], tex=True)  # samples=samples
+            uncertainties_latex_per_dim = uncertainties_latex.as_latex_list
+
+            mplaxes = fig.axes
+            for axi, ax in enumerate(mplaxes):
+                axix = int(axi % _np.sqrt(len(mplaxes)))
+                axiy = int(axi / _np.sqrt(len(mplaxes)))
+                if axix == axiy:
+                    ax.set_title("$"+uncertainties_latex_per_dim[axix].split("=")[1])
+
+        return fig
+
 
     def plot(self, **kwargs):
         """
@@ -3653,7 +4392,7 @@ class Composite(BaseUnivariateDistribution):
         will be used when converting to a <Histogram>.
 
     """
-    def __init__(self, math, dists, unit=None, label=None, wrap_at=None):
+    def __init__(self, math, dists, unit=None, label=None, label_latex=None, wrap_at=None):
         """
         Create a <Composite> distribution from other distribution(s).
 
@@ -3669,8 +4408,10 @@ class Composite(BaseUnivariateDistribution):
             take one distribution as an argument, but most require 2 or more.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -3684,11 +4425,11 @@ class Composite(BaseUnivariateDistribution):
         # first (we'll also pass it again in the super init so that the descriptors
         # can be set properly)
         self.math = math
-        super(Composite, self).__init__(unit, label, wrap_at,
+        super(Composite, self).__init__(unit, label, label_latex, wrap_at,
                                         None, None,
                                         math=math, dists=dists)
 
-        if label is None:
+        if label is None and _np.all([dist.label is not None for dist in dists]):
             if len(self.dists) == 1:
                 self.label = "{}({})".format(_math_symbols.get(math, math), dists[0].label)
             elif self.math in ['arctan2']:
@@ -3709,7 +4450,17 @@ class Composite(BaseUnivariateDistribution):
                 if dists[0].unit is None:
                     # trig always gives unitless
                     self.unit = _units.dimensionless_unscaled
-            elif _np.all([d.unit is not None for d in dists]):
+                elif math in ['sin', 'cos', 'tan', 'log', 'log10']:
+                    self.unit = _units.dimensionless_unscaled
+                elif math in ['arcsin', 'arccos', 'arctan']:
+                    self.unit = _units.rad
+                else:
+                    raise NotImplementedError("units for math={} not implemented".format(math))
+            elif _np.all([d.unit is not None or (isinstance(d, Delta) and math=='__mul__') for d in dists]):
+                for d in dists:
+                    if d.unit is None:
+                        d.unit = _units.dimensionless_unscaled
+
                 if math in ['__add__', '__sub__', '__and__', '__or__']:
                     # all units must match
                     if _np.all([d.unit==dists[0].unit for d in dists]):
@@ -3717,9 +4468,7 @@ class Composite(BaseUnivariateDistribution):
                     else:
                         # TODO: if they're convertible, we should handle the scaling automatically?
                         raise ValueError("units do not match for {} operator".format(math))
-                elif math in ['sin', 'cos', 'tan']:
-                    self.unit = _units.dimensionless_unscaled
-                elif math in ['arcsin', 'arccos', 'arctan', 'arctan2']:
+                elif math in ['arctan2']:
                     self.unit = _units.rad
                 elif hasattr(dists[0].unit, math):
                     self.unit = recursive_math(math, [d.unit for d in dists])
@@ -3776,12 +4525,14 @@ class Composite(BaseUnivariateDistribution):
             else:
                 return d.__str__()
 
+        dists = self.dists if self.math[:3] != "__r" else self.dists[::-1]
+
         if len(self.dists) == 1:
-            return "{}({})".format(_math_symbols.get(self.math, self.math), _subdist_str(self.dists[0]) )
+            return "{}({})".format(_math_symbols.get(self.math, self.math), _subdist_str(dists[0]) )
         elif self.math in ['arctan2']:
-            return "{}({})".format(_math_symbols.get(self.math, self.math), ",".join(_subdist_str(d) for d in self.dists))
+            return "{}({})".format(_math_symbols.get(self.math, self.math), ",".join(_subdist_str(d) for d in dists))
         else:
-            return " {} ".format(_math_symbols.get(self.math, self.math)).join(_subdist_str(d) for d in self.dists)
+            return " {} ".format(_math_symbols.get(self.math, self.math)).join(_subdist_str(d) for d in dists)
 
     @property
     def hash(self):
@@ -3910,9 +4661,16 @@ class Composite(BaseUnivariateDistribution):
             # TODO: OPTIMIZE: should we cache the collection? (in which case we should pass cache_sample)
             samples = DistributionCollection(*dists).sample(seeds=seed, size=size, cache_sample=cache_sample)
             if size is not None:
-                return getattr(samples[:,0], math)(samples[:,1])
+                try:
+                    return getattr(samples[:,0], math)(samples[:,1])
+                except AttributeError:
+                    return _math_funcs.get(math)(samples[:,0], samples[:,1])
             else:
-                return getattr(samples[0], math)(samples[1])
+                try:
+                    return getattr(samples[0], math)(samples[1])
+                except AttributeError:
+                    return _math_funcs.get(math)(samples[0], samples[1])
+
         else:
             # if math in ['sin', 'cos', 'tan'] and _has_astropy and dist1.unit is not None:
             #     unit = _units.rad
@@ -4090,7 +4848,7 @@ class Function(BaseUnivariateDistribution):
       thereby losing all covariances.
 
     """
-    def __init__(self, func, args, kwargs, vectorized=True, hist_samples=None, unit=None, label=None, wrap_at=None):
+    def __init__(self, func, args, kwargs, vectorized=True, hist_samples=None, unit=None, label=None, label_latex=None, wrap_at=None):
         """
         Create a <Function> distribution from two other distributions.
 
@@ -4117,8 +4875,10 @@ class Function(BaseUnivariateDistribution):
             in the appropriate units (as the inputs and outputs to `func` are
             floats and not quantities)
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -4128,7 +4888,7 @@ class Function(BaseUnivariateDistribution):
         ---------
         * a <Function> object.
         """
-        super(Function, self).__init__(unit, label, wrap_at,
+        super(Function, self).__init__(unit, label, label_latex, wrap_at,
                                         None, None,
                                         func=func, args=args, kwargs=kwargs, vectorized=vectorized, hist_samples=hist_samples)
 
@@ -4492,7 +5252,7 @@ class Histogram(BaseUnivariateDistribution):
     Histogram distribtuion from the data array itself, see
     <distl.histogram_from_data> or <Histogram.from_data>.
     """
-    def __init__(self, bins, density, unit=None, label=None, wrap_at=None):
+    def __init__(self, bins, density, unit=None, label=None, label_latex=None, wrap_at=None):
         """
         Create a <Histogram> distribution from bins and density.
 
@@ -4513,8 +5273,10 @@ class Histogram(BaseUnivariateDistribution):
             less entry than `bins`.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -4524,7 +5286,7 @@ class Histogram(BaseUnivariateDistribution):
         --------
         * a <Histogram> object
         """
-        super(Histogram, self).__init__(unit, label, wrap_at,
+        super(Histogram, self).__init__(unit, label, label_latex, wrap_at,
                                         _stats.rv_histogram, ('density', 'bins'),
                                         bins=bins, density=density)
 
@@ -4554,7 +5316,7 @@ class Histogram(BaseUnivariateDistribution):
 
     @classmethod
     def from_data(cls, data, bins=10, range=None, weights=None,
-                  label=None, unit=None, wrap_at=None):
+                  label=None, label_latex=None, unit=None, wrap_at=None):
         """
         Create a <Histogram> distribution from data.  Note that under-the-hood
         a linear interpolator is used between the bins for the pdf, cdf, and ppf
@@ -4578,8 +5340,10 @@ class Histogram(BaseUnivariateDistribution):
         * `weights` (array, optional, default=None): passed to np.histogram.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -4597,7 +5361,7 @@ class Histogram(BaseUnivariateDistribution):
 
         hist, bin_edges = _np.histogram(data, bins=bins, range=range, weights=weights, density=True)
 
-        return cls(bin_edges, hist, label=label, unit=unit, wrap_at=wrap_at)
+        return cls(bin_edges, hist, label=label, label_latex=label_latex, unit=unit, wrap_at=wrap_at)
 
     @property
     def dist_constructor_args(self):
@@ -4614,7 +5378,9 @@ class Histogram(BaseUnivariateDistribution):
         * a <Gaussian> object
         """
         dco = self.dist_constructor_object
-        return Gaussian(dco.median(), dco.std(), label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        return Gaussian(dco.median(), dco.std(),
+                        label=self.label, label_latex=self._label_latex,
+                        unit=self.unit, wrap_at=self.wrap_at)
 
     def to_uniform(self, sigma=1.0):
         """
@@ -4653,7 +5419,7 @@ class Samples(BaseUnivariateDistribution):
     rely on a KDE with <Samples.samples>, <Samples.weights>, and <Samples.bw_method>.
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html
     """
-    def __init__(self, samples, weights=None, bw_method=None, unit=None, label=None, wrap_at=None):
+    def __init__(self, samples, weights=None, bw_method=None, unit=None, label=None, label_latex=None, wrap_at=None):
         """
         Create a <Samples> distribution from samples.
 
@@ -4673,8 +5439,10 @@ class Samples(BaseUnivariateDistribution):
             rely on the KDE.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -4690,7 +5458,7 @@ class Samples(BaseUnivariateDistribution):
             if weights is not None:
                 weights = weights[~nans]
 
-        super(Samples, self).__init__(unit, label, wrap_at,
+        super(Samples, self).__init__(unit, label, label_latex, wrap_at,
                                       _stats.gaussian_kde, ('samples', 'bw_method') if StrictVersion(_scipy_version) < StrictVersion("1.2.0") else ('samples', 'bw_method', 'weights'),
                                       samples=samples, weights=weights, bw_method=bw_method)
 
@@ -4754,7 +5522,9 @@ class Samples(BaseUnivariateDistribution):
         range = (self.samples.min(), self.samples.max())
         hist, bin_edges = _np.histogram(self.samples, weights=self.weights, bins=bins, range=range, density=True)
 
-        return Histogram(bin_edges, hist, label=self.label, unit=self.unit, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
+        return Histogram(bin_edges, hist,
+                         label=self.label, label_latex=self._label_latex,
+                         unit=self.unit, wrap_at=wrap_at if wrap_at is not None else self.wrap_at)
 
     def to_gaussian(self):
         """
@@ -4765,7 +5535,9 @@ class Samples(BaseUnivariateDistribution):
         --------
         * a <Gaussian> object
         """
-        return Gaussian(self.median(), self.std(), label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        return Gaussian(self.median(), self.std(),
+                        label=self.label, label_latex=self._label_latex,
+                        unit=self.unit, wrap_at=self.wrap_at)
 
     def to_uniform(self, sigma=1.0):
         """
@@ -4826,6 +5598,8 @@ class Samples(BaseUnivariateDistribution):
         ---------
         * (float or array) ppf values of the same type/shape as `x`
         """
+        # TODO: use the following instead if corner is available:
+        # corner.quantile(self.samples, qs, self.weights)
 
         sorted = self.samples.argsort()
         samples_sorted = self.samples[sorted]
@@ -4867,7 +5641,7 @@ class Samples(BaseUnivariateDistribution):
         * (array) endpoints in units `unit`.
         """
 
-        interval = [self.ppf(0.5-alpha/2., unit=unit), self.ppf(0.5+alpha/2., unit=unit)]
+        interval = [self.ppf(0.5-alpha/2., unit=unit, wrap_at=False), self.ppf(0.5+alpha/2., unit=unit, wrap_at=False)]
 
         return self._return_with_units(self.wrap(_np.asarray(interval), wrap_at=wrap_at), unit=unit, as_quantity=as_quantity)
 
@@ -5072,7 +5846,7 @@ class Delta(BaseUnivariateDistribution):
 
     Can be created from the top-level via the <distl.delta> convenience function.
     """
-    def __init__(self, loc=0.0, unit=None, label=None, wrap_at=None):
+    def __init__(self, loc=0.0, unit=None, label=None, label_latex=None, wrap_at=None):
         """
         Create a <Delta> distribution.
 
@@ -5085,8 +5859,10 @@ class Delta(BaseUnivariateDistribution):
         * `loc` (float or int, default=0.0): the loc at which the delta function is True.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -5096,7 +5872,7 @@ class Delta(BaseUnivariateDistribution):
         --------
         * a <Delta> object
         """
-        super(Delta, self).__init__(unit, label, wrap_at,
+        super(Delta, self).__init__(unit, label, label_latex, wrap_at,
                                     _stats_custom.delta, ('loc',),
                                     loc=loc)
 
@@ -5162,6 +5938,39 @@ class Delta(BaseUnivariateDistribution):
     def __float__(self):
         return self.loc
 
+
+    def uncertainties(self, sigma=1, tex=False, unit=None):
+        """
+        Expose (zero by default) uncertainties for the distribution(s) at a given
+        value of `sigma`.
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose - will still give zero uncertainty!
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+        loc = self.loc if unit is None else self._return_with_units(self.loc, unit=unit, as_quantity=False)
+
+        if tex:
+            return _format_uncertainties_symmetric([self.label],
+                                                   [self.label_latex],
+                                                   [unit if unit is not None else self.unit],
+                                                   [loc],
+                                                   [0])
+        else:
+            return [loc, loc, loc]
+
     def to_uniform(self):
         """
         Convert the <Delta> distribution to a <Uniform> distribution in which
@@ -5173,7 +5982,9 @@ class Delta(BaseUnivariateDistribution):
         """
         low = self.loc
         high = self.loc
-        return Uniform(low, high, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        return Uniform(low, high,
+                       label=self.label, label_latex=self._label_latex,
+                       unit=self.unit, wrap_at=self.wrap_at)
 
     def to_gaussian(self):
         """
@@ -5189,7 +6000,9 @@ class Delta(BaseUnivariateDistribution):
         --------
         * a <Gaussian> object
         """
-        return Gaussian(self.loc, 0.0, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        return Gaussian(self.loc, 0.0,
+                        label=self.label, label_latex=self._label_latex,
+                        unit=self.unit, wrap_at=self.wrap_at)
 
 
 class Gaussian(BaseUnivariateDistribution):
@@ -5200,7 +6013,7 @@ class Gaussian(BaseUnivariateDistribution):
     Can be created from the top-level via the <distl.gaussian> or
     <distl.normal> convenience functions.
     """
-    def __init__(self, loc=0.0, scale=1.0, unit=None, label=None, wrap_at=None):
+    def __init__(self, loc=0.0, scale=1.0, unit=None, label=None, label_latex=None, wrap_at=None):
         """
         Create a <Gaussian> distribution.
 
@@ -5216,8 +6029,10 @@ class Gaussian(BaseUnivariateDistribution):
             distribution.
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -5227,7 +6042,7 @@ class Gaussian(BaseUnivariateDistribution):
         --------
         * a <Gaussian> object
         """
-        super(Gaussian, self).__init__(unit, label, wrap_at,
+        super(Gaussian, self).__init__(unit, label, label_latex, wrap_at,
                                        _stats.norm, ('loc', 'scale'),
                                        loc=loc, scale=scale)
 
@@ -5309,6 +6124,41 @@ class Gaussian(BaseUnivariateDistribution):
     def __float__(self):
         return self.loc
 
+
+    def uncertainties(self, sigma=1, tex=False, unit=None):
+        """
+        Expose (symmetric) uncertainties for the distribution(s) at a given
+        value of `sigma` directly from <Gaussian.loc> and <Gaussian.scale>.
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose.
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+        loc = self.loc if unit is None else self._return_with_units(self.loc, unit=unit, as_quantity=False)
+        scale = self.scale if unit is None else self._return_with_units(self.scale, unit=unit, as_quantity=False)
+
+        if tex:
+            return _format_uncertainties_symmetric([self.label],
+                                                   [self.label_latex],
+                                                   [unit if unit is not None else self.unit],
+                                                   [loc],
+                                                   [scale*sigma])
+        else:
+            return [loc-scale*sigma, loc, loc+scale*sigma]
+
+
     def to_uniform(self, sigma=1.0):
         """
         Convert the <Gaussian> distribution to a <Uniform> distribution by
@@ -5327,7 +6177,9 @@ class Gaussian(BaseUnivariateDistribution):
         """
         low = self.loc - self.scale * sigma
         high = self.loc + self.scale * sigma
-        return Uniform(low, high, label=self.label, unit=self.unit, wrap_at=self.wrap_at)
+        return Uniform(low, high,
+                       label=self.label, label_latex=self._label_latex,
+                       unit=self.unit, wrap_at=self.wrap_at)
 
 
 class Uniform(BaseUnivariateDistribution):
@@ -5339,7 +6191,7 @@ class Uniform(BaseUnivariateDistribution):
     Can be created from the top-level via the <distl.uniform> or
     <distl.boxcar> convenience functions.
     """
-    def __init__(self, low=0.0, high=1.0, unit=None, label=None, wrap_at=None):
+    def __init__(self, low=0.0, high=1.0, unit=None, label=None, label_latex=None, wrap_at=None):
         """
         Create a <Uniform> distribution.
 
@@ -5355,8 +6207,10 @@ class Uniform(BaseUnivariateDistribution):
             is provided as angular (rad, deg, cycles).
         * `unit` (astropy.units object, optional): the units of the provided values.
         * `label` (string, optional): a label for the distribution.  This is used
-            for the x-label while plotting the distribution, as well as a shorthand
-            notation when creating a <Composite> distribution.
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
         * `wrap_at` (float, None, or False, optional, default=None): value to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -5366,9 +6220,16 @@ class Uniform(BaseUnivariateDistribution):
         --------
         * a <Uniform> object
         """
-        super(Uniform, self).__init__(unit, label, wrap_at,
+        super(Uniform, self).__init__(unit, label, label_latex, wrap_at,
                                        _stats.uniform, ('low', 'width'),
                                        low=low, high=high)
+
+        if high < low:
+            wrap_at = self.get_wrap_at()
+            if not wrap_at:
+                raise ValueError("high must be greater than low unless wrap_at is provided or units are angular")
+            self.high = wrap_at + high
+
 
     @property
     def low(self):
@@ -5468,6 +6329,36 @@ class Uniform(BaseUnivariateDistribution):
     def __sub__(self, other):
         return self.__add__(-1*other)
 
+
+    def uncertainties(self, sigma=1, tex=False, unit=None):
+        """
+        Expose (symmetric) uncertainties for the distribution(s) at a given
+        value of `sigma`.
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose.
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+        * `unit` (astropy.unit, optional, default=None): unit of the values
+            to expose.  If None or not provided, will assume they're in
+            <<class>.unit>.
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+        quantiles = _norm.cdf([-sigma, 0, sigma])
+        qs = self._return_with_units(self.ppf(quantiles, wrap_at=False), unit=unit, as_quantity=False)
+
+        if tex:
+            return _format_uncertainties_symmetric([self.label], [self.label_latex], [unit if unit is not None else self.unit], [qs[1]], [(qs[2]-qs[0])/2.])
+        else:
+            return qs
+
     def to_gaussian(self, sigma=1.0):
         """
         Convert the <Uniform> distribution to a <Gaussian> distribution by
@@ -5486,13 +6377,15 @@ class Uniform(BaseUnivariateDistribution):
         """
         loc = self.median()
         scale = (self.high - self.low) / (2.0 * sigma)
-        return Gaussian(loc, scale, unit=self.unit, label=self.label, wrap_at=self.wrap_at)
+        return Gaussian(loc, scale, unit=self.unit,
+                        label=self.label, label_latex=self._label_latex,
+                        wrap_at=self.wrap_at)
 
 ######################### MULTIVARIATE DISTRIBUTIONS ###########################
 
 class MVGaussian(BaseMultivariateDistribution):
     def __init__(self, mean=0.0, cov=1.0, allow_singular=False,
-                 units=None, labels=None, wrap_ats=None):
+                 units=None, labels=None, labels_latex=None, wrap_ats=None):
         """
         A Multivariate Gaussian distribution uses [scipy.stats.multivariate_normal](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.multivariate_normal.html)
         to sample values from a multivariate gaussian/normal function.
@@ -5512,8 +6405,11 @@ class MVGaussian(BaseMultivariateDistribution):
         * `units` (list of astropy.units objects, optional): the units of the provided values.
         * `labels` (list of strings, optional): labels for each dimension in the
             distribution.  This is used
-            for the x-labels while plotting the distribution, as well as a shorthand
+            for the x-labels while plotting the distribution when `labels_latex`
+            is not provided, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `labels_latex` (list of strings, optional):  latex labels for each
+            dimension in the distribution.  This is used for plotting the distribution.
         * `wrap_ats` (list of floats, None, or False, optional, default=None): values to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -5523,7 +6419,7 @@ class MVGaussian(BaseMultivariateDistribution):
         --------
         * a <MVGaussian> object
         """
-        super(MVGaussian, self).__init__(units, labels, wrap_ats,
+        super(MVGaussian, self).__init__(units, labels, labels_latex, wrap_ats,
                                          _stats.multivariate_normal, ('mean', 'cov', 'allow_singular'),
                                          mean=mean, cov=cov, allow_singular=allow_singular)
 
@@ -5574,6 +6470,45 @@ class MVGaussian(BaseMultivariateDistribution):
         * int
         """
         return len(self.mean)
+
+
+    def uncertainties(self, sigma=1, tex=False, dimension=None):
+        """
+        Expose (symmetric) uncertainties for the distribution(s) at a given
+        value of `sigma` directly from <MVGaussian.mean> and <MVGaussian.cov>.
+
+        Arguments
+        -----------
+        * `sigma` (int, optional, default=1): number of standard deviations to
+            expose.
+        * `tex` (bool, optional, default=False): return as a formatted latex
+            string.
+        * `dimension` (int or string, optional, default=None): the label or index
+            of the dimension to use.
+
+        Returns
+        ---------
+        * if not `tex`: a list of triplets where each triplet is lower, median, upper
+        * if `tex`: <Latex> object with <Latex.as_latex> and <Latex.as_string> properties.
+
+        """
+
+        if dimension is None:
+            dimensions = range(self.ndimensions)
+        else:
+            dimensions = [self._get_dimension_index(dimension)]
+
+        if tex:
+            labels = [self.labels[d] if self.labels is not None else None for d in dimensions]
+            labels_latex = [self.labels_latex[d] if self.labels is not None else None for d in dimensions]
+            units = [self.units[d] if self.units is not None else None for d in dimensions]
+            means = [self.mean[d] for d in dimensions]
+            diagonal = self.cov.diagonal()
+            diagonals = [diagonal[d]*sigma for d in dimensions]
+            return _format_uncertainties_symmetric(labels, labels_latex, units, means, diagonals)
+        else:
+            return [[self.mean[i]-self.cov[i][i]*sigma, self.mean[i], self.mean[i]+self.cov[i][i]*sigma] for i in dimensions]
+
 
     def slice(self, dimension):
         """
@@ -5658,7 +6593,9 @@ class MVGaussian(BaseMultivariateDistribution):
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
         return MVHistogram.from_data(self.sample(size=int(N), cache_sample=False),
                                      bins=bins, range=range,
-                                     units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+                                     units=self.units,
+                                     labels=self.labels, labels_latex=self._labels_latex,
+                                     wrap_ats=self.wrap_ats)
 
     def to_mvsamples(self, N=1e6):
         """
@@ -5680,7 +6617,9 @@ class MVGaussian(BaseMultivariateDistribution):
         """
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
         return MVSamples(self.sample(size=int(N), cache_sample=False),
-                         units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+                         units=self.units,
+                         labels=self.labels, labels_latex=self._labels_latex,
+                         wrap_ats=self.wrap_ats)
 
     def to_univariate(self, dimension):
         """
@@ -5706,6 +6645,7 @@ class MVGaussian(BaseMultivariateDistribution):
         return Gaussian(loc=self.mean[dimension], scale=_np.sqrt(self.cov[dimension, dimension]),
                          unit=self.units[dimension] if self.units is not None else None,
                          label=self.labels[dimension] if self.labels is not None else None,
+                         label_latex=self._labels_latex[dimension] if self._labels_latex is not None else None,
                          wrap_at=self.wrap_ats[dimension] if self.wrap_ats is not None else None)
 
     def to_histogram(self, dimension, N=100000, bins=10, range=None, wrap_at=None):
@@ -5798,7 +6738,7 @@ class MVHistogram(BaseMultivariateDistribution):
     on that sample.
 
     """
-    def __init__(self, bins, density, units=None, labels=None, wrap_ats=None):
+    def __init__(self, bins, density, units=None, labels=None, labels_latex=None, wrap_ats=None):
         """
         Create an <MVHistogram> distribution from bins and density.
 
@@ -5814,8 +6754,11 @@ class MVHistogram(BaseMultivariateDistribution):
         * `units` (list of astropy.units objects, optional): the units of the provided values.
         * `labels` (list of strings, optional): labels for each dimension in the
             distribution.  This is used
-            for the x-labels while plotting the distribution, as well as a shorthand
+            for the x-labels while plotting the distribution when `labels_latex`
+            is not provided, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `labels_latex` (list of strings, optional):  latex labels for each
+            dimension in the distribution.  This is used for plotting the distribution.
         * `wrap_ats` (list of floats, None, or False, optional, default=None): values to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -5825,7 +6768,7 @@ class MVHistogram(BaseMultivariateDistribution):
         --------
         * an <MVHistogram> object
         """
-        super(MVHistogram, self).__init__(units, labels, wrap_ats,
+        super(MVHistogram, self).__init__(units, labels, labels_latex, wrap_ats,
                                           None, None,
                                           bins=bins, density=density)
 
@@ -5855,8 +6798,34 @@ class MVHistogram(BaseMultivariateDistribution):
 
     @classmethod
     def from_data(cls, data, bins=10, range=None, weights=None,
-                  units=None, labels=None, wrap_ats=None):
+                  units=None, labels=None, labels_latex=None, wrap_ats=None):
         """
+        Create a <MVHistogram> from data.
+
+        Arguments
+        ------------
+        * `data` (array): input array of samples.  Passed to
+            [np.histogramdd](https://numpy.org/doc/1.18/reference/generated/numpy.histogramdd.html)
+        * `bins` (integer or array, optional, default=10): number of bins or
+            bin edges.  Passed to [np.histogramdd](https://numpy.org/doc/1.18/reference/generated/numpy.histogramdd.html)
+        * `weights` (array, optional, default=None): weights for each entry
+            in `data`.  Passed to [np.histogramdd](https://numpy.org/doc/1.18/reference/generated/numpy.histogramdd.html)
+        * `units` (list of astropy.units objects, optional): the units of the provided values.
+        * `labels` (list of strings, optional): labels for each dimension in the
+            distribution.  This is used
+            for the x-labels while plotting the distribution when `labels_latex`
+            is not provided, as well as a shorthand
+            notation when creating a <Composite> distribution.
+        * `labels_latex` (list of strings, optional):  latex labels for each
+            dimension in the distribution.  This is used for plotting the distribution.
+        * `wrap_ats` (list of floats, None, or False, optional, default=None): values to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
+
+        Returns
+        ----------
+        * a <MVHistogram> object
         """
         # TODO:  what version of numpy introduced density?  Do we need a try/except or to check the version?
         try:
@@ -5865,7 +6834,7 @@ class MVHistogram(BaseMultivariateDistribution):
             hist, bin_edges = _np.histogramdd(data, bins=bins, range=range, weights=weights, normed=True)
 
 
-        return cls(_np.asarray(bin_edges), hist, units=units, labels=labels, wrap_ats=wrap_ats)
+        return cls(_np.asarray(bin_edges), hist, units=units, labels=labels, labels_latex=labels_latex, wrap_ats=wrap_ats)
 
     def pdf(self, x=None, unit=None):
         # TODO: N-dimension interpolation of (self.bins, self.density)
@@ -6154,7 +7123,9 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
         return MVSamples(self.sample(size=int(N), cache_sample=False),
-                         units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+                         units=self.units,
+                         labels=self.labels, labels_latex=self._labels_latex,
+                         wrap_ats=self.wrap_ats)
 
     def to_mvgaussian(self, N=1e5, allow_singular=False):
         """
@@ -6178,7 +7149,9 @@ class MVHistogram(BaseMultivariateDistribution):
         """
         mean, cov = self.calculate_means_covariances(N)
         return MVGaussian(mean, cov, allow_singular=allow_singular,
-                          units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+                          units=self.units,
+                          labels=self.labels, labels_latex=self._labels_latex,
+                          wrap_ats=self.wrap_ats)
 
     def to_univariate(self, dimension):
         """
@@ -6208,6 +7181,7 @@ class MVHistogram(BaseMultivariateDistribution):
         return Histogram(bins=bins_flat, density=density_flat,
                          unit=self.units[dimension] if self.units is not None else None,
                          label=self.labels[dimension] if self.labels is not None else None,
+                         label_latex=self._labels_latex[dimension] if self._labels_latex is not None else None,
                          wrap_at=self.wrap_ats[dimension] if self.wrap_ats is not None else None)
 
     def to_samples(self, dimension, N=100000, wrap_at=None):
@@ -6289,7 +7263,7 @@ class MVSamples(BaseMultivariateDistribution):
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gaussian_kde.html
 
     """
-    def __init__(self, samples, weights=None, bw_method=None, units=None, labels=None, wrap_ats=None):
+    def __init__(self, samples, weights=None, bw_method=None, units=None, labels=None, labels_latex=None, wrap_ats=None):
         """
         Create an <MVSamples> distribution from samples (eg. chains from MCMC).
 
@@ -6310,8 +7284,11 @@ class MVSamples(BaseMultivariateDistribution):
         * `units` (list of astropy.units objects, optional): the units of the provided values.
         * `labels` (list of strings, optional): labels for each dimension in the
             distribution.  This is used
-            for the x-labels while plotting the distribution, as well as a shorthand
+            for the x-labels while plotting the distribution when `labels_latex`
+            is not provided, as well as a shorthand
             notation when creating a <Composite> distribution.
+        * `labels_latex` (list of strings, optional):  latex labels for each
+            dimension in the distribution.  This is used for plotting the distribution.
         * `wrap_ats` (list of floats, None, or False, optional, default=None): values to
             use for wrapping.  If None and `unit` are angles, will default to
             2*pi (or 360 degrees).  If None and `unit` are cycles, will default
@@ -6321,7 +7298,7 @@ class MVSamples(BaseMultivariateDistribution):
         --------
         * an <MVSamples> object
         """
-        super(MVSamples, self).__init__(units, labels, wrap_ats,
+        super(MVSamples, self).__init__(units, labels, labels_latex, wrap_ats,
                                         _stats.gaussian_kde, ('samples', 'bw_method') if StrictVersion(_scipy_version) < StrictVersion("1.2.0") else ('samples', 'bw_method', 'weights'),
                                         samples=samples, weights=weights, bw_method=bw_method)
 
@@ -6467,9 +7444,27 @@ class MVSamples(BaseMultivariateDistribution):
     def logcdf(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def ppf(self, *args, **kwargs):
-        # TODO: manual implementation: sum all weights, random value over that range, pick item from list
-        raise NotImplementedError()
+    def ppf(self, q):
+        """
+        Expose the percent point function (ppf; iverse of cdf - percentiles) at
+        values of `q` directly from <MVSamples.samples> and <MVSamples.weights>
+        using [corner.quantile](https://corner.readthedocs.io/en/latest/api.html#corner.quantile).
+
+        See also:
+
+        * <<class>.pdf>
+        * <<class>.cdf>
+        * <<class>.sample>
+
+        Arguments
+        ----------
+        * `q` (float or array): percentiles at which to expose the ppf
+
+        Returns
+        ---------
+        * (float or array) ppf values of the same type/shape as `q`
+        """
+        return _np.asarray([corner.quantile(samples, q, self.weights) for samples in self.samples.T])
 
     def interval(self, *args, **kwargs):
         # TODO: manual implementation
@@ -6630,6 +7625,7 @@ class MVSamples(BaseMultivariateDistribution):
                        bw_method=self.bw_method,
                        unit=self.units[dimension] if self.units is not None else None,
                        label=self.labels[dimension] if self.labels is not None else None,
+                       label_latex=self._labels_latex[dimension] if self._labels_latex is not None else None,
                        wrap_at=self._wrap_ats[dimension] if self.wrap_ats is not None else None)
 
 
@@ -6654,7 +7650,9 @@ class MVSamples(BaseMultivariateDistribution):
         """
         mean, cov = self.calculate_means_covariances()
         return MVGaussian(mean, cov, allow_singular=allow_singular,
-                          units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+                          units=self.units,
+                          labels=self.labels, labels_latex=self._labels_latex,
+                          wrap_ats=self.wrap_ats)
 
     def to_mvhistogram(self, N=1e6, bins=15, range=None):
         """
@@ -6679,7 +7677,9 @@ class MVSamples(BaseMultivariateDistribution):
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
         return MVHistogram.from_data(self.sample(size=int(N), cache_sample=False),
                                      bins=bins, range=range,
-                                     units=self.units, labels=self.labels, wrap_ats=self.wrap_ats)
+                                     units=self.units,
+                                     labels=self.labels, labels_latex=self._labels_latex,
+                                     wrap_ats=self.wrap_ats)
 
     def to_histogram(self, dimension):
         """
@@ -6744,10 +7744,9 @@ class MVSamplesSlice(BaseMultivariateSliceDistribution):
 
     def ppf(self, q, unit=None, as_quantity=False, wrap_at=None):
         """
-        See <Samples.pff>
+        See <Samples.ppf>
         """
         return Samples(samples=self.samples, weights=self.weights, bw_method=self.bw_method, unit=self.unit).ppf(q, unit=unit, as_quantity=as_quantity, wrap_at=wrap_at)
-
 
     def interval(self, alpha, unit=None, as_quantity=False, wrap_at=None):
         """
@@ -6784,10 +7783,11 @@ class MVSamplesSlice(BaseMultivariateSliceDistribution):
 ############################# GENERATORS ######################################
 
 class BaseAroundGenerator(BaseDistlObject):
-    def __init__(self, value=None, unit=None, label=None, wrap_at=None, **kwargs):
+    def __init__(self, value=None, unit=None, label=None, label_latex=None, wrap_at=None, **kwargs):
         self.value = value
         self.unit = unit
         self.label = label
+        self.label_latex = label_latex
         self.wrap_at = wrap_at
         super(BaseAroundGenerator, self).__init__(**kwargs)
 
@@ -6812,15 +7812,16 @@ class BaseAroundGenerator(BaseDistlObject):
     #         else:
     #             raise ValueError("cannot access attribute of distl distribution object without setting value first")
 
-    def __call__(self, value=None, unit=None, label=None, wrap_at=None):
+    def __call__(self, value=None, unit=None, label=None, label_latex=None, wrap_at=None):
         unit = unit if unit is not None else self._unit
         label = label if label is not None else self._label
+        label_latex = label_latex if label_latex is not None else self._label_latex
         wrap_at = wrap_at if wrap_at is not None else self._wrap_at
         value = value if value is not None else self.value
         if value is None:
             raise ValueError("value must be passed or set in order to create distl distribution object")
 
-        return self.__create_distl__(value, unit, label, wrap_at)
+        return self.__create_distl__(value, unit, label, label_latex, wrap_at)
 
     def __repr__(self):
         descriptors = " ".join(["{}={}".format(k,getattr(self,k)) for k in self._descriptors])
@@ -6915,7 +7916,7 @@ class BaseAroundGenerator(BaseDistlObject):
         return self.__math_if_resolved__("log")
 
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
         """
         Return the dictionary representation of the distribution object.
 
@@ -6927,21 +7928,30 @@ class BaseAroundGenerator(BaseDistlObject):
         * <<class>.to_json>
         * <<class>.to_file>
 
+        Arguments
+        ----------
+        * `exclude` (list, optional, default=[]): list of keys to exclude.
+
         Returns
         --------
         * dictionary
         """
-        d = {k: _json_safe(getattr(self, k)) for k in self._descriptors}
+        d = {k: _json_safe(getattr(self, k), exclude=exclude) for k in self._descriptors}
         d['distl'] = self.__class__.__name__
         d['distl.version'] = __version__
-        if self.value is not None:
+        if self.value is not None and 'value':
             d['value'] = self.value
-        if self.unit is not None:
+        if self.unit is not None and 'unit':
             d['unit'] = str(self.unit.to_string())
-        if self.label is not None:
+        if self.label is not None and 'label':
             d['label'] = self.label
-        if self.wrap_at is not None:
+        if self._label_latex is not None:
+            d['label_latex'] = self._label_latex
+        if self.wrap_at is not None and 'wrap_at':
             d['wrap_at'] = self.wrap_at
+
+        if exclude:
+            return {k:v for k,v in d.items() if k not in exclude}
         return d
 
     ### LABEL
@@ -6950,8 +7960,8 @@ class BaseAroundGenerator(BaseDistlObject):
     def label(self):
         """
         The label of the distribution object.  When not None, this is used for
-        the x-label when plotting (see <<class>.plot>) and for the
-        string representation for any math in a <Composite>.
+        the x-label when plotting when <<class>.label_latex> is not provided (see <<class>.plot>)
+        and for the string representation for any math in a <Composite>.
         """
         return self._label
 
@@ -6964,6 +7974,29 @@ class BaseAroundGenerator(BaseDistlObject):
                 raise TypeError("label must be of type str")
 
         self._label = label
+
+    @property
+    def label_latex(self):
+        """
+        The latex label of the distribution object.  When not None, this is used for
+        the x-label when plotting (see <<class>.plot>).
+        """
+        if self._label_latex is not None:
+            if "$" not in self._label_latex:
+                return r"$"+self._label_latex+"$"
+            return self._label_latex
+        else:
+            return self.label
+
+    @label_latex.setter
+    def label_latex(self, label_latex):
+        if label_latex is not None:
+            try:
+                label_latex = str(label_latex)
+            except:
+                raise TypeError("label_latex must be of type str")
+
+        self._label_latex = label_latex
 
     ### UNITS AND UNIT CONVERSIONS
 
@@ -7136,11 +8169,39 @@ class Uniform_Around(BaseAroundGenerator):
     ```
 
     """
-    def __init__(self, width, value=None, unit=None, label=None, wrap_at=None):
-        super(Uniform_Around, self).__init__(value, unit, label, wrap_at, width=width)
+    def __init__(self, width, value=None, unit=None, label=None, label_latex=None, wrap_at=None):
+        """
+        Create a <Uniform_Around> object which, when called, will resolve
+        to a <Uniform> object around a given central value.
 
-    def __create_distl__(self, value, unit, label, wrap_at):
-        return Uniform(value-self._width/2, value+self._width/2, unit, label, wrap_at)
+        This can also be created from a function at the top-level as:
+
+        * <distl.uniform_around>
+
+        Arguments
+        --------------
+        * `width` (float): the width of the resulting <Uniform> object (<Uniform.low>
+            and <Uniform.high> will be set based on the current value and `width`).
+        * `value` (float, optional, default=None): the current face-value.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
+
+        Returns
+        -----------
+        * a <Uniform_Around> object.
+        """
+        super(Uniform_Around, self).__init__(value, unit, label, label_latex, wrap_at, width=width)
+
+    def __create_distl__(self, value, unit, label, label_latex, wrap_at):
+        return Uniform(value-self._width/2, value+self._width/2, unit, label, label_latex, wrap_at)
 
     @property
     def width(self):
@@ -7191,11 +8252,37 @@ class Delta_Around(BaseAroundGenerator):
     ```
 
     """
-    def __init__(self, value=None, unit=None, label=None, wrap_at=None):
-        super(Delta_Around, self).__init__(value, unit, label, wrap_at)
+    def __init__(self, value=None, unit=None, label=None, label_latex=None, wrap_at=None):
+        """
+        Create a <Delta_Around> object which, when called, will resolve
+        to a <Delta> object around a given central value.
 
-    def __create_distl__(self, value, unit, label, wrap_at):
-        return Delta(value, unit, label, wrap_at)
+        This can also be created from a function at the top-level as:
+
+        * <distl.delta_around>
+
+        Arguments
+        --------------
+        * `value` (float, optional, default=None): the current face-value.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
+
+        Returns
+        --------
+        * a <Delta> object
+        """
+        super(Delta_Around, self).__init__(value, unit, label, label_latex, wrap_at)
+
+    def __create_distl__(self, value, unit, label, label_latex, wrap_at):
+        return Delta(value, unit, label, label_latex, wrap_at)
 
     def to_delta(self, value=None):
         """
@@ -7235,11 +8322,38 @@ class Gaussian_Around(BaseAroundGenerator):
     ```
 
     """
-    def __init__(self, scale, value=None, unit=None, label=None, wrap_at=None):
-        super(Gaussian_Around, self).__init__(value, unit, label, wrap_at, scale=scale)
+    def __init__(self, scale, value=None, unit=None, label=None, label_latex=None, wrap_at=None):
+        """
+        Create a <Gaussian_Around> object which, when called, will resolve
+        to a <Gaussian> object around a given central value.
 
-    def __create_distl__(self, value, unit, label, wrap_at):
-        return Gaussian(value, self._scale, unit, label, wrap_at)
+        This can also be created from a function at the top-level as:
+
+        * <distl.gaussian_around>
+
+        Arguments
+        --------------
+        * `scale` (float or int, default=1.0): the scale (sigma) of the gaussian
+            distribution.
+        * `value` (float, optional, default=None): the current face-value.
+        * `unit` (astropy.units object, optional): the units of the provided values.
+        * `label` (string, optional): a label for the distribution.  This is used
+            for the x-label while plotting the distribution if `label_latex` is not provided,
+            as well as a shorthand notation when creating a <Composite> distribution.
+        * `label_latex` (string, optional): a latex label for the distribution.  This is used
+            for the x-label while plotting.
+        * `wrap_at` (float, None, or False, optional, default=None): value to
+            use for wrapping.  If None and `unit` are angles, will default to
+            2*pi (or 360 degrees).  If None and `unit` are cycles, will default
+            to 1.0.
+        Returns
+        --------
+        * a <Gaussian_Around> object
+        """
+        super(Gaussian_Around, self).__init__(value, unit, label, label_latex, wrap_at, scale=scale)
+
+    def __create_distl__(self, value, unit, label, label_latex, wrap_at):
+        return Gaussian(value, self._scale, unit, label, label_latex, wrap_at)
 
     @property
     def scale(self):

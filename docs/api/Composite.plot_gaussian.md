@@ -22,6 +22,7 @@ See also:
 * [Composite.plot_sample](Composite.plot_sample.md)
 * [Composite.plot_pdf](Composite.plot_pdf.md)
 * [Composite.plot_cdf](Composite.plot_cdf.md)
+* [Composite.plot_uncertainties](Composite.plot_uncertainties.md)
 
 Arguments
 -----------

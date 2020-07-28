@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, func, args, kwargs, vectorized=True, hist_samples=None, unit=None, label=None, wrap_at=None)
+def __init__(self, func, args, kwargs, vectorized=True, hist_samples=None, unit=None, label=None, label_latex=None, wrap_at=None)
 
 ```
 
@@ -34,8 +34,10 @@ Arguments
     in the appropriate units (as the inputs and outputs to `func` are
     floats and not quantities)
 * `label` (string, optional): a label for the distribution.  This is used
-    for the x-label while plotting the distribution, as well as a shorthand
-    notation when creating a [Composite](Composite.md) distribution.
+    for the x-label while plotting the distribution if `label_latex` is not provided,
+    as well as a shorthand notation when creating a [Composite](Composite.md) distribution.
+* `label_latex` (string, optional): a latex label for the distribution.  This is used
+    for the x-label while plotting.
 * `wrap_at` (float, None, or False, optional, default=None): value to
     use for wrapping.  If None and `unit` are angles, will default to
     2*pi (or 360 degrees).  If None and `unit` are cycles, will default

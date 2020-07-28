@@ -54,7 +54,13 @@ into any issues with dependencies, please [submit an issue](https://github.com/k
 
 ### Installation
 
-To install locally for a single user:
+To install the latest release via pip:
+
+```sh
+pip install distl
+```
+
+To install from source locally for a single user:
 
 ```sh
 python setup.py build

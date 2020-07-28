@@ -22,6 +22,7 @@ See also:
 * [Samples.plot_sample](Samples.plot_sample.md)
 * [Samples.plot_pdf](Samples.plot_pdf.md)
 * [Samples.plot_cdf](Samples.plot_cdf.md)
+* [Samples.plot_uncertainties](Samples.plot_uncertainties.md)
 
 Arguments
 -----------

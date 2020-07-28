@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, units=None, labels=None, wrap_ats=None, *args, **kwargs)
+def __init__(self, units=None, labels=None, labels_latex=None, wrap_ats=None, *args, **kwargs)
 
 ```
 

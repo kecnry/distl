@@ -8,3 +8,8 @@ def to_univariate(self, *args, **kwargs)
 ```
 
 
+
+Raises
+-----------
+* NotImplementedError
+

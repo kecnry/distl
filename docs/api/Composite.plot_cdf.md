@@ -17,6 +17,7 @@ See also:
 * [Composite.plot_pdf](Composite.plot_pdf.md)
 * [Composite.plot_sample](Composite.plot_sample.md)
 * [Composite.plot_gaussian](Composite.plot_gaussian.md)
+* [Composite.plot_uncertainties](Composite.plot_uncertainties.md)
 
 Arguments
 -----------

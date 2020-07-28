@@ -18,6 +18,7 @@ See also:
 * [BaseUnivariateDistribution.plot_pdf](BaseUnivariateDistribution.plot_pdf.md)
 * [BaseUnivariateDistribution.plot_cdf](BaseUnivariateDistribution.plot_cdf.md)
 * [BaseUnivariateDistribution.plot_gaussian](BaseUnivariateDistribution.plot_gaussian.md)
+* [BaseUnivariateDistribution.plot_uncertainties](BaseUnivariateDistribution.plot_uncertainties.md)
 
 Arguments
 -----------

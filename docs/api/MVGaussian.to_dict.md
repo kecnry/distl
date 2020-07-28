@@ -3,7 +3,7 @@
 
 ```py
 
-def to_dict(self)
+def to_dict(self, exclude=[])
 
 ```
 
@@ -18,6 +18,10 @@ See also:
 
 * [MVGaussian.to_json](MVGaussian.to_json.md)
 * [MVGaussian.to_file](MVGaussian.to_file.md)
+
+Arguments
+----------
+* `exclude` (list, optional, default=[]): list of keys to exclude.
 
 Returns
 --------

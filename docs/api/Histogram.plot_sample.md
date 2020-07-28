@@ -18,6 +18,7 @@ See also:
 * [Histogram.plot_pdf](Histogram.plot_pdf.md)
 * [Histogram.plot_cdf](Histogram.plot_cdf.md)
 * [Histogram.plot_gaussian](Histogram.plot_gaussian.md)
+* [Histogram.plot_uncertainties](Histogram.plot_uncertainties.md)
 
 Arguments
 -----------

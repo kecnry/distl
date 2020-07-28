@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, unit, label, wrap_at, *args, **kwargs)
+def __init__(self, unit, label, label_latex, wrap_at, *args, **kwargs)
 
 ```
 

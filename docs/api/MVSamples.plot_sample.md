@@ -9,21 +9,14 @@ def plot_sample(self, **kwargs)
 
 
 
-Plot both a sampled histogram from the distribution.  Requires
-matplotlib to be installed.
-
-See also:
-
-* [MVSamples.plot](MVSamples.plot.md)
-* [MVSamples.plot_pdf](MVSamples.plot_pdf.md)
-* [MVSamples.plot_cdf](MVSamples.plot_cdf.md)
-* [MVSamples.plot_gaussian](MVSamples.plot_gaussian.md)
-
 Arguments
------------
-* `size` (int, optional, default=1e5): number of points to sample for
-    the histogram.  See also [MVSamples.sample](MVSamples.sample.md).  Will be ignored
-    if `samples` is provided.
+---------
+* `dimension` (string or int, optional, default=None): choose a single
+    dimension to plot.
+* `label` (string, optional, default=None): override the label on the
+    x-axis.  If not provided or None, will use [MVSamples.label](MVSamples.label.md).  Will
+    only be used if `show=True`.  Unit will automatically be appended.
+    Will be ignored if `xlabel` is provided.
 * `unit` (astropy.unit, optional, default=None): units to use along
     the x-axis.  Astropy must be installed.  If `samples` is provided,
     the passed values will be assumed to be in the correct units.
@@ -33,28 +26,21 @@ Arguments
     computed before changing units, so `wrap_at` must be provided
     according to [MVSamples.unit](MVSamples.unit.md) not `unit`.  Will be ignored
     if `samples` is provided.
-* `seed` (int, optional): seed to use when sampling.  See also
-    [MVSamples.sample](MVSamples.sample.md).  Will be ignored if `samples` is provided.
+* `xlabel` (string, optional, default=None): override the label on the
+    x-axis without appending the unit.  Will override `label`.
 * `samples` (array, optional, default=None): plot specific sampled
     values instead of calling [MVSamples.sample](MVSamples.sample.md) internally.  Will override
     `size`.
-* `label` (string, optional, default=None): override the label on the
-    x-axis.  If not provided or None, will use [MVSamples.label](MVSamples.label.md).  Will
-    only be used if `show=True`.  Unit will automatically be appended.
-    Will be ignored if `xlabel` is provided.
-* `xlabel` (string, optional, default=None): override the label on the
-    x-axis without appending the unit.  Will override `label`.
-* `show` (bool, optional, default=True): whether to show the resulting
-    matplotlib figure.
-* `**kwargs`: all keyword arguments will be passed on to plt.hist.  If
-    not provided, `bins` will default to the stored bins for [Histogram](Histogram.md)
-    distributions, otherwise will default to 25.
+* `plot_uncertainties` (tuple or bool, optional, default=True): if True,
+    will default to (1,2,3).
+    If provided as a list or tuple, then `quantiles` shown in the 1D
+    histograms will be set to the appropriate quantile for the first
+    sigma in the passed list/tuple and will be used for the uncertainties
+    in the axes titles. `levels` will be set to the appropriate 2-D volume levels for each
+    item in the list and used as contours. See [MVSamples.uncertainties](MVSamples.uncertainties.md).
+* `**kwargs`: additional kwargs are passed to [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
 
 Returns
---------
-* the return from plt.hist
-
-Raises
---------
-* ImportError: if matplotlib dependency is not met.
+------------
+* the figure from [corner.corner](https://corner.readthedocs.io/en/latest/api.html#corner.corner)
 

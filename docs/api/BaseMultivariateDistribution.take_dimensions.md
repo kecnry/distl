@@ -8,3 +8,8 @@ def take_dimensions(self, dimensions)
 ```
 
 
+
+Raises
+---------
+* NotImplementedError
+

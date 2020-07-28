@@ -3,7 +3,7 @@
 
 ```py
 
-def to_dict(self)
+def to_dict(self, exclude=[])
 
 ```
 
@@ -18,6 +18,10 @@ See also:
 
 * [Samples.to_json](Samples.to_json.md)
 * [Samples.to_file](Samples.to_file.md)
+
+Arguments
+----------
+* `exclude` (list, optional, default=[]): list of keys to exclude.
 
 Returns
 --------

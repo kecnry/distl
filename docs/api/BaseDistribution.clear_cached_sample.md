@@ -8,3 +8,10 @@ def clear_cached_sample(self)
 ```
 
 
+
+Clear any stored cached sample
+
+See also:
+
+* [BaseDistribution.cached_sample](BaseDistribution.cached_sample.md)
+

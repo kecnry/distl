@@ -18,6 +18,7 @@ See also:
 * [Delta.plot_pdf](Delta.plot_pdf.md)
 * [Delta.plot_cdf](Delta.plot_cdf.md)
 * [Delta.plot_gaussian](Delta.plot_gaussian.md)
+* [Delta.plot_uncertainties](Delta.plot_uncertainties.md)
 
 Arguments
 -----------

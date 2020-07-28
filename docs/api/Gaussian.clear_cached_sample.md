@@ -8,3 +8,10 @@ def clear_cached_sample(self)
 ```
 
 
+
+Clear any stored cached sample
+
+See also:
+
+* [Gaussian.cached_sample](Gaussian.cached_sample.md)
+
