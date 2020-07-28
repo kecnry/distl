@@ -3223,7 +3223,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         return l
 
-    def plot_sample(self, **kwargs):
+    def plot_sample(self, size=1e5, **kwargs):
         """
 
         Arguments
@@ -3299,7 +3299,7 @@ class BaseMultivariateDistribution(BaseDistribution):
                 kwargs.setdefault('quantiles', (_norm.cdf(-1), _norm.cdf(1)))
                 kwargs.setdefault('levels', [1-_np.exp(-s**2 / 2.) for s in (1,2,3)])
 
-            fig = corner.corner(self.sample(size=int(1e5), cache_sample=False),
+            fig = corner.corner(self.sample(size=int(size), cache_sample=False),
                                  labels=[self._xlabel(dim) for dim in range(self.ndimensions)],
                                  quantiles=kwargs.pop('quantiles', None),
                                  levels=kwargs.pop('levels', None),
