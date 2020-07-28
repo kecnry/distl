@@ -19,6 +19,7 @@ env:
         - NUMPY_VERSION=1.10
         - ASTROPY_VERSION=1.0
         - SCIPY_VERSION=1.3
+        - MATPLOTLIB_VERSION=2.2
 
 matrix:
 

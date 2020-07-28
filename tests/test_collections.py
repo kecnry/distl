@@ -68,8 +68,8 @@ def test_mvslice():
     dc.pdf([6, 4, 2])
     print("*** test_mvslice 11")
 
-    #dc.plot()
-    #print("*** test_mvslice 12")
+    dc.plot()
+    print("*** test_mvslice 12")
 
 
     # passing the wrong shape to pdf should raise a ValueError
