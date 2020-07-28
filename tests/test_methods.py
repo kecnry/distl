@@ -174,9 +174,15 @@ def test_mvgaussian():
         print("*** test_methods.test_mvgaussian 6")
 
         _test_methods_properties(d)
+
+        print("*** test_methods.test_mvgaussian 7")
+
         _test_plotting(d)
-        _test_json(d)
+
         print("*** test_methods.test_mvgaussian 8")
+
+        _test_json(d)
+        print("*** test_methods.test_mvgaussian 9")
 
 
 def test_mvgaussianslice():
@@ -527,10 +533,16 @@ def _test_plotting(d):
     else:
         raise NotImplementedError("test_plotting for class {} not implemented".format(d.__class__.__name__))
 
+    print("*** _test_plotting 1")
+
     d.plot(size=100)
+    print("*** _test_plotting 2")
     d.plot(size=100, color='blue')
+    print("*** _test_plotting 3")
+
     d.plot(size=100, plot_sample_kwargs={'color': 'blue'})
-    d.plot_sample()
+    print("*** _test_plotting 4")
+
     d.plot_sample(size=100)
 
 
