@@ -6616,18 +6616,11 @@ class MVGaussian(BaseMultivariateDistribution):
         * an <MVSamples> object
         """
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
-        print("*****HERE")
-        print("calling sample")
         sample = self.sample(size=int(N), cache_sample=False)
-        print("calling units")
         units = self.units
-        print("calling labels")
         labels = self.labels
-        print("calling labels_latex")
         labels_latex = self._labels_latex
-        print("calling wrap_ats")
         wrap_ats = self.wrap_ats
-        print("calling MVSamples")
         return MVSamples(self.sample(size=int(N), cache_sample=False),
                          units=self.units,
                          labels=self.labels, labels_latex=self._labels_latex,

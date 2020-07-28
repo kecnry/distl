@@ -6,53 +6,30 @@ import astropy.units as u
 
 def test_gaussian():
     # passing string
-    print("*** test_methods.test_gaussian 1")
     assert_raises(TypeError, distl.gaussian, 0, "a")
-    print("*** test_methods.test_gaussian 2")
 
     # too many args
     assert_raises(TypeError, distl.gaussian, 0, 1, 1)
-    print("*** test_methods.test_gaussian 3")
 
     d = distl.gaussian(unit=u.deg)
-    print("*** test_methods.test_gaussian 4")
 
     d.to(u.rad)
-    print("*** test_methods.test_gaussian 5")
-
     d.to('rad')
-    print("*** test_methods.test_gaussian 6")
 
     d_with_unit = distl.gaussian(unit='deg')
-    print("*** test_methods.test_gaussian 7")
-
     d_with_label = distl.gaussian(label='mylabel')
-    print("*** test_methods.test_gaussian 8")
-
-
     d_with_wrap_at = distl.gaussian(10, 2, wrap_at=12)
-    print("*** test_methods.test_gaussian 9")
 
     d = distl.gaussian(5, 10)
-    print("*** test_methods.test_gaussian 10")
-
-
     d = distl.normal(5, 10)
-    print("*** test_methods.test_gaussian 11")
-
 
     d = d.copy()
-    print("*** test_methods.test_gaussian 12")
-
 
     for d in [d, d_with_unit, d_with_label, d_with_wrap_at]:
         _test_conversions(d)
         _test_methods_properties(d)
         _test_plotting(d)
         _test_json(d)
-
-    print("*** test_methods.test_gaussian 13")
-
 
 def test_uniform():
     assert_raises(TypeError, distl.uniform, 0, "a")
@@ -150,7 +127,6 @@ def test_function():
     _test_json(d)
 
 def test_mvgaussian():
-    print("*** test_methods.test_mvgaussian 1")
     d = distl.mvgaussian([5,10, 12],
                            np.array([[ 2,  1, -1],
                                      [ 1,  2,  1],
@@ -158,32 +134,14 @@ def test_mvgaussian():
                            allow_singular=True,
                            labels=['a', 'b', 'c'])
 
-    print("*** test_methods.test_mvgaussian 2")
-
     d_with_units = d.copy()
-    print("*** test_methods.test_mvgaussian 3")
-
     d_with_units.units = ['solRad', 'deg', 'kg']
 
-    print("*** test_methods.test_mvgaussian 4")
-
     for d in [d, d_with_units]:
-        print("*** test_methods.test_mvgaussian 5")
-
         _test_conversions(d)
-        print("*** test_methods.test_mvgaussian 6")
-
         _test_methods_properties(d)
-
-        print("*** test_methods.test_mvgaussian 7")
-
         _test_plotting(d)
-
-        print("*** test_methods.test_mvgaussian 8")
-
         _test_json(d)
-        print("*** test_methods.test_mvgaussian 9")
-
 
 def test_mvgaussianslice():
     d = distl.mvgaussian([5,10, 12],
@@ -314,54 +272,28 @@ def test_delta_around():
     _test_json(d)
 
 def _test_conversions(d):
-    print("*** test_methods.test_conversions 1")
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
-        print("*** test_methods.test_conversions MV ({})".format(d.__class__.__name__))
         if d.__class__.__name__ not in ['MVHistogram']:
-            print("*** test_methods.test_conversions MV to_mvhistogram")
             d.to_mvhistogram(N=100)
         if d.__class__.__name__ not in ['MVGaussian']:
-            print("*** test_methods.test_conversions MV to_mvgaussian")
             if d.__class__.__name__ in ['MVSamples']:
                 # doesn't take N as an argument
                 d.to_mvgaussian()
             else:
                 d.to_mvgaussian(N=100)
         if d.__class__.__name__ not in ['MVSamples']:
-            print("*** test_methods.test_conversions MV to_mvsamples")
             d.to_mvsamples(N=100)
 
-        print("*** test_methods.test_conversions MV 2")
-
         d.to_univariate(dimension='a')
-        print("*** test_methods.test_conversions MV 3")
-
         d.to_gaussian(dimension='a')
-        print("*** test_methods.test_conversions MV 4")
-
         d.to_histogram(dimension='a')
-        print("*** test_methods.test_conversions MV 5")
-
         d.to_samples(dimension='a')
-        print("*** test_methods.test_conversions MV 6")
-
         d.slice(dimension='a')
-        print("*** test_methods.test_conversions MV 7")
-
         d.take_dimensions(['a', 'c'])
-        print("*** test_methods.test_conversions MV 8")
-
 
     elif isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
-        print("*** test_methods.test_conversions MVS 1")
-
         d.change_slice_dimension('b')
-        print("*** test_methods.test_conversions MVS 2")
-
-
         d.to_univariate()
-        print("*** test_methods.test_conversions MVS 3")
-
 
     elif isinstance(d, distl._distl.BaseUnivariateDistribution):
         if d.__class__.__name__ not in ['Histogram']:
@@ -533,16 +465,9 @@ def _test_plotting(d):
     else:
         raise NotImplementedError("test_plotting for class {} not implemented".format(d.__class__.__name__))
 
-    print("*** _test_plotting 1")
-
     d.plot(size=100)
-    print("*** _test_plotting 2")
     d.plot(size=100, color='blue')
-    print("*** _test_plotting 3")
-
     d.plot(size=100, plot_sample_kwargs={'color': 'blue'})
-    print("*** _test_plotting 4")
-
     d.plot_sample(size=100)
 
 
