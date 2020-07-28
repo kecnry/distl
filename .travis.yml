@@ -1,4 +1,4 @@
-# https://travis-ci.com/kecnry/npdists
+# https://travis-ci.com/kecnry/distl
 
 language: python
 
@@ -8,7 +8,7 @@ addons:
     # add PPAs with more up-to-date toolchains
     - ubuntu-toolchain-r-test
 
-dist: trusty
+dist: bionic
 
 env:
     global:
@@ -19,6 +19,7 @@ env:
         - NUMPY_VERSION=1.10
         - ASTROPY_VERSION=1.0
         - SCIPY_VERSION=1.3
+        - MATPLOTLIB_VERSION=2.2
 
 matrix:
 
@@ -31,8 +32,8 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 ASTROPY_VERSION=1.0 SCIPY_VERSION=1.0
 
-        # - os: osx
-        #   env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.10 ASTROPY_VERSION=1.0'
+        - os: linux
+          env: PYTHON_VERSION=2.7 NUMPY_VERSION=1.16 ASTROPY_VERSION=2.0 SCIPY_VERSION=1.0
 
         # Try with stable versions of numpy/astropy
         - os: linux
@@ -42,21 +43,13 @@ matrix:
         - os: linux
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=stable ASTROPY_VERSION=stable SCIPY_VERSION=1.3
 
-        # - os: osx
-        #   env: PYTHON_VERSION=2.7 NUMPY_VERSION=stable ASTROPY_VERSION=stable'
-
-        # - os: osx
-        #   env: PYTHON_VERSION=3.6 NUMPY_VERSION=stable ASTROPY_VERSION=stable'
-
         # Try with dev version of numpy/scipy (only with python 3.6) (note that we allow failures for this build below)
         - os: linux
           env: PYTHON_VERSION=3.6 NUMPY_VERSION=dev ASTROPY_VERSION=stable SCIPY_VERSION=1.4
 
-        # - os: osx
-        #   env: PYTHON_VERSION=3.6 NUMPY_VERSION=dev ASTROPY_VERSION=stable'
-
     allow_failures:
       - env: PYTHON_VERSION=3.6 NUMPY_VERSION=dev ASTROPY_VERSION=stable SCIPY_VERSION=1.4
+
 
 before_install:
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then

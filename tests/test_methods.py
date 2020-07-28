@@ -12,13 +12,17 @@ def test_gaussian():
     assert_raises(TypeError, distl.gaussian, 0, 1, 1)
 
     d = distl.gaussian(unit=u.deg)
+
     d.to(u.rad)
     d.to('rad')
+
     d_with_unit = distl.gaussian(unit='deg')
     d_with_label = distl.gaussian(label='mylabel')
     d_with_wrap_at = distl.gaussian(10, 2, wrap_at=12)
+
     d = distl.gaussian(5, 10)
     d = distl.normal(5, 10)
+
     d = d.copy()
 
     for d in [d, d_with_unit, d_with_label, d_with_wrap_at]:
@@ -132,7 +136,6 @@ def test_mvgaussian():
 
     d_with_units = d.copy()
     d_with_units.units = ['solRad', 'deg', 'kg']
-
 
     for d in [d, d_with_units]:
         _test_conversions(d)
@@ -271,11 +274,15 @@ def test_delta_around():
 def _test_conversions(d):
     if isinstance(d, distl._distl.BaseMultivariateDistribution):
         if d.__class__.__name__ not in ['MVHistogram']:
-            d.to_mvhistogram()
+            d.to_mvhistogram(N=100)
         if d.__class__.__name__ not in ['MVGaussian']:
-            d.to_mvgaussian()
+            if d.__class__.__name__ in ['MVSamples']:
+                # doesn't take N as an argument
+                d.to_mvgaussian()
+            else:
+                d.to_mvgaussian(N=100)
         if d.__class__.__name__ not in ['MVSamples']:
-            d.to_mvsamples()
+            d.to_mvsamples(N=100)
 
         d.to_univariate(dimension='a')
         d.to_gaussian(dimension='a')
@@ -449,7 +456,7 @@ def _test_plotting(d):
             d.plot_cdf()
         if not isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
             if d.__class__.__name__ not in ['Gaussian']:
-                d.plot(plot_gaussian=True)
+                d.plot(size=100, plot_gaussian=True)
                 d.plot_gaussian()
 
     elif isinstance(d, distl._distl.BaseAroundGenerator):
@@ -458,10 +465,10 @@ def _test_plotting(d):
     else:
         raise NotImplementedError("test_plotting for class {} not implemented".format(d.__class__.__name__))
 
-    d.plot()
-    d.plot(color='blue')
-    d.plot(plot_sample_kwargs={'color': 'blue'})
-    d.plot_sample()
+    d.plot(size=100)
+    d.plot(size=100, color='blue')
+    d.plot(size=100, plot_sample_kwargs={'color': 'blue'})
+    d.plot_sample(size=100)
 
 
 def _test_json(d):

@@ -3223,7 +3223,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
         return l
 
-    def plot_sample(self, **kwargs):
+    def plot_sample(self, size=1e5, **kwargs):
         """
 
         Arguments
@@ -3277,7 +3277,7 @@ class BaseMultivariateDistribution(BaseDistribution):
 
             samples = kwargs.pop('samples', None)
             if samples is None:
-                samples = self.sample(size=int(1e5), dimension=dimension, cache_sample=False) #, unit=unit, wrap_at=wrap_at)
+                samples = self.sample(size=int(size), dimension=dimension, cache_sample=False) #, unit=unit, wrap_at=wrap_at)
 
             return super(BaseMultivariateDistribution, self).plot_sample(samples=samples, label=label, unit=unit, wrap_at=wrap_at, xlabel=xlabel, **kwargs)
         else:
@@ -3299,7 +3299,7 @@ class BaseMultivariateDistribution(BaseDistribution):
                 kwargs.setdefault('quantiles', (_norm.cdf(-1), _norm.cdf(1)))
                 kwargs.setdefault('levels', [1-_np.exp(-s**2 / 2.) for s in (1,2,3)])
 
-            fig = corner.corner(self.sample(size=int(1e5), cache_sample=False),
+            fig = corner.corner(self.sample(size=int(size), cache_sample=False),
                                  labels=[self._xlabel(dim) for dim in range(self.ndimensions)],
                                  quantiles=kwargs.pop('quantiles', None),
                                  levels=kwargs.pop('levels', None),
@@ -4201,7 +4201,7 @@ class DistributionCollection(BaseDistlObject):
         models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
         return models
 
-    def plot_sample(self, **kwargs):
+    def plot_sample(self, size=1e5, **kwargs):
         """
 
         Arguments
@@ -4244,7 +4244,7 @@ class DistributionCollection(BaseDistlObject):
 
         titles_sigma = kwargs.pop('titles_sigma', False)
 
-        fig = corner.corner(self.sample(size=int(1e5), cache_sample=False),
+        fig = corner.corner(self.sample(size=int(size), cache_sample=False),
                              labels=kwargs.pop('labels', [dist._xlabel() for dist in self.dists]),
                              range=kwargs.pop('range', [_range(dist) for dist in self.dists]),
                              quantiles=kwargs.pop('quantiles', None),
