@@ -4201,7 +4201,7 @@ class DistributionCollection(BaseDistlObject):
         models = _np.array([func(x, *sample_args[i], **func_kwargs) for i in range(N)])
         return models
 
-    def plot_sample(self, **kwargs):
+    def plot_sample(self, size=1e5, **kwargs):
         """
 
         Arguments
@@ -4244,7 +4244,7 @@ class DistributionCollection(BaseDistlObject):
 
         titles_sigma = kwargs.pop('titles_sigma', False)
 
-        fig = corner.corner(self.sample(size=int(1e5), cache_sample=False),
+        fig = corner.corner(self.sample(size=int(size), cache_sample=False),
                              labels=kwargs.pop('labels', [dist._xlabel() for dist in self.dists]),
                              range=kwargs.pop('range', [_range(dist) for dist in self.dists]),
                              quantiles=kwargs.pop('quantiles', None),

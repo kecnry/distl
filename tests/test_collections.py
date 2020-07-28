@@ -68,7 +68,7 @@ def test_mvslice():
     dc.pdf([6, 4, 2])
     print("*** test_mvslice 11")
 
-    dc.plot()
+    dc.plot(size=100)
     print("*** test_mvslice 12")
 
 

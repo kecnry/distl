@@ -518,7 +518,7 @@ def _test_plotting(d):
             d.plot_cdf()
         if not isinstance(d, distl._distl.BaseMultivariateSliceDistribution):
             if d.__class__.__name__ not in ['Gaussian']:
-                d.plot(plot_gaussian=True)
+                d.plot(size=100, plot_gaussian=True)
                 d.plot_gaussian()
 
     elif isinstance(d, distl._distl.BaseAroundGenerator):
@@ -527,9 +527,9 @@ def _test_plotting(d):
     else:
         raise NotImplementedError("test_plotting for class {} not implemented".format(d.__class__.__name__))
 
-    d.plot()
-    d.plot(color='blue')
-    d.plot(plot_sample_kwargs={'color': 'blue'})
+    d.plot(size=100)
+    d.plot(size=100, color='blue')
+    d.plot(size=100, plot_sample_kwargs={'color': 'blue'})
     d.plot_sample()
 
 
