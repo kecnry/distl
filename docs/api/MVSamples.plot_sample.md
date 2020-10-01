@@ -3,7 +3,7 @@
 
 ```py
 
-def plot_sample(self, **kwargs)
+def plot_sample(self, size=100000.0, **kwargs)
 
 ```
 
