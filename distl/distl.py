@@ -7744,7 +7744,11 @@ class MVSamplesSlice(BaseMultivariateSliceDistribution):
 
     @property
     def weights(self):
-        return self.multivariate.weights[:, self.dimension] if self.multivariate.weights is not None else None
+        if self.multivariate.weights is None:
+            return None
+        if len(self.multivariate.weights.shape) == 1:
+            return self.multivariate.weights
+        return self.multivariate.weights[:, self.dimension]
 
     @property
     def bw_method(self):
