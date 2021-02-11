@@ -65,6 +65,8 @@ _math_funcs = {'__div__': lambda x,y: x/y,
 _builtin_attrs = ['unit', 'label', 'wrap_at', 'dimension', 'dist_constructor_argnames', 'dist_constructor_args', 'dist_constructor_func', 'dist_constructor_object']
 
 _physical_types_to_solar = {'length': 'solRad',
+                            'area': 'solRad2',
+                            'volume': 'solRad3',
                          'mass': 'solMass',
                          'temperature': 'solTeff',
                          'power': 'solLum',
@@ -75,6 +77,8 @@ _physical_types_to_solar = {'length': 'solRad',
                          'dimensionless': ''}
 
 _physical_types_to_si = {'length': 'm',
+                         'area': 'm2',
+                         'volume': 'm3',
                             'mass': 'kg',
                             'temperature': 'K',
                             'power': 'W',
