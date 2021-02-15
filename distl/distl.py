@@ -1972,7 +1972,7 @@ class BaseUnivariateDistribution(BaseDistribution):
         else:
             return value.value
 
-    def to(self, unit):
+    def to(self, unit, strip_units=False):
         """
         Convert to different units.  This creates a copy and returns the
         new distribution with the new units.  Astropy is required in order to
@@ -1989,6 +1989,8 @@ class BaseUnivariateDistribution(BaseDistribution):
         * `unit` (astropy.unit object): unit to use in the new distribution.
             The current units (see <<class>.unit>) must be able to
             convert to the requested units.
+        * `strip_units` (bool, optional, default=False): whether to strip the
+            units from the returned object
 
         Returns
         ------------
@@ -2001,6 +2003,8 @@ class BaseUnivariateDistribution(BaseDistribution):
         if not _has_astropy:
             raise ImportError("astropy required to handle units")
 
+        _label = self.label
+
         if self.unit is None or self.unit in [_units.dimensionless_unscaled]:
             # then we'll just adopt the units without applying any scaling
             factor = 1.0
@@ -2012,9 +2016,16 @@ class BaseUnivariateDistribution(BaseDistribution):
         if new_dist.wrap_at is not None and new_dist.wrap_at is not False:
             new_dist.wrap_at *= factor
         new_dist *= factor
+
+        if strip_units:
+            new_dist.unit = None
+
+        # make sure label doesn't include the math
+        new_dist.label = _label
+
         return new_dist
 
-    def to_si(self):
+    def to_si(self, strip_units=False):
         """
         Convert to SI units.
 
@@ -2022,15 +2033,24 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         * <<class>.to>
         * <<class>.to_solar>
+
+        Arguments
+        ------------
+        * `strip_units` (bool, optional, default=False): whether to strip the
+            units from the returned object
+
+        Returns
+        -------------
+        * distribution object
         """
         physical_type = self.unit.physical_type
 
         if physical_type not in _physical_types_to_si.keys():
             raise NotImplementedError("cannot convert object with physical_type={} to SI units".format(physical_type))
 
-        return self.to(_units.Unit(_physical_types_to_si.get(physical_type)))
+        return self.to(_units.Unit(_physical_types_to_si.get(physical_type)), strip_units=strip_units)
 
-    def to_solar(self):
+    def to_solar(self, strip_units=False):
         """
         Convert to solar units.
 
@@ -2038,13 +2058,23 @@ class BaseUnivariateDistribution(BaseDistribution):
 
         * <<class>.to>
         * <<class>.to_si>
+
+        Arguments
+        ------------
+        * `strip_units` (bool, optional, default=False): whether to strip the
+            units from the returned object
+
+        Returns
+        -------------
+        * distribution object
         """
         physical_type = self.unit.physical_type
 
         if physical_type not in _physical_types_to_solar.keys():
             raise NotImplementedError("cannot convert object with physical_type={} to solar units".format(physical_type))
 
-        return self.to(_units.Unit(_physical_types_to_solar.get(physical_type)))
+        return self.to(_units.Unit(_physical_types_to_solar.get(physical_type)), strip_units=strip_units)
+
 
     ### CONVENIENCE METHODS FOR SAMPLING/WRAPPING/PLOTTING
 
@@ -8132,7 +8162,7 @@ class BaseAroundGenerator(BaseDistlObject):
         self._unit = unit
 
 
-    def to(self, unit):
+    def to(self, unit, strip_units=False):
         """
         Convert to different units.  This creates a copy and returns the
         new distribution with the new units.  Astropy is required in order to
@@ -8149,6 +8179,8 @@ class BaseAroundGenerator(BaseDistlObject):
         * `unit` (astropy.unit object): unit to use in the new distribution.
             The current units (see <<class>.unit>) must be able to
             convert to the requested units.
+        * `strip_units` (bool, optional, default=False): whether to strip the
+            units from the returned object
 
         Returns
         ------------
@@ -8161,6 +8193,8 @@ class BaseAroundGenerator(BaseDistlObject):
         if not _has_astropy:
             raise ImportError("astropy required to handle units")
 
+        _label = self.label
+
         if self.unit is None or self.unit in [_units.dimensionless_unscaled]:
             # then we'll just adopt the units without applying any scaling
             factor = 1.0
@@ -8172,9 +8206,16 @@ class BaseAroundGenerator(BaseDistlObject):
         if new_dist.wrap_at is not None and new_dist.wrap_at is not False:
             new_dist.wrap_at *= factor
         new_dist *= factor
+
+        if strip_units:
+            new_dist.unit = None
+
+        # make sure the label doesn't include math
+        new_dist.label = _label
+
         return new_dist
 
-    def to_si(self):
+    def to_si(self, strip_units=False):
         """
         Convert to SI units.
 
@@ -8182,15 +8223,24 @@ class BaseAroundGenerator(BaseDistlObject):
 
         * <<class>.to>
         * <<class>.to_solar>
+
+        Arguments
+        ------------
+        * `strip_units` (bool, optional, default=False): whether to strip the
+            units from the returned object
+
+        Returns
+        -------------
+        * distribution object
         """
         physical_type = self.unit.physical_type
 
         if physical_type not in _physical_types_to_si.keys():
             raise NotImplementedError("cannot convert object with physical_type={} to SI units".format(physical_type))
 
-        return self.to(_units.Unit(_physical_types_to_si.get(physical_type)))
+        return self.to(_units.Unit(_physical_types_to_si.get(physical_type)), strip_units=strip_units)
 
-    def to_solar(self):
+    def to_solar(self, strip_units=False):
         """
         Convert to solar units.
 
@@ -8198,13 +8248,22 @@ class BaseAroundGenerator(BaseDistlObject):
 
         * <<class>.to>
         * <<class>.to_si>
+
+        Arguments
+        ------------
+        * `strip_units` (bool, optional, default=False): whether to strip the
+            units from the returned object
+
+        Returns
+        -------------
+        * distribution object
         """
         physical_type = self.unit.physical_type
 
         if physical_type not in _physical_types_to_solar.keys():
             raise NotImplementedError("cannot convert object with physical_type={} to solar units".format(physical_type))
 
-        return self.to(_units.Unit(_physical_types_to_solar.get(physical_type)))
+        return self.to(_units.Unit(_physical_types_to_solar.get(physical_type)), strip_units=strip_units)
 
 
     ### CONVENIENCE METHODS FOR SAMPLING/WRAPPING/PLOTTING
