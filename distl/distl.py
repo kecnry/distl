@@ -678,6 +678,8 @@ class BaseDistribution(BaseDistlObject):
         elif _all_in_types((self, other), (BaseUnivariateDistribution, BaseMultivariateSliceDistribution)):
             return Composite("__mul__", (self, other))
         elif isinstance(other, float) or isinstance(other, int):
+            if other == 1.0:
+                return self.copy()
             return self.__mul__(Delta(other))
         else:
             raise TypeError("cannot multiply {} by type {}".format(self.__class__.__name__, type(other)))
@@ -5912,7 +5914,11 @@ class Delta(BaseUnivariateDistribution):
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
+            if other == 1.0:
+                return dist
             dist.loc *= other
+            if dist.label is not None:
+                dist.label = "({}) * {}".format(dist.label, other)
             return dist
 
         return super(Delta, self).__mul__(other)
@@ -5924,6 +5930,8 @@ class Delta(BaseUnivariateDistribution):
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
             dist.loc **= other
+            if dist.unit is not None:
+                dist.unit **= other
             return dist
 
         return super(Delta, self).__pow__(other)
@@ -5945,7 +5953,11 @@ class Delta(BaseUnivariateDistribution):
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
+            if other == 0.0:
+                return dist
             dist.loc += other
+            if dist.label is not None:
+                dist.label = "({}) + {}".format(dist.label, other)
             return dist
 
         return super(Delta, self).__add__(other)
@@ -6095,8 +6107,12 @@ class Gaussian(BaseUnivariateDistribution):
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
+            if other == 1.0:
+                return dist
             dist.loc *= other
             dist.scale *= other
+            if dist.label is not None:
+                dist.label = "({}) * {}".format(dist.label, other)
             return dist
 
         return super(Gaussian, self).__mul__(other)
@@ -6109,6 +6125,8 @@ class Gaussian(BaseUnivariateDistribution):
             dist = self.copy()
             dist.loc **= other
             dist.scale **= other
+            if dist.unit is not None:
+                dist.unit **= other
             return dist
 
         return super(Gaussian, self).__pow__(other)
@@ -6131,7 +6149,11 @@ class Gaussian(BaseUnivariateDistribution):
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
+            if other == 0.0:
+                return dist
             dist.loc += other
+            if dist.label is not None:
+                dist.label = "({}) + {}".format(dist.label, other)
             return dist
 
         return super(Gaussian, self).__add__(other)
@@ -6294,8 +6316,12 @@ class Uniform(BaseUnivariateDistribution):
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
+            if other == 1.0:
+                return dist
             dist.low *= other
             dist.high *= other
+            if dist.label is not None:
+                dist.label = "({}) * {}".format(dist.label, other)
             return dist
 
         return super(Uniform, self).__mul__(other)
@@ -6306,8 +6332,14 @@ class Uniform(BaseUnivariateDistribution):
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
+            if other == 1:
+                return dist
             dist.low **= other
             dist.high **= other
+            if dist.unit is not None:
+                dist.unit **= other
+            if dist.label is not None:
+                dist.label = "({}) ** {}".format(dist.label, other)
             return dist
 
         return super(Uniform, self).__pow__(other)
@@ -6331,8 +6363,12 @@ class Uniform(BaseUnivariateDistribution):
 
         if (isinstance(other, float) or isinstance(other, int)):
             dist = self.copy()
+            if other == 0.0:
+                return dist
             dist.low += other
             dist.high += other
+            if dist.label is not None:
+                dist.label = "({}) + {}".format(dist.label, other)
             return dist
         # elif isinstance(other, Uniform):
             ## NOTE: this does not seem to be true as we should get a trapezoid if sampling separately
