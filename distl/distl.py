@@ -6,6 +6,7 @@ from scipy import interpolate as _interpolate
 from scipy import integrate as _integrate
 import json as _json
 import sys as _sys
+import importlib as _importlib
 from collections import OrderedDict
 from distutils.version import StrictVersion
 
@@ -125,6 +126,13 @@ def from_dict(d):
     # a keyword argument to __init__
     args = d.get('args', None)
     kwargs = {k:v for k,v in d.items() if k not in ['distl', 'distl.version', 'args']}
+    if classname == 'Function':
+        kwargs['args'] = args
+        args = None
+        if isinstance(kwargs["func"], str):
+            m = _importlib.import_module(".".join(kwargs["func"].split(".")[:-1]))
+            kwargs["func"] = getattr(m, kwargs["func"].split(".")[-1])
+
     if args is not None:
         dist = getattr(_sys.modules[__name__], classname)(*args, **kwargs)
     else:
@@ -580,6 +588,7 @@ class BaseDistlObject(object):
         --------
         * string
         """
+        _ = kwargs.pop("export_func_as_path")
         return _json.dumps(self.to_dict(exclude=kwargs.pop('exclude', [])), ensure_ascii=True, **kwargs)
 
     def to_file(self, filename, **kwargs):
@@ -4837,6 +4846,38 @@ class Composite(BaseUnivariateDistribution):
         """
         return self.to_histogram(N=N, bins=bins, range=range).to_uniform(sigma=sigma)
 
+
+    def to_dict(self, export_func_as_path=False, **kwargs):
+        def _handle_composite_export_func_as_path(d):
+            for i,dist in enumerate(d['dists']):
+                if 'dists' in dist.keys():
+                    d['dists'][i] = _handle_composite_export_func_as_path(d['dists'][i])
+                if 'func' in dist.keys():
+                    d['dists'][i]['func'] = ".".join([dist['func'].__module__, dist['func'].__name__])
+            return d
+
+
+        d = super(Composite, self).to_dict(**kwargs)
+        if export_func_as_path:
+            d = _handle_composite_export_func_as_path(d)
+        return d
+
+    def to_json(self, export_func_as_path=False, **kwargs):
+        """
+
+        """
+        return _json.dumps(self.to_dict(export_func_as_path=export_func_as_path, exclude=kwargs.pop('exclude', [])), ensure_ascii=True, **kwargs)
+
+    def to_file(self, filename, export_func_as_path=False, **kwargs):
+        """
+
+        """
+        f = open(filename, 'w')
+        f.write(self.to_json(export_func_as_path=export_func_as_path, **kwargs))
+        f.close()
+        return filename
+
+
 class Function(BaseUnivariateDistribution):
     """
     A function distribution consisting of some callable function along with
@@ -5178,15 +5219,25 @@ class Function(BaseUnivariateDistribution):
 
         return super(Function, self).plot_sample(*args, **kwargs)
 
-    def to_json(self, **kwargs):
+    def to_dict(self, export_func_as_path=False, **kwargs):
+        d = super(Function, self).to_dict(**kwargs)
+        if export_func_as_path:
+            d['func'] = ".".join([d['func'].__module__, d['func'].__name__])
+        return d
+
+
+    def to_json(self, export_func_as_path=False, **kwargs):
         """
         json is not supported for <Function> distributions as the <Function.func>
         object must be stored via dill.  See <Function.to_dict> or <Function.to_file>.
         """
-        raise NotImplementedError("to_json is not supported for Function distributions.  See to_dict or to_file instead")
+        if export_func_as_path:
+            return _json.dumps(self.to_dict(export_func_as_path=True, exclude=kwargs.pop('exclude', [])), ensure_ascii=True, **kwargs)
+        else:
+            raise NotImplementedError("to_json is not supported for Function distributions, unless export_func_as_path=True.  See to_dict or to_file instead")
 
 
-    def to_file(self, filename, **kwargs):
+    def to_file(self, filename, export_func_as_path=False, **kwargs):
         """
         Save the distribution object to a file using dill.
 
@@ -5203,12 +5254,18 @@ class Function(BaseUnivariateDistribution):
         --------
         * string: the filename
         """
+        if export_func_as_path:
+            f = open(filename, 'w')
+            f.write(self.to_json(export_func_as_path=True, **kwargs))
+            f.close()
+            return filename
+
         if _has_dill:
             f = open(filename, 'wb')
             f.write(_dill.dumps(self))
             f.close()
         else:
-            raise ImportError("to_file for Function distributions requires the 'dill' package")
+            raise ImportError("to_file for Function distributions requires the 'dill' package or `export_func_as_path=True`")
         return filename
 
     def to_gaussian(self, N=1000, bins=10, range=None):
