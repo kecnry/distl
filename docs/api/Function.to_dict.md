@@ -3,7 +3,7 @@
 
 ```py
 
-def to_dict(self, exclude=[])
+def to_dict(self, export_func_as_path=False, **kwargs)
 
 ```
 

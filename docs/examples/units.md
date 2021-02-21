@@ -48,14 +48,13 @@ g.sample(unit=u.m)
 
 
 
-    8717.416171176093
+    8380.071695942237
 
 
 
 
 ```python
 out = g.plot(unit=u.m, show=True)
-# TODO: fix density scaling when changing units
 ```
 
 

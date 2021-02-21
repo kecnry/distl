@@ -3,7 +3,7 @@
 
 ```py
 
-def to_json(self, **kwargs)
+def to_json(self, export_func_as_path=False, **kwargs)
 
 ```
 

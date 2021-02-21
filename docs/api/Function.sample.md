@@ -35,7 +35,7 @@ Arguments
     will use the value from [Function.wrap_at](Function.wrap_at.md).  Note: wrapping is
     computed before changing units, so `wrap_at` must be provided
     according to [Function.unit](Function.unit.md) not `unit`.
-* `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
+* `seed` (dict, optional, default={}): seeds (as uniqueid: seed pairs) to
     pass to underlying distributions.
 * `cache_sample` (bool, optional, default=True): whether to override the
     existing [Function.cached_sample](Function.cached_sample.md).

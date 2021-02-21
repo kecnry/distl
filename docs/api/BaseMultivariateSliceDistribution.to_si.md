@@ -3,7 +3,7 @@
 
 ```py
 
-def to_si(self)
+def to_si(self, strip_units=False)
 
 ```
 
@@ -15,4 +15,13 @@ See also:
 
 * [BaseMultivariateSliceDistribution.to](BaseMultivariateSliceDistribution.to.md)
 * [BaseMultivariateSliceDistribution.to_solar](BaseMultivariateSliceDistribution.to_solar.md)
+
+Arguments
+------------
+* `strip_units` (bool, optional, default=False): whether to strip the
+    units from the returned object
+
+Returns
+-------------
+* distribution object
 
