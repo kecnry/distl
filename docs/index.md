@@ -265,6 +265,8 @@ Currently supported operators include:
 
 See [these math examples](./examples/math.md) for more details.
 
+Note that, by default, the original distribution object and the new [CompositeDistribution](./api/Compositie.md) will be linked and therefore sampled simultaneously.  See [copy vs deepcopy](./examples/copy_deepcopy.md) for more details.
+
 
 ## Support for Units
 
