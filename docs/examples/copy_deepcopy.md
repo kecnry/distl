@@ -20,7 +20,7 @@ d = distl.gaussian(5, 1)
 print(d.uniqueid)
 ```
 
-    kpPghPWbAEWQYASbuiGr
+    qXmRdLGhfHpHnaDtVqhD
 
 
 When calling [copy](../api/BaseDistribution.copy.md), this `uniqueid` is retained which links the new copy to the original.
@@ -30,7 +30,7 @@ When calling [copy](../api/BaseDistribution.copy.md), this `uniqueid` is retaine
 print(d.copy().uniqueid)
 ```
 
-    kpPghPWbAEWQYASbuiGr
+    qXmRdLGhfHpHnaDtVqhD
 
 
 Calling [deepcopy](../api/BaseDistribution.deepcopy.md), however, assigns a new random `uniqueid`, effectively unlinking the two distribution objects.
@@ -40,7 +40,7 @@ Calling [deepcopy](../api/BaseDistribution.deepcopy.md), however, assigns a new 
 print(d.deepcopy().uniqueid)
 ```
 
-    aRnZTybnOaEGvCAHlOVo
+    tRqFpWAZWlZvWbzHHrYQ
 
 
 # Implications in CompositeDistributions and math operations
@@ -59,7 +59,7 @@ d = distl.gaussian(5, 1)
 print(d.uniqueid)
 ```
 
-    YYBpLUmOeIZUqPIowCCs
+    yzjcXLHzImrgJDsJGKms
 
 
 
@@ -67,7 +67,7 @@ print(d.uniqueid)
 print((5*d).uniqueid)
 ```
 
-    YYBpLUmOeIZUqPIowCCs
+    yzjcXLHzImrgJDsJGKms
 
 
 We can see the implications of this in action when a [CompositeDistribution](../api/CompositeDistribution.md) contains two or more "copies" of the same underlying distribution.
@@ -104,13 +104,51 @@ _ = comp_indep.plot(show=True)
 ![png](copy_deepcopy_files/copy_deepcopy_17_0.png)
 
 
+# Implications in Function Distributions
+
+Similarly, a [Function Distribution](../api/Function.md) will sample from any input distributions following these same rules.  This does work even if `vectorized=False`, although it does get more computationally expensive.
+
+
+```python
+def custom_math(a, b):
+    return a + 5*b
+```
+
+
+```python
+f = distl.function(custom_math, args=(d, d))
+```
+
+
+```python
+_ = f.plot(show=True)
+```
+
+
+![png](copy_deepcopy_files/copy_deepcopy_21_0.png)
+
+
+
+```python
+f_indep = distl.function(custom_math, args=(d, d.deepcopy()))
+```
+
+
+```python
+_ = f_indep.plot(show=True)
+```
+
+
+![png](copy_deepcopy_files/copy_deepcopy_23_0.png)
+
+
 # Implications in DistributionCollections
 
 This sampling logic can be seen even more clearly in the corner plots within [DistributionCollections](../api/DistributionCollection.md).  First we'll create a collection with `d` and `5*d`.  Since this creates a linked copy by default, we can see that the resulting samples strictly follow a 1:1 relationship.
 
 
 ```python
-dc = distl.DistributionCollection(d, 5*d)
+dc = distl.DistributionCollection(d, comp, f)
 ```
 
 
@@ -119,14 +157,14 @@ _ = dc.plot(show=True)
 ```
 
 
-![png](copy_deepcopy_files/copy_deepcopy_21_0.png)
+![png](copy_deepcopy_files/copy_deepcopy_27_0.png)
 
 
 If instead we force a deepcopy, both resulting Gaussian distributions are sampled independently from each other and no longer show this correlation.
 
 
 ```python
-dc_indep = distl.DistributionCollection(d, 5*d.deepcopy())
+dc_indep = distl.DistributionCollection(d, comp_indep, f_indep)
 ```
 
 
@@ -135,5 +173,10 @@ _ = dc_indep.plot(show=True)
 ```
 
 
-![png](copy_deepcopy_files/copy_deepcopy_24_0.png)
+![png](copy_deepcopy_files/copy_deepcopy_30_0.png)
 
+
+
+```python
+
+```
