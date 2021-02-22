@@ -426,7 +426,7 @@ def _test_methods_properties(d):
         raise NotImplementedError("test_methods_properties for class {} not implemented".format(d.__class__.__name__))
 
     d.copy()
-    d.hash
+    d.uniqueid
     if not isinstance(d, distl._distl.Function):
         d.to_json()
     d.to_dict()

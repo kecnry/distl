@@ -617,7 +617,7 @@ class BaseDistlObject(object):
         --------
         * string
         """
-        _ = kwargs.pop("export_func_as_path")
+        _ = kwargs.pop("export_func_as_path", None)
         return _json.dumps(self.to_dict(exclude=kwargs.pop('exclude', [])), ensure_ascii=True, **kwargs)
 
     def to_file(self, filename, **kwargs):
@@ -8556,7 +8556,7 @@ class Delta_Around(BaseAroundGenerator):
 
     """
     def __init__(self, value=None, unit=None, label=None, label_latex=None,
-                 wrap_at=None, unique=None):
+                 wrap_at=None, uniqueid=None):
         """
         Create a <Delta_Around> object which, when called, will resolve
         to a <Delta> object around a given central value.
