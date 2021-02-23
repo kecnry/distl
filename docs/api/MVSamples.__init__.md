@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, samples, weights=None, bw_method=None, units=None, labels=None, labels_latex=None, wrap_ats=None)
+def __init__(self, samples, weights=None, bw_method=None, units=None, labels=None, labels_latex=None, wrap_ats=None, uniqueid=None)
 
 ```
 

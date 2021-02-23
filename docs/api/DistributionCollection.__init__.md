@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, *dists)
+def __init__(self, *dists, **kwargs)
 
 ```
 

@@ -3,7 +3,7 @@
 
 ```py
 
-def __init__(self, dist_constructor_func, dist_constructor_argnames, **kwargs)
+def __init__(self, dist_constructor_func, dist_constructor_argnames, uniqueid=None, **kwargs)
 
 ```
 

@@ -3,7 +3,7 @@
 
 ```py
 
-def to_file(self, filename, **kwargs)
+def to_file(self, filename, export_func_as_path=False, **kwargs)
 
 ```
 

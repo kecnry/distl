@@ -22,6 +22,7 @@ nav:
         - multivariate: examples/multivariate.md
         - multivariate slices: examples/multivariate_slice.md
         - distribution collections: examples/collections.md
+        - copy vs deepcopy: examples/copy_deepcopy.md
         - sampling cache: examples/sample_cache.md
         # - fitting with EMCEE: examples/fitting_emcee.md
     - API:

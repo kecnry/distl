@@ -3,7 +3,7 @@
 
 ```py
 
-def to(self, unit)
+def to(self, unit, strip_units=False)
 
 ```
 
@@ -24,6 +24,8 @@ Arguments
 * `unit` (astropy.unit object): unit to use in the new distribution.
     The current units (see [Delta_Around.unit](Delta_Around.unit.md)) must be able to
     convert to the requested units.
+* `strip_units` (bool, optional, default=False): whether to strip the
+    units from the returned object
 
 Returns
 ------------

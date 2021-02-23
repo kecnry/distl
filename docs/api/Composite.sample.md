@@ -26,7 +26,7 @@ Arguments
     will use the value from [Composite.wrap_at](Composite.wrap_at.md).  Note: wrapping is
     computed before changing units, so `wrap_at` must be provided
     according to [Composite.unit](Composite.unit.md) not `unit`.
-* `seed` (dict, optional, default={}): seeds (as hash: seed pairs) to
+* `seed` (dict, optional, default={}): seeds (as uniqueid: seed pairs) to
     pass to underlying distributions.
 * `as_univariate` (bool, optional, default=False): whether to draw from
     the flattend [Composite.pdf](Composite.pdf.md) rather than from the children distributions.
