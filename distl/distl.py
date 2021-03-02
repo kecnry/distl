@@ -7754,7 +7754,8 @@ class MVSamples(BaseMultivariateDistribution):
         # TODO: manual implementation
         raise NotImplementedError()
 
-    def sample(self, size=None, dimension=None, seed=None, cache_sample=True):
+    def sample(self, size=None, dimension=None, seed=None, cache_sample=True,
+               unit=None, as_quantity=False):
         """
         Sample from the  samples (<MVSamples.samples> if <MVSamples.weights>
         is not provided, otherwise <MVSamples.samples_weighted>)
@@ -7949,7 +7950,8 @@ class MVSamples(BaseMultivariateDistribution):
         Arguments
         -----------
         * `N` (int, optional, default=1e6): number of samples to use for
-            the histogram.
+            the histogram.  If N>=<MVSamples.nsamples>, <MVSamples.samples>
+            will be passed directly.
         * `bins` (int, optional, default=15): number of bins to use for the
             histogram.
         * `range` (tuple or None): range to use for the histogram.
@@ -7959,7 +7961,7 @@ class MVSamples(BaseMultivariateDistribution):
         * an <MVHistogram> object
         """
         # TODO: if sample is updated to take wrap_at/wrap_ats... pass wrap_at=False here
-        return MVHistogram.from_data(self.sample(size=int(N), cache_sample=False),
+        return MVHistogram.from_data(self.samples if N >= self.nsamples else self.sample(size=int(N), cache_sample=False),
                                      bins=bins, range=range,
                                      units=self.units,
                                      labels=self.labels, labels_latex=self._labels_latex,
