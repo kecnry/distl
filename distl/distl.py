@@ -5685,7 +5685,7 @@ class Samples(BaseUnivariateDistribution):
                 weights = weights[~nans]
 
         super(Samples, self).__init__(unit, label, label_latex, wrap_at,
-                                      _stats.gaussian_kde, ('samples', 'bw_method') if StrictVersion(_scipy_version) < StrictVersion("1.2.0") else ('samples', 'bw_method', 'weights'),
+                                      _stats.gaussian_kde, ('samples', 'bw_method') if parse(_scipy_version) < parse("1.2.0") else ('samples', 'bw_method', 'weights'),
                                       samples=samples, weights=weights,
                                       bw_method=bw_method,
                                       uniqueid=uniqueid)
@@ -7545,7 +7545,7 @@ class MVSamples(BaseMultivariateDistribution):
         # NOTE: the passed samples need to be transposed, so see the override
         # in dist_constructor_args
         super(MVSamples, self).__init__(units, labels, labels_latex, wrap_ats,
-                                        _stats.gaussian_kde, ('samples', 'bw_method') if StrictVersion(_scipy_version) < StrictVersion("1.2.0") else ('samples', 'bw_method', 'weights'),
+                                        _stats.gaussian_kde, ('samples', 'bw_method') if parse(_scipy_version) < parse("1.2.0") else ('samples', 'bw_method', 'weights'),
                                         samples=samples, weights=weights, bw_method=bw_method,
                                         uniqueid=uniqueid)
 
