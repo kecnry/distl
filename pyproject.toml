@@ -1,0 +1,50 @@
+[project]
+name = "distl"
+version = "0.3.1"
+description = "Simple Distributions: math operations, serializing, covariances"
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "GPL-3.0-or-later" }
+authors = [
+    { name = "Kyle Conroy", email = "kyleconroy@gmail.com" },
+]
+maintainers = [
+    { name = "Kyle Conroy", email = "kyleconroy@gmail.com" },
+]
+keywords = [
+    "science",
+    "mathematics",
+    "statistics",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 2.7",
+    "Programming Language :: Python :: 3.6",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "numpy",
+    "scipy"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest"
+]
+
+[project.urls]
+repository = "https://github.com/kecnry/distl"
+
+[build-system]
+requires = ["setuptools", "numpy", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = [
+    "distl"
+]

@@ -1,5 +1,5 @@
 from . import distl as _distl
-from .distl import DistributionCollection, from_dict, from_json, from_file, get_random_seed, _has_astropy, _units, __version__, version # , sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists,
+from .distl import DistributionCollection, from_dict, from_json, from_file, get_random_seed, _has_astropy, __version__, version # , sample_from_dists, sample_ppf_from_dists, logp_from_dists, sample_func_from_dists, plot_func_from_dists,
 import numpy as _np
 from .distl import BaseDistlObject, BaseDistribution, BaseAroundGenerator # for isinstance checking
 import json as _json
