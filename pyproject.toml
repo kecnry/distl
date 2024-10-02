@@ -29,9 +29,12 @@ classifiers = [
 ]
 dependencies = [
     "numpy",
-    "scipy",
-    "astropy",
-    "pytest",
+    "scipy"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest"
 ]
 
 [project.urls]
