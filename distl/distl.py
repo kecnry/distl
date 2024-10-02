@@ -235,7 +235,7 @@ class Latex(object):
 
     @property
     def as_latex(self):
-        return r"\begin{align} "+self._stex+" \end{align}"
+        return r"\begin{align} " + self._stex + r" \end{align}"
 
     @property
     def as_latex_list(self):
@@ -315,7 +315,7 @@ def _format_uncertainties_asymmetric(labels, labels_latex, units, qs_per_dim):
         unitstr = " "+unit.to_string() if unit is not None else ""
         unittex_spacer = "" if unit is None or unit in [_units.deg, _units.dimensionless_unscaled] else "~"
         unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
-        stex += "\mathrm{{ {} }} &= {}^{{ +{} }}_{{ -{} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unittex)
+        stex += r"\mathrm{{ {} }} &= {}^{{ +{} }}_{{ -{} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unittex)
         s += "{} = {} +{} -{} {}\n".format(label, _np.round(qs[1], ndigits), _np.round(qs[2]-qs[1], ndigits), _np.round(qs[1]-qs[0], ndigits), unitstr)
 
     return Latex(s, stex)
@@ -346,7 +346,7 @@ def _format_uncertainties_symmetric(labels, labels_latex, units, values_per_dim,
         unitstr = " "+unit.to_string() if unit is not None else ""
         unittex_spacer = "" if unit is None or unit in [_units.deg, _units.dimensionless_unscaled] else "~"
         unittex = unittex_spacer + unit._repr_latex_().replace('$', '') if unit is not None else ''
-        stex += "\mathrm{{ {} }} &= {}\pm{{ {} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(value, ndigits), _np.round(sigma, ndigits), unittex)
+        stex += "\\mathrm{{ {} }} &= {} \\pm {{ {} }} {} \\\\ ".format(label_latex.replace("$", ""), _np.round(value, ndigits), _np.round(sigma, ndigits), unittex)
         s += "{} = {} +/- {} {}\n".format(label, _np.round(value, ndigits), _np.round(sigma, ndigits), unitstr)
 
     return Latex(s, stex)
@@ -4423,9 +4423,9 @@ class DistributionCollection(BaseDistlObject):
         bounds = _np.percentile(models, 100 * _norm.cdf([-2, -1, 1, 2]), axis=0)
 
         ret1 = _plt.fill_between(x, bounds[0, :], bounds[-1, :],
-                         label="95\% uncertainty", facecolor="#03A9F4", alpha=0.4)
+                         label=r"95\% uncertainty", facecolor="#03A9F4", alpha=0.4)
         ret2 = _plt.fill_between(x, bounds[1, :], bounds[-2, :],
-                         label="68\% uncertainty", facecolor="#0288D1", alpha=0.4)
+                         label=r"68\% uncertainty", facecolor="#0288D1", alpha=0.4)
 
         if show:
             _plt.show()
@@ -4477,7 +4477,7 @@ class Composite(BaseUnivariateDistribution):
     Limitations and treatment "under-the-hood":
 
     * &: the pdfs of the two underlying distributions are sampled over their
-        99.99\% intervals and multiplied to create a new pdf.  A spline is then
+        99.99% intervals and multiplied to create a new pdf.  A spline is then
         fit to the pdf and integrated to create the cdf (which is inverted to
         create the ppf function).  Each of these are then linearly interpolated
         to create the underlying scipy.stats object.  This object is then used
@@ -4486,7 +4486,7 @@ class Composite(BaseUnivariateDistribution):
         retaining covariances at all.
 
     * |: the pdfs and cdfs of the two underlying distributions are sampled over their
-        99.9\% intervals and added to create the new pdfs and cdfs, respectively
+        99.9% intervals and added to create the new pdfs and cdfs, respectively
         (and the cdf inverted to create the ppf function).  Each of these are then
         linearly interpolated to create the underlying scipy.stats object.  This
         object is then used for any call to the underlying call EXCEPT for sampling.
