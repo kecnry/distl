@@ -10,7 +10,7 @@ import importlib as _importlib
 import random as _random
 import string as _string
 from collections import OrderedDict
-from distutils.version import StrictVersion
+from packaging.version import parse
 
 from . import stats_custom as _stats_custom
 
@@ -5734,7 +5734,7 @@ class Samples(BaseUnivariateDistribution):
         if value is None:
             self._weights = None
         else:
-            if StrictVersion(_scipy_version) < StrictVersion("1.2.0"):
+            if parse(_scipy_version) < parse("1.2.0"):
                 raise ImportError("weights for Samples requires scipy 1.2+")
             self._weights = is_1d_array(value)
         self._dist_constructor_object_clear_cache()
@@ -7573,7 +7573,7 @@ class MVSamples(BaseMultivariateDistribution):
         if value is None:
             self._weights = None
         else:
-            if StrictVersion(_scipy_version) < StrictVersion("1.2.0"):
+            if parse(_scipy_version) < parse("1.2.0"):
                 raise ImportError("weights for Samples requires scipy 1.2+")
             self._weights = is_1d_array(value)
         self._dist_constructor_object_clear_cache()
@@ -7997,7 +7997,7 @@ class MVSamplesSlice(BaseMultivariateSliceDistribution):
 
     @property
     def dist_constructor_argnames(self):
-        return ('samples', 'bw_method') if StrictVersion(_scipy_version) < StrictVersion("1.2.0") else ('samples', 'bw_method', 'weights')
+        return ('samples', 'bw_method') if parse(_scipy_version) < parse("1.2.0") else ('samples', 'bw_method', 'weights')
 
     @property
     def samples(self):
